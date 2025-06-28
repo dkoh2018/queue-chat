@@ -200,47 +200,36 @@ export default function ChatGPT() {
         {/* Message Input */}
         <div className="p-4">
           <div className="max-w-3xl mx-auto">
-            <div className="relative bg-gray-700 rounded-2xl border border-gray-600">
-              <div className="flex items-end p-4">
-                <div className="flex-1">
-                  <textarea
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSend();
-                      }
-                    }}
-                    placeholder="Ask anything"
-                    className="w-full overflow-y-auto text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none"
-                    style={{ minHeight: '24px', maxHeight: '50px', wordBreak: 'break-word' }}
-                  />
-                </div>
-                
-                <div className="flex items-center space-x-2 ml-3">
-                  <button className="p-2 hover:bg-gray-600 rounded-lg transition-colors">
-                    <AttachIcon />
-                  </button>
-                  
-                  
-                  <button className="p-2 hover:bg-gray-600 rounded-lg transition-colors">
-                    <MicIcon />
-                  </button>
-                  
-                  <button className="p-2 hover:bg-gray-600 rounded-lg transition-colors">
-                    <VoiceIcon />
-                  </button>
-                  <button
-                    className="p-2 hover:bg-gray-600 rounded-lg transition-colors"
-                    onClick={handleSend}
-                  >
-                    <SendIcon />
-                  </button>
-                </div>
-              </div>
+            <div className="flex items-center bg-gray-700 rounded-2xl border border-gray-600 px-4 py-2 space-x-2">
+              <textarea
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                placeholder="Ask anything"
+                className="flex-1 h-10 text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none"
+                style={{ wordBreak: 'break-word' }}
+              />
+              <button className="p-2 hover:bg-gray-600 rounded-lg transition-colors">
+                <AttachIcon />
+              </button>
+              <button className="p-2 hover:bg-gray-600 rounded-lg transition-colors">
+                <MicIcon />
+              </button>
+              <button className="p-2 hover:bg-gray-600 rounded-lg transition-colors">
+                <VoiceIcon />
+              </button>
+              <button
+                className="p-2 hover:bg-gray-600 rounded-lg transition-colors"
+                onClick={handleSend}
+              >
+                <SendIcon />
+              </button>
             </div>
-            
             <div className="text-center mt-2">
               <p className="text-xs text-gray-400">
                 ChatGPT can make mistakes. Check important info.
