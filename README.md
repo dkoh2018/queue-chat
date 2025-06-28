@@ -34,4 +34,14 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Chat API (OpenAI)
+
+To enable AI-powered responses, create a `.env.local` file in the project root with your OpenAI API key:
+
+```bash
+OPENAI_API_KEY=your_openai_api_key
+```
+
+This key is used by the `/api/chat` endpoint which forwards messages to the GPT-4o Mini model by default. Ensure your key has access to the desired model.
 # queue-chat
