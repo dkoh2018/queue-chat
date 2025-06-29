@@ -82,6 +82,13 @@ export async function POST(request: Request) {
       }
     });
 
+    // Log chat completion
+    console.log('💬 CHAT COMPLETED:', {
+      conversationId: conversation.id,
+      responseLength: content.length,
+      wasOptimized: !!optimizedInput
+    });
+
     return NextResponse.json({ 
       content, 
       conversationId: conversation.id 

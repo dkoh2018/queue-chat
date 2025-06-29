@@ -8,16 +8,16 @@ interface ChatViewProps {
 export const ChatView = ({ messages }: ChatViewProps) => {
   return (
     <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 sm:px-6 lg:px-8 py-8">
-      <div className="max-w-4xl w-full mx-auto space-y-8 pb-48">
+      <div className="max-w-4xl w-full mx-auto space-y-12 pb-48">
         {messages?.map((msg, index) => (
           <div
             key={index}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-6`}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-8`}
           >
-            <div className={`max-w-[85%] ${
-              msg.role === 'user' 
-                ? 'bg-slate-700 text-white rounded-2xl rounded-br-md px-6 py-4 border border-slate-600/50' 
-                : 'text-gray-100'
+            <div className={`${
+              msg.role === 'user'
+                ? 'bg-slate-700 text-white rounded-2xl rounded-br-md px-5 py-3 border border-slate-600/50 max-w-[85%] shadow-lg'
+                : 'text-gray-100 w-full'
             }`}>
               {msg.role === 'assistant' ? (
                 <div className="prose prose-invert prose-lg max-w-none">

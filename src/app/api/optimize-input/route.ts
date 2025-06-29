@@ -72,6 +72,12 @@ export async function POST(request: Request) {
     const data = await response.json();
     const optimizedInput = data.choices?.[0]?.message?.content ?? userInput;
 
+    // Log optimization comparison
+    console.log('🔧 INPUT OPTIMIZATION:');
+    console.log(`   Original: "${userInput.slice(0, 80)}${userInput.length > 80 ? '...' : ''}"`);
+    console.log(`   Optimized: "${optimizedInput.slice(0, 80)}${optimizedInput.length > 80 ? '...' : ''}"`);
+    console.log(`   Improvement: ${optimizedInput.length - userInput.length > 0 ? '+' : ''}${optimizedInput.length - userInput.length} chars`);
+
     return NextResponse.json({ 
       originalInput: userInput,
       optimizedInput: optimizedInput 

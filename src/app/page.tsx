@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useConversations, useChat } from '@/hooks';
 import { Conversation } from '@/types';
-import { MenuIcon } from '@/components/icons';
 import { Sidebar } from '@/components/Sidebar';
 import { ChatView } from '@/components/ChatView';
 import { WelcomeView } from '@/components/WelcomeView';
@@ -189,15 +188,6 @@ export default function Jarvis() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col relative">
-        {/* Top Bar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-          {!sidebarOpen && (
-            <button onClick={() => setSidebarOpen(true)} className="p-2 hover:bg-gray-700 rounded">
-              <MenuIcon />
-            </button>
-          )}
-        </div>
-
         {/* Chat Area or Welcome - now takes full height */}
         {!messages || messages.length === 0 ? (
           <WelcomeView currentConversationId={currentConversationId} />

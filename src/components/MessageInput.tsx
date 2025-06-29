@@ -28,6 +28,7 @@ export const MessageInput = ({ inputText, setInputText, onSend }: MessageInputPr
       // If no content, use minimum height
       if (!inputText.trim()) {
         textarea.style.height = `${minHeight}px`;
+        textarea.style.overflowY = 'hidden';
         return;
       }
       
@@ -38,7 +39,7 @@ export const MessageInput = ({ inputText, setInputText, onSend }: MessageInputPr
       textarea.style.height = `${newHeight}px`;
       
       // Enable scrolling only when max height is reached
-      if (scrollHeight > maxHeight) {
+      if (newHeight >= maxHeight) {
         textarea.style.overflowY = 'auto';
       } else {
         textarea.style.overflowY = 'hidden';
@@ -52,10 +53,10 @@ export const MessageInput = ({ inputText, setInputText, onSend }: MessageInputPr
       <div className="absolute bottom-0 left-0 right-0 z-10 bg-transparent p-4">
         <div className="max-w-4xl mx-auto">
           {/* Single unified input component with curved edges */}
-          <div className="relative bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 shadow-lg transition-all duration-200 hover:border-gray-500/60 focus-within:border-emerald-400/60 focus-within:shadow-emerald-500/20"
+          <div className="flex flex-col bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 shadow-lg transition-all duration-200 hover:border-gray-500/60 focus-within:border-emerald-400/60 focus-within:shadow-emerald-500/20"
                style={{ borderRadius: '12px' }}>
             
-            {/* Textarea - fills container with padding for buttons */}
+            {/* Textarea */}
             <textarea
               ref={textareaRef}
               value={inputText}
@@ -68,81 +69,46 @@ export const MessageInput = ({ inputText, setInputText, onSend }: MessageInputPr
               }}
               placeholder="Ask anything..."
               className="w-full text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none font-medium"
-              style={{ 
-                padding: '16px 60px 16px 60px', // Space for buttons on both sides
+              style={{
+                padding: '16px',
                 fontSize: '15px',
                 lineHeight: '1.5',
                 wordBreak: 'break-word',
-                minHeight: '36px', // Compact start (~1.5 lines)
-                maxHeight: '192px', // 8 lines max
-                transition: 'height 0.2s ease' // Smooth height transitions
+                minHeight: '36px',
+                maxHeight: '192px',
+                transition: 'height 0.2s ease'
               }}
             />
             
-            {/* Send button - absolutely positioned inside textarea bottom-right */}
-            <button
-              onClick={onSend}
-              disabled={!inputText.trim()}
-              className="absolute bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-full transition-all duration-200 shadow-sm hover:shadow-md disabled:shadow-none"
-              style={{
-                bottom: '8px',
-                right: '8px',
-                padding: '6px',
-                width: '32px',
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              title={inputText.trim() ? 'Send message' : 'Type a message to send'}
-            >
-              <SendIcon />
-            </button>
-            
-            {/* Tool buttons - absolutely positioned inside textarea bottom-left */}
-            <div className="absolute flex items-center space-x-1"
-                 style={{
-                   bottom: '8px',
-                   left: '8px'
-                 }}>
-              <button 
-                className="hover:bg-gray-600/50 rounded-full transition-colors opacity-70 hover:opacity-100"
-                style={{
-                  padding: '6px',
-                  width: '28px',
-                  height: '28px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                title="Attach file">
-                <AttachIcon />
-              </button>
-              <button 
-                className="hover:bg-gray-600/50 rounded-full transition-colors opacity-70 hover:opacity-100"
-                style={{
-                  padding: '6px',
-                  width: '28px',
-                  height: '28px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                title="Voice input">
-                <MicIcon />
-              </button>
-              <button 
-                className="hover:bg-gray-600/50 rounded-full transition-colors opacity-70 hover:opacity-100"
-                style={{
-                  padding: '6px',
-                  width: '28px',
-                  height: '28px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                title="Voice mode">
-                <VoiceIcon />
+            {/* Buttons Container */}
+            <div className="flex justify-between items-center p-2">
+              {/* Tool Buttons */}
+              <div className="flex items-center space-x-1">
+                <button
+                  className="hover:bg-gray-600/50 rounded-full transition-colors opacity-70 hover:opacity-100 p-1.5"
+                  title="Attach file">
+                  <AttachIcon />
+                </button>
+                <button
+                  className="hover:bg-gray-600/50 rounded-full transition-colors opacity-70 hover:opacity-100 p-1.5"
+                  title="Voice input">
+                  <MicIcon />
+                </button>
+                <button
+                  className="hover:bg-gray-600/50 rounded-full transition-colors opacity-70 hover:opacity-100 p-1.5"
+                  title="Voice mode">
+                  <VoiceIcon />
+                </button>
+              </div>
+              
+              {/* Send Button */}
+              <button
+                onClick={onSend}
+                disabled={!inputText.trim()}
+                className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-full transition-all duration-200 shadow-sm hover:shadow-md disabled:shadow-none w-8 h-8 flex items-center justify-center"
+                title={inputText.trim() ? 'Send message' : 'Type a message to send'}
+              >
+                <SendIcon />
               </button>
             </div>
           </div>
