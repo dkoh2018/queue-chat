@@ -8,6 +8,8 @@ import { ChatView } from '@/components/ChatView';
 import { WelcomeView } from '@/components/WelcomeView';
 import { MessageInput } from '@/components/MessageInput';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { MessageQueueView } from '@/components/MessageQueueView';
+import { MessageInputContainer } from '@/components/MessageInputContainer';
 
 export default function Jarvis() {
   // UI State
@@ -30,9 +32,14 @@ export default function Jarvis() {
 
   const {
     messages,
+    messageQueue,
+    isProcessingQueue,
     sendMessage,
     clearMessages,
     setMessages,
+    removeMessageFromQueue,
+    clearQueue,
+    reorderQueue,
   } = useChat(fetchConversations);
 
   // Auto-scroll to bottom when messages change
@@ -124,14 +131,9 @@ export default function Jarvis() {
   const handleSend = async () => {
     const text = inputText.trim();
     if (!text) return;
-    
+
     setInputText('');
-    const newConversationId = await sendMessage(text, currentConversationId);
-    
-    // Update conversation ID if this created a new conversation
-    if (!currentConversationId && newConversationId) {
-      setCurrentConversationId(newConversationId);
-    }
+    await sendMessage(text, currentConversationId);
   };
 
   const handleSelectConversation = (conversation: Conversation) => {
@@ -196,11 +198,20 @@ export default function Jarvis() {
         )}
 
         {/* Fixed Message Input - positioned inside main content */}
-        <MessageInput
-          inputText={inputText}
-          setInputText={setInputText}
-          onSend={handleSend}
-        />
+        <MessageInputContainer>
+          <MessageQueueView
+            messageQueue={messageQueue}
+            onRemoveMessage={removeMessageFromQueue}
+            onClearQueue={clearQueue}
+            isProcessing={isProcessingQueue}
+            onReorderQueue={reorderQueue}
+          />
+          <MessageInput
+            inputText={inputText}
+            setInputText={setInputText}
+            onSend={handleSend}
+          />
+        </MessageInputContainer>
       </div>
       
       <ConfirmationModal
