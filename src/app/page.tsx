@@ -100,7 +100,7 @@ export default function Jarvis() {
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
   const [newChatClicked, setNewChatClicked] = useState(false);
 
-  // Custom Hooks for Business Logic
+  // Custom Hooks for Business Logic (must come before any useEffect that uses their values)
   const {
     conversations,
     currentConversationId,
@@ -120,6 +120,22 @@ export default function Jarvis() {
     clearMessages,
     setMessages,
   } = useChat(fetchConversations);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    const scrollToBottom = () => {
+      const chatContainer = document.querySelector('.chat-scroll');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    };
+    
+    // Scroll to bottom whenever messages change (with null safety)
+    if (messages && messages.length > 0) {
+      // Use setTimeout to ensure DOM is updated
+      setTimeout(scrollToBottom, 100);
+    }
+  }, [messages]);
 
   // Load conversations from database on mount
   useEffect(() => {
@@ -227,7 +243,7 @@ export default function Jarvis() {
             <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-700 rounded">
               <MenuIcon />
             </button>
-            <h1 className="text-lg font-semibold">Jarvis</h1>
+            <h1 className="text-xl font-bold text-white tracking-tight">Jarvis</h1>
             <button className="p-2 hover:bg-gray-700 rounded">
               <SearchIcon />
             </button>
@@ -255,7 +271,7 @@ export default function Jarvis() {
             <div className="text-xs text-gray-400 px-3">Loading conversations...</div>
           ) : conversations.length > 0 ? (
             <>
-              <div className="text-xs text-gray-400 px-3 mb-2">CHATS ({conversations.length})</div>
+              <div className="text-xs font-semibold text-gray-400 px-3 mb-4 tracking-wider uppercase">CHATS ({conversations.length})</div>
               {conversations.map((conversation) => {
                 console.log('🔄 Rendering conversation:', conversation.title);
                 return (
@@ -266,7 +282,7 @@ export default function Jarvis() {
                     currentConversationId === conversation.id ? 'bg-gray-700' : ''
                   }`}
                 >
-                  <span className="text-sm text-gray-200 truncate">{conversation.title}</span>
+                  <span className="text-sm font-medium text-gray-100 truncate leading-relaxed">{conversation.title}</span>
                   <button 
                     onClick={(e) => handleDeleteClick(conversation, e)}
                     className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-600 rounded transition-all duration-200 text-gray-400 hover:text-white"
@@ -300,32 +316,42 @@ export default function Jarvis() {
         </div>
 
         {/* Chat Area or Welcome */}
-        {messages.length === 0 ? (
+        {!messages || messages.length === 0 ? (
           <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-normal text-white mb-2">
-                How can I help, <button className="hover:underline">David</button>?
+            <div className="text-center max-w-2xl">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white mb-6 leading-tight tracking-tight">
+                How can I help, <button className="hover:text-blue-400 transition-colors">David</button>?
               </h1>
               {!currentConversationId && (
-                <p className="text-sm text-blue-400 mt-4">
-                  ✨ New chat started - Ask me anything!
-                </p>
+                <div className="inline-flex items-center px-4 py-2 bg-blue-600/20 border border-blue-500/30 rounded-full">
+                  <span className="text-blue-300 text-sm font-medium">
+                    ✨ New chat started - Ask me anything!
+                  </span>
+                </div>
               )}
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 sm:px-6 lg:px-8 py-6">
-            <div className="max-w-3xl w-full mx-auto space-y-4 mt-8">
-              {messages.map((msg, index) => (
+          <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-4xl w-full mx-auto space-y-8 pb-8">
+              {messages?.map((msg, index) => (
                 <div
                   key={index}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-6`}
                 >
-                  <div className="text-white break-words max-w-[80%]">
+                  <div className={`max-w-[85%] ${
+                    msg.role === 'user' 
+                      ? 'bg-blue-600 text-white rounded-2xl rounded-br-md px-6 py-4' 
+                      : 'text-gray-100'
+                  }`}>
                     {msg.role === 'assistant' ? (
-                      <MarkdownMessage content={msg.content} />
+                      <div className="prose prose-invert prose-lg max-w-none">
+                        <MarkdownMessage content={msg.content} />
+                      </div>
                     ) : (
-                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                      <div className="text-[15px] leading-relaxed font-medium whitespace-pre-wrap break-words">
+                        {msg.content}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -335,9 +361,9 @@ export default function Jarvis() {
         )}
 
         {/* Message Input */}
-        <div className="p-4 sm:p-6">
-          <div className="max-w-3xl mx-auto">
-            <div className="flex items-center bg-gray-700 rounded-2xl border border-gray-600 px-3 sm:px-4 py-2 space-x-2">
+        <div className="p-6 border-t border-gray-700/50">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center bg-gray-800/60 backdrop-blur-sm rounded-2xl border border-gray-600/50 px-4 py-3 space-x-3 shadow-lg">
               <textarea
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
@@ -347,8 +373,8 @@ export default function Jarvis() {
                     handleSend();
                   }
                 }}
-                placeholder="Ask anything"
-                className="flex-1 h-10 text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none"
+                placeholder="Ask anything..."
+                className="flex-1 h-6 text-[15px] leading-relaxed text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none font-medium"
                 style={{ wordBreak: 'break-word' }}
               />
               <button className="p-2 hover:bg-gray-600 rounded-lg transition-colors">
@@ -367,8 +393,8 @@ export default function Jarvis() {
                 <SendIcon />
               </button>
             </div>
-            <div className="text-center mt-2">
-              <p className="text-xs text-gray-400">
+            <div className="text-center mt-4">
+              <p className="text-xs text-gray-500 font-medium">
                 Jarvis can make mistakes. Check important info.
               </p>
             </div>

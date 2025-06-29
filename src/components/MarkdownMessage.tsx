@@ -40,31 +40,33 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
           },
           // Style other markdown elements
           p: ({ children }) => (
-            <p className="mb-3 last:mb-0 leading-relaxed text-gray-200">{children}</p>
+            <p className="mb-5 last:mb-0 leading-[1.7] text-gray-100 text-[15px] font-normal">{children}</p>
           ),
           h1: ({ children }) => (
-            <h1 className="text-xl font-bold mb-3 text-white">{children}</h1>
+            <h1 className="text-2xl font-bold mb-6 mt-8 text-white leading-tight tracking-tight">{children}</h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-lg font-semibold mb-2 text-white">{children}</h2>
+            <h2 className="text-xl font-semibold mb-5 mt-7 text-white leading-tight tracking-tight">{children}</h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-lg font-semibold mb-3 mt-4 text-white border-b border-gray-600 pb-1">{children}</h3>
+            <h3 className="text-lg font-semibold mb-4 mt-6 text-white leading-tight">{children}</h3>
           ),
           ul: ({ children }) => (
-            <ul className="mb-4 space-y-2 pl-4">{children}</ul>
+            <ul className="mb-6 space-y-3 pl-6">{children}</ul>
           ),
           ol: ({ children }) => (
-            <ol className="mb-4 space-y-2 pl-4">{children}</ol>
+            <ol className="mb-6 space-y-3 pl-6 list-decimal">{children}</ol>
           ),
           li: ({ children }) => (
-            <li className="text-gray-200 relative flex">
-              <span className="absolute -left-4 text-blue-400">•</span>
-              <div className="flex-1">{children}</div>
+            <li className="text-gray-100 text-[15px] leading-relaxed relative">
+              <div className="flex items-start">
+                <span className="text-blue-400 font-bold mr-3 mt-1 flex-shrink-0">•</span>
+                <div className="flex-1">{children}</div>
+              </div>
             </li>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-300 my-2">
+            <blockquote className="border-l-4 border-blue-500/60 pl-6 py-3 bg-blue-500/5 italic text-gray-300 my-6 rounded-r-lg">
               {children}
             </blockquote>
           ),
@@ -77,7 +79,7 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
           a: ({ children, href }) => (
             <a 
               href={href} 
-              className="text-blue-400 hover:text-blue-300 underline"
+              className="text-blue-400 hover:text-blue-300 underline underline-offset-2 font-medium transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
