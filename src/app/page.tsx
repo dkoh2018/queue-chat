@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Icons as SVG components
 const PlusIcon = () => (
@@ -42,11 +42,45 @@ const SendIcon = () => (
   </svg>
 );
 
-const OptionsIcon = () => (
-  <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-    <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+const XIcon = () => (
+  <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
   </svg>
 );
+
+const ConfirmationModal = ({ isOpen, onConfirm, onCancel, conversationTitle }: {
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  conversationTitle: string;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 className="text-lg font-semibold text-white mb-4">Delete conversation?</h3>
+        <p className="text-gray-300 mb-6">
+          This will delete "{conversationTitle.length > 50 ? conversationTitle.slice(0, 50) + '...' : conversationTitle}"
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const MenuIcon = () => (
   <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
@@ -54,20 +88,19 @@ const MenuIcon = () => (
   </svg>
 );
 
-const ChatItem = ({ title, isActive = false }: { title: string; isActive?: boolean }) => (
-  <div className={`group flex items-center justify-between px-3 py-2 mx-2 rounded-lg cursor-pointer sidebar-item ${isActive ? 'bg-gray-700' : ''}`}>
-    <span className="text-sm text-gray-200 truncate">{title}</span>
-    <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-600 rounded">
-      <OptionsIcon />
-    </button>
-  </div>
-);
+interface Message {
+  id: string;
+  role: 'USER' | 'ASSISTANT';
+  content: string;
+  createdAt: string;
+}
 
 interface Conversation {
   id: string;
   title: string;
-  messages: { role: 'user' | 'assistant'; content: string }[];
-  createdAt: Date;
+  messages: Message[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function Jarvis() {
@@ -76,59 +109,162 @@ export default function Jarvis() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
+
+  // Load conversations from database on mount
+  useEffect(() => {
+    fetchConversations();
+  }, []);
+
+  const fetchConversations = async () => {
+    try {
+      const res = await fetch('/api/conversations');
+      const data = await res.json();
+      setConversations(data);
+    } catch (error) {
+      console.error('Failed to fetch conversations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSend = async () => {
     const text = inputText.trim();
     if (!text) return;
-    // add user message to state and send API request
+    
+    // Add user message to state immediately (show original input to user)
     const newMessages: { role: 'user' | 'assistant'; content: string }[] = [
       ...messages,
       { role: 'user', content: text },
     ];
     setMessages(newMessages);
     setInputText('');
+    
     try {
-      const res = await fetch('/api/chat', {
+      // Step 1: Prepare conversation history for context (last 10 message pairs = 20 messages)
+      const conversationHistory = messages.slice(-20).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
+      // Step 2: Optimize the user input with conversation context
+      const optimizeRes = await fetch('/api/optimize-input', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify({ 
+          userInput: text,
+          conversationHistory: conversationHistory
+        }),
       });
-      const data = await res.json();
-      if (data.error) {
-        console.error('OpenAI API error:', data.error);
+      
+      const optimizeData = await optimizeRes.json();
+      const optimizedInput = optimizeData.optimizedInput || text;
+      
+      // Step 3: Create messages array with optimized input for the API
+      const optimizedMessages: { role: 'user' | 'assistant'; content: string }[] = [
+        ...messages,
+        { role: 'user', content: optimizedInput },
+      ];
+      
+      // Step 4: Send both original and optimized input to chat API
+      const chatRes = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          messages: optimizedMessages,
+          conversationId: currentConversationId,
+          originalInput: text,
+          optimizedInput: optimizedInput
+        }),
+      });
+      
+      const chatData = await chatRes.json();
+      if (chatData.error) {
+        console.error('OpenAI API error:', chatData.error);
         return;
       }
-      setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
+      
+      // Update current conversation ID if this is a new conversation
+      if (!currentConversationId && chatData.conversationId) {
+        setCurrentConversationId(chatData.conversationId);
+      }
+      
+      setMessages(prev => [...prev, { role: 'assistant', content: chatData.content }]);
+      
+      // Refresh conversations list to show updated sidebar
+      fetchConversations();
     } catch (err) {
       console.error('Failed to fetch assistant response:', err);
     }
   };
 
   const handleNewChat = () => {
-    if (messages.length > 0) {
-      // Save current conversation if it has messages
-      const newConversation: Conversation = {
-        id: Date.now().toString(),
-        title: messages[0]?.content.slice(0, 30) + '...' || 'New chat',
-        messages: [...messages],
-        createdAt: new Date()
-      };
-      setConversations(prev => [newConversation, ...prev]);
-    }
     // Start new conversation
     setMessages([]);
     setCurrentConversationId(null);
   };
 
   const handleSelectConversation = (conversation: Conversation) => {
-    setMessages(conversation.messages);
+    // Convert database messages to UI format
+    const uiMessages = conversation.messages.map(msg => ({
+      role: msg.role.toLowerCase() as 'user' | 'assistant',
+      content: msg.content
+    }));
+    setMessages(uiMessages);
     setCurrentConversationId(conversation.id);
   };
 
+  const handleDeleteClick = (conversation: Conversation, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConversationToDelete(conversation);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!conversationToDelete) return;
+    
+    try {
+      const res = await fetch(`/api/conversations?id=${conversationToDelete.id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        // If we're deleting the current conversation, start a new one
+        if (currentConversationId === conversationToDelete.id) {
+          handleNewChat();
+        }
+        // Refresh conversations list
+        fetchConversations();
+      }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+    } finally {
+      setDeleteModalOpen(false);
+      setConversationToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalOpen(false);
+    setConversationToDelete(null);
+  };
+
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
+    <div className="flex h-screen bg-gray-900 text-white relative">
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-64' : 'w-0'} bg-gray-800 flex flex-col transition-all duration-300 overflow-hidden`}>
+      <div className={`${
+        sidebarOpen ? 'w-64' : 'w-0'
+      } bg-gray-800 flex flex-col transition-all duration-300 overflow-hidden
+        md:relative fixed left-0 top-0 h-full z-50 md:z-auto`}>
         {/* Sidebar Header */}
         <div className="p-4 border-b border-gray-700">
           <div className="flex items-center justify-between mb-4">
@@ -153,7 +289,9 @@ export default function Jarvis() {
 
         {/* Chat History */}
         <div className="flex-1 overflow-y-auto py-2">
-          {conversations.length > 0 && (
+          {loading ? (
+            <div className="text-xs text-gray-400 px-3">Loading conversations...</div>
+          ) : conversations.length > 0 ? (
             <>
               <div className="text-xs text-gray-400 px-3 mb-2">CHATS</div>
               {conversations.map((conversation) => (
@@ -166,17 +304,17 @@ export default function Jarvis() {
                 >
                   <span className="text-sm text-gray-200 truncate">{conversation.title}</span>
                   <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConversations(prev => prev.filter(c => c.id !== conversation.id));
-                    }}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-600 rounded"
+                    onClick={(e) => handleDeleteClick(conversation, e)}
+                    className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-600 rounded transition-all duration-200 text-gray-400 hover:text-white"
+                    title="Delete conversation"
                   >
-                    <OptionsIcon />
+                    <XIcon />
                   </button>
                 </div>
               ))}
             </>
+          ) : (
+            <div className="text-xs text-gray-400 px-3">No conversations yet</div>
           )}
         </div>
 
@@ -198,13 +336,13 @@ export default function Jarvis() {
 
         {/* Chat Area or Welcome */}
         {messages.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center px-4">
-            <h1 className="text-4xl font-normal text-white">
+          <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-normal text-white text-center">
               How can I help, <button className="hover:underline">David</button>?
             </h1>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 py-6">
+          <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 sm:px-6 lg:px-8 py-6">
             <div className="max-w-3xl w-full mx-auto space-y-4 mt-8">
               {messages.map((msg, index) => (
                 <div
@@ -221,9 +359,9 @@ export default function Jarvis() {
         )}
 
         {/* Message Input */}
-        <div className="p-4">
+        <div className="p-4 sm:p-6">
           <div className="max-w-3xl mx-auto">
-            <div className="flex items-center bg-gray-700 rounded-2xl border border-gray-600 px-4 py-2 space-x-2">
+            <div className="flex items-center bg-gray-700 rounded-2xl border border-gray-600 px-3 sm:px-4 py-2 space-x-2">
               <textarea
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
@@ -261,6 +399,13 @@ export default function Jarvis() {
           </div>
         </div>
       </div>
+      
+      <ConfirmationModal
+        isOpen={deleteModalOpen}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        conversationTitle={conversationToDelete?.title || ''}
+      />
     </div>
   );
 }

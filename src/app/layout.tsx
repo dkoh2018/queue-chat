@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ChatGPT",
+  title: "Jarvis",
   description: "ChatGPT interface clone",
 };
 
