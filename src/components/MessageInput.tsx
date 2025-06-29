@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
-import { AttachIcon, MicIcon, VoiceIcon, SendIcon } from '@/components/icons';
+import { AttachIcon, MicIcon } from '@/components/icons';
+import { UpArrowIcon } from './icons/UpArrowIcon';
 
 interface MessageInputProps {
   inputText: string;
@@ -94,22 +95,25 @@ export const MessageInput = ({ inputText, setInputText, onSend }: MessageInputPr
                   title="Voice input">
                   <MicIcon />
                 </button>
-                <button
-                  className="hover:bg-gray-600/50 rounded-full transition-colors opacity-70 hover:opacity-100 p-1.5"
-                  title="Voice mode">
-                  <VoiceIcon />
-                </button>
               </div>
               
               {/* Send Button */}
-              <button
-                onClick={onSend}
-                disabled={!inputText.trim()}
-                className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-full transition-all duration-200 shadow-sm hover:shadow-md disabled:shadow-none w-8 h-8 flex items-center justify-center"
-                title={inputText.trim() ? 'Send message' : 'Type a message to send'}
-              >
-                <SendIcon />
-              </button>
+               <button
+                 onClick={onSend}
+                 disabled={!inputText.trim()}
+                 className={`rounded-full transition-all duration-200 w-8 h-8 flex items-center justify-center ${
+                   inputText.trim()
+                     ? 'bg-white hover:bg-gray-200 shadow-md'
+                     : 'bg-transparent'
+                 }`}
+                 title={inputText.trim() ? 'Send message' : 'Type a message to send'}
+               >
+                 <UpArrowIcon
+                   className={
+                     inputText.trim() ? 'text-black' : 'text-gray-400'
+                   }
+                 />
+               </button>
             </div>
           </div>
 

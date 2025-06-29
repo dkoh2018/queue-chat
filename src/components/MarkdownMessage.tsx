@@ -2,8 +2,9 @@
 
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import CodeBlock from './CodeBlock';
+import MermaidDiagram from './MermaidDiagram';
 
 interface MarkdownMessageProps {
   content: string;
@@ -14,13 +15,31 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
   return (
     <div className={`prose prose-invert max-w-none ${className}`}>
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           // Handle code blocks and inline code separately
-          code({ node, inline, className, children, ...props }) {
+          code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode; }) {
+            const match = /language-(\w+)/.exec(className || '');
+            const lang = match ? match[1] : '';
+
+            if (lang === 'mermaid' && !inline) {
+              const chart = React.Children.toArray(children).map(child => {
+                if (typeof child === 'string') {
+                  return child;
+                }
+                // Handle cases where the child might be a React element (e.g., from syntax highlighting)
+                if (React.isValidElement<{ children?: React.ReactNode }>(child) && child.props.children) {
+                  return React.Children.toArray(child.props.children).join('');
+                }
+                return '';
+              }).join('');
+              return <MermaidDiagram chart={chart} />;
+            }
+            
             if (inline) {
               // Render inline code as simple <code> tag (no block elements)
               return (
-                <code 
+                <code
                   className="bg-gray-600 text-gray-100 px-1.5 py-0.5 rounded font-mono text-sm border border-gray-500"
                   {...props}
                 >
@@ -32,7 +51,6 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
               return (
                 <CodeBlock
                   className={className}
-                  inline={false}
                 >
                   {String(children).replace(/\n$/, '')}
                 </CodeBlock>
@@ -42,20 +60,21 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
           // Style other markdown elements
           p: ({ children }) => {
             // Check if children contain block-level elements (like code blocks)
-            const hasBlockElements = React.Children.toArray(children).some(child => {
+            const hasBlockElements = React.Children.toArray(children).some((child) => {
               // Check for React elements that are block-level
               if (React.isValidElement(child)) {
                 // Direct block elements
-                if (child.type === 'div' || child.type === 'pre' || child.type === 'blockquote') {
+                if (child.type === 'div' || child.type === 'pre' || child.type === 'blockquote' || child.type === 'table') {
                   return true;
                 }
                 // Code blocks (our custom component)
-                if (typeof child.type === 'function' && 
-                    (child.type.name === 'CodeBlock' || child.type.displayName === 'CodeBlock')) {
+                if (typeof child.type === 'function' &&
+                    (child.type.name === 'CodeBlock' || (child.type as React.FC).displayName === 'CodeBlock')) {
                   return true;
                 }
                 // Check props for block code indicators
-                if (child.props?.className?.includes('language-') && !child.props?.inline) {
+                const props = child.props as { className?: string; inline?: boolean };
+                if (props.className?.includes('language-') && !props.inline) {
                   return true;
                 }
               }
@@ -106,14 +125,35 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
             <em className="italic text-gray-200">{children}</em>
           ),
           a: ({ children, href }) => (
-            <a 
-              href={href} 
+            <a
+              href={href}
               className="text-blue-400 hover:text-blue-300 underline underline-offset-2 font-medium transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
               {children}
             </a>
+          ),
+          // Add table styling
+          table: ({ children }) => (
+            <div className="overflow-x-auto my-6 border border-gray-700 rounded-lg shadow-md">
+              <table className="w-full text-sm text-left text-gray-300">{children}</table>
+            </div>
+          ),
+          thead: ({ children }) => (
+            <thead className="bg-gray-800/80 text-xs text-gray-200 uppercase tracking-wider">{children}</thead>
+          ),
+          tbody: ({ children }) => (
+            <tbody className="divide-y divide-gray-700">{children}</tbody>
+          ),
+          tr: ({ children }) => (
+            <tr className="hover:bg-gray-800/60 transition-colors duration-200 ease-in-out">{children}</tr>
+          ),
+          th: ({ children }) => (
+            <th scope="col" className="py-3 px-6 font-semibold">{children}</th>
+          ),
+          td: ({ children }) => (
+            <td className="py-4 px-6">{children}</td>
           ),
         }}
       >
@@ -123,4 +163,4 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
   );
 };
 
-export default MarkdownMessage;
+export default React.memo(MarkdownMessage);
