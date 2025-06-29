@@ -63,10 +63,19 @@ const ChatItem = ({ title, isActive = false }: { title: string; isActive?: boole
   </div>
 );
 
-export default function ChatGPT() {
+interface Conversation {
+  id: string;
+  title: string;
+  messages: { role: 'user' | 'assistant'; content: string }[];
+  createdAt: Date;
+}
+
+export default function Jarvis() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
 
   const handleSend = async () => {
     const text = inputText.trim();
@@ -95,36 +104,26 @@ export default function ChatGPT() {
     }
   };
 
-  const chatHistory = [
-    'New chat',
-    'LLM training insights',
-    'OOP Document Mapping',
-    'Document-based Response Mapping',
-    'Class vs Interface Explanation',
-    'Neko Neko no Mi Types',
-    'Question and Answer',
-    'Internet as a Natural Resource',
-    'ML vs Software Engineering',
-    'Current Grade Summary',
-    'Fast AI Claims Summary',
-    'ML Terminology Clarification',
-    'Explainer Workflow Guidelines',
-    'Recursion in Merge Sort',
-    'Expert Explainer Guidelines',
-    'Multimodal Learning for ADHD',
-    'Location Inquiry and Response',
-    'Microphone Troubleshooting Tips',
-    'Trump Actions Report Guide',
-    'IntelliJ settings import issue',
-    'Car Identification Help',
-    '강아지 깻잎 섭취',
-    'Reference vs Non-Reference Types',
-    'Disk Usage Permissions Issues',
-    'New chat',
-    'VM Storage Usage',
-    'Scraping Duplicates Fix',
-    'Table of Ideas'
-  ];
+  const handleNewChat = () => {
+    if (messages.length > 0) {
+      // Save current conversation if it has messages
+      const newConversation: Conversation = {
+        id: Date.now().toString(),
+        title: messages[0]?.content.slice(0, 30) + '...' || 'New chat',
+        messages: [...messages],
+        createdAt: new Date()
+      };
+      setConversations(prev => [newConversation, ...prev]);
+    }
+    // Start new conversation
+    setMessages([]);
+    setCurrentConversationId(null);
+  };
+
+  const handleSelectConversation = (conversation: Conversation) => {
+    setMessages(conversation.messages);
+    setCurrentConversationId(conversation.id);
+  };
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
@@ -136,13 +135,16 @@ export default function ChatGPT() {
             <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-700 rounded">
               <MenuIcon />
             </button>
-            <h1 className="text-lg font-semibold">ChatGPT</h1>
+            <h1 className="text-lg font-semibold">Jarvis</h1>
             <button className="p-2 hover:bg-gray-700 rounded">
               <SearchIcon />
             </button>
           </div>
           
-          <button className="flex items-center justify-center w-full py-2 mb-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
+          <button 
+            onClick={handleNewChat}
+            className="flex items-center w-full px-3 py-2 mb-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors sidebar-item"
+          >
             <PlusIcon />
             <span className="ml-2 text-sm">New chat</span>
           </button>
@@ -151,10 +153,31 @@ export default function ChatGPT() {
 
         {/* Chat History */}
         <div className="flex-1 overflow-y-auto py-2">
-          <div className="text-xs text-gray-400 px-3 mb-2">CHATS</div>
-          {chatHistory.map((chat, index) => (
-            <ChatItem key={index} title={chat} isActive={index === 0} />
-          ))}
+          {conversations.length > 0 && (
+            <>
+              <div className="text-xs text-gray-400 px-3 mb-2">CHATS</div>
+              {conversations.map((conversation) => (
+                <div 
+                  key={conversation.id}
+                  onClick={() => handleSelectConversation(conversation)}
+                  className={`group flex items-center justify-between px-3 py-2 mx-2 rounded-lg cursor-pointer sidebar-item ${
+                    currentConversationId === conversation.id ? 'bg-gray-700' : ''
+                  }`}
+                >
+                  <span className="text-sm text-gray-200 truncate">{conversation.title}</span>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConversations(prev => prev.filter(c => c.id !== conversation.id));
+                    }}
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-600 rounded"
+                  >
+                    <OptionsIcon />
+                  </button>
+                </div>
+              ))}
+            </>
+          )}
         </div>
 
         {/* Sidebar Footer */}
@@ -181,8 +204,8 @@ export default function ChatGPT() {
             </h1>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 py-0">
-            <div className="max-w-3xl w-full mx-auto space-y-4">
+          <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 py-6">
+            <div className="max-w-3xl w-full mx-auto space-y-4 mt-8">
               {messages.map((msg, index) => (
                 <div
                   key={index}
@@ -232,7 +255,7 @@ export default function ChatGPT() {
             </div>
             <div className="text-center mt-2">
               <p className="text-xs text-gray-400">
-                ChatGPT can make mistakes. Check important info.
+                Jarvis can make mistakes. Check important info.
               </p>
             </div>
           </div>
