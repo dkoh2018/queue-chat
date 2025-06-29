@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import MarkdownMessage from '../components/MarkdownMessage';
 
 // Icons as SVG components
 const PlusIcon = () => (
@@ -120,11 +121,21 @@ export default function Jarvis() {
 
   const fetchConversations = async () => {
     try {
+      console.log('🔍 Fetching conversations from database...');
       const res = await fetch('/api/conversations');
+      console.log('📡 API Response status:', res.status);
+      
+      if (!res.ok) {
+        throw new Error(`API returned ${res.status}: ${res.statusText}`);
+      }
+      
       const data = await res.json();
+      console.log('💾 Conversations data received:', data);
+      console.log('📊 Number of conversations:', data?.length || 0);
+      
       setConversations(data);
     } catch (error) {
-      console.error('Failed to fetch conversations:', error);
+      console.error('❌ Failed to fetch conversations:', error);
     } finally {
       setLoading(false);
     }
@@ -279,7 +290,7 @@ export default function Jarvis() {
           
           <button 
             onClick={handleNewChat}
-            className="flex items-center w-full px-3 py-2 mb-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors sidebar-item"
+            className="flex items-center px-3 py-2 mx-2 mb-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors sidebar-item"
           >
             <PlusIcon />
             <span className="ml-2 text-sm">New chat</span>
@@ -293,8 +304,10 @@ export default function Jarvis() {
             <div className="text-xs text-gray-400 px-3">Loading conversations...</div>
           ) : conversations.length > 0 ? (
             <>
-              <div className="text-xs text-gray-400 px-3 mb-2">CHATS</div>
-              {conversations.map((conversation) => (
+              <div className="text-xs text-gray-400 px-3 mb-2">CHATS ({conversations.length})</div>
+              {conversations.map((conversation) => {
+                console.log('🔄 Rendering conversation:', conversation.title);
+                return (
                 <div 
                   key={conversation.id}
                   onClick={() => handleSelectConversation(conversation)}
@@ -311,7 +324,8 @@ export default function Jarvis() {
                     <XIcon />
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </>
           ) : (
             <div className="text-xs text-gray-400 px-3">No conversations yet</div>
@@ -349,8 +363,12 @@ export default function Jarvis() {
                   key={index}
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className="text-white whitespace-pre-wrap break-words max-w-[80%]">
-                    {msg.content}
+                  <div className="text-white break-words max-w-[80%]">
+                    {msg.role === 'assistant' ? (
+                      <MarkdownMessage content={msg.content} />
+                    ) : (
+                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                    )}
                   </div>
                 </div>
               ))}
