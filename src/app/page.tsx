@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import MarkdownMessage from '../components/MarkdownMessage';
+import { useConversations, useChat } from '@/hooks';
+import { Conversation } from '@/types';
+import MarkdownMessage from '@/components/MarkdownMessage';
 
 // Icons as SVG components
 const PlusIcon = () => (
@@ -89,142 +91,90 @@ const MenuIcon = () => (
   </svg>
 );
 
-interface Message {
-  id: string;
-  role: 'USER' | 'ASSISTANT';
-  content: string;
-  createdAt: string;
-}
-
-interface Conversation {
-  id: string;
-  title: string;
-  messages: Message[];
-  createdAt: string;
-  updatedAt: string;
-}
 
 export default function Jarvis() {
+  // UI State
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [inputText, setInputText] = useState('');
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
+  const [newChatClicked, setNewChatClicked] = useState(false);
+
+  // Custom Hooks for Business Logic
+  const {
+    conversations,
+    currentConversationId,
+    loading,
+    error: conversationsError,
+    fetchConversations,
+    selectConversation,
+    deleteConversation,
+    setCurrentConversationId,
+  } = useConversations();
+
+  const {
+    messages,
+    isLoading: chatLoading,
+    error: chatError,
+    sendMessage,
+    clearMessages,
+    setMessages,
+  } = useChat(fetchConversations);
 
   // Load conversations from database on mount
   useEffect(() => {
     fetchConversations();
-  }, []);
-
-  const fetchConversations = async () => {
-    try {
-      console.log('🔍 Fetching conversations from database...');
-      const res = await fetch('/api/conversations');
-      console.log('📡 API Response status:', res.status);
-      
-      if (!res.ok) {
-        throw new Error(`API returned ${res.status}: ${res.statusText}`);
-      }
-      
-      const data = await res.json();
-      console.log('💾 Conversations data received:', data);
-      console.log('📊 Number of conversations:', data?.length || 0);
-      
-      setConversations(data);
-    } catch (error) {
-      console.error('❌ Failed to fetch conversations:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchConversations]);
 
   const handleSend = async () => {
     const text = inputText.trim();
     if (!text) return;
     
-    // Add user message to state immediately (show original input to user)
-    const newMessages: { role: 'user' | 'assistant'; content: string }[] = [
-      ...messages,
-      { role: 'user', content: text },
-    ];
-    setMessages(newMessages);
     setInputText('');
+    const newConversationId = await sendMessage(text, currentConversationId);
     
-    try {
-      // Step 1: Prepare conversation history for context (last 10 message pairs = 20 messages)
-      const conversationHistory = messages.slice(-20).map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
-
-      // Step 2: Optimize the user input with conversation context
-      const optimizeRes = await fetch('/api/optimize-input', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userInput: text,
-          conversationHistory: conversationHistory
-        }),
-      });
-      
-      const optimizeData = await optimizeRes.json();
-      const optimizedInput = optimizeData.optimizedInput || text;
-      
-      // Step 3: Create messages array with optimized input for the API
-      const optimizedMessages: { role: 'user' | 'assistant'; content: string }[] = [
-        ...messages,
-        { role: 'user', content: optimizedInput },
-      ];
-      
-      // Step 4: Send both original and optimized input to chat API
-      const chatRes = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          messages: optimizedMessages,
-          conversationId: currentConversationId,
-          originalInput: text,
-          optimizedInput: optimizedInput
-        }),
-      });
-      
-      const chatData = await chatRes.json();
-      if (chatData.error) {
-        console.error('OpenAI API error:', chatData.error);
-        return;
-      }
-      
-      // Update current conversation ID if this is a new conversation
-      if (!currentConversationId && chatData.conversationId) {
-        setCurrentConversationId(chatData.conversationId);
-      }
-      
-      setMessages(prev => [...prev, { role: 'assistant', content: chatData.content }]);
-      
-      // Refresh conversations list to show updated sidebar
-      fetchConversations();
-    } catch (err) {
-      console.error('Failed to fetch assistant response:', err);
+    // Update conversation ID if this created a new conversation
+    if (!currentConversationId && newConversationId) {
+      setCurrentConversationId(newConversationId);
     }
   };
 
   const handleNewChat = () => {
+    // Provide immediate visual feedback
+    setNewChatClicked(true);
+    
     // Start new conversation
-    setMessages([]);
+    clearMessages();
     setCurrentConversationId(null);
+    
+    // Close sidebar on mobile after creating new chat
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+    
+    // Focus the input field for better UX
+    setTimeout(() => {
+      const textarea = document.querySelector('textarea[placeholder="Ask anything"]') as HTMLTextAreaElement;
+      if (textarea) {
+        textarea.focus();
+      }
+      // Reset the clicked state after a short delay
+      setNewChatClicked(false);
+    }, 150);
   };
 
   const handleSelectConversation = (conversation: Conversation) => {
-    // Convert database messages to UI format
+    // Convert database messages to UI format and load them
     const uiMessages = conversation.messages.map(msg => ({
       role: msg.role.toLowerCase() as 'user' | 'assistant',
       content: msg.content
     }));
+    
+    // Set messages in chat hook
     setMessages(uiMessages);
-    setCurrentConversationId(conversation.id);
+    
+    // Set current conversation in conversations hook
+    selectConversation(conversation);
   };
 
   const handleDeleteClick = (conversation: Conversation, e: React.MouseEvent) => {
@@ -237,16 +187,11 @@ export default function Jarvis() {
     if (!conversationToDelete) return;
     
     try {
-      const res = await fetch(`/api/conversations?id=${conversationToDelete.id}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) {
-        // If we're deleting the current conversation, start a new one
-        if (currentConversationId === conversationToDelete.id) {
-          handleNewChat();
-        }
-        // Refresh conversations list
-        fetchConversations();
+      await deleteConversation(conversationToDelete.id);
+      
+      // If we're deleting the current conversation, start a new one
+      if (currentConversationId === conversationToDelete.id) {
+        handleNewChat();
       }
     } catch (error) {
       console.error('Failed to delete conversation:', error);
@@ -290,10 +235,16 @@ export default function Jarvis() {
           
           <button 
             onClick={handleNewChat}
-            className="flex items-center px-3 py-2 mx-2 mb-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors sidebar-item"
+            className={`flex items-center justify-center w-full px-4 py-2 mb-4 rounded-lg transition-all duration-200 font-medium text-sm ${
+              newChatClicked 
+                ? 'bg-blue-500 scale-95' 
+                : !currentConversationId 
+                  ? 'bg-blue-600 hover:bg-blue-700' 
+                  : 'bg-gray-700 hover:bg-gray-600'
+            }`}
           >
             <PlusIcon />
-            <span className="ml-2 text-sm">New chat</span>
+            <span className="ml-2">New chat</span>
           </button>
           
         </div>
@@ -351,9 +302,16 @@ export default function Jarvis() {
         {/* Chat Area or Welcome */}
         {messages.length === 0 ? (
           <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-normal text-white text-center">
-              How can I help, <button className="hover:underline">David</button>?
-            </h1>
+            <div className="text-center">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-normal text-white mb-2">
+                How can I help, <button className="hover:underline">David</button>?
+              </h1>
+              {!currentConversationId && (
+                <p className="text-sm text-blue-400 mt-4">
+                  ✨ New chat started - Ask me anything!
+                </p>
+              )}
+            </div>
           </div>
         ) : (
           <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 sm:px-6 lg:px-8 py-6">
