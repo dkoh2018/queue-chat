@@ -6,23 +6,13 @@ import { Highlight, themes } from 'prism-react-renderer';
 interface CodeBlockProps {
   children: string;
   className?: string;
-  inline?: boolean;
 }
 
-const CodeBlock = ({ children, className, inline }: CodeBlockProps) => {
+const CodeBlock = ({ children, className }: CodeBlockProps) => {
   const [copied, setCopied] = useState(false);
   
   // Extract language from className (format: "language-javascript")
   const language = className?.replace(/language-/, '') || 'text';
-  
-  // Handle inline code
-  if (inline) {
-    return (
-      <code className="bg-gray-700 text-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">
-        {children}
-      </code>
-    );
-  }
 
   const handleCopy = async () => {
     try {
