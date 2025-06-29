@@ -67,4 +67,7 @@ const CodeBlock = ({ children, className }: CodeBlockProps) => {
   );
 };
 
+// Add displayName for better debugging and component detection
+CodeBlock.displayName = 'CodeBlock';
+
 export default CodeBlock;

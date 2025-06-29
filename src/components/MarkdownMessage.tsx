@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Components } from 'react-markdown';
 import CodeBlock from './CodeBlock';
@@ -39,9 +40,37 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
             }
           },
           // Style other markdown elements
-          p: ({ children }) => (
-            <p className="mb-5 last:mb-0 leading-[1.7] text-gray-100 text-[15px] font-normal">{children}</p>
-          ),
+          p: ({ children }) => {
+            // Check if children contain block-level elements (like code blocks)
+            const hasBlockElements = React.Children.toArray(children).some(child => {
+              // Check for React elements that are block-level
+              if (React.isValidElement(child)) {
+                // Direct block elements
+                if (child.type === 'div' || child.type === 'pre' || child.type === 'blockquote') {
+                  return true;
+                }
+                // Code blocks (our custom component)
+                if (typeof child.type === 'function' && 
+                    (child.type.name === 'CodeBlock' || child.type.displayName === 'CodeBlock')) {
+                  return true;
+                }
+                // Check props for block code indicators
+                if (child.props?.className?.includes('language-') && !child.props?.inline) {
+                  return true;
+                }
+              }
+              return false;
+            });
+
+            // If contains block elements, use div to avoid invalid HTML nesting
+            const Tag = hasBlockElements ? 'div' : 'p';
+            
+            return (
+              <Tag className="mb-5 last:mb-0 leading-[1.7] text-gray-100 text-[15px] font-normal">
+                {children}
+              </Tag>
+            );
+          },
           h1: ({ children }) => (
             <h1 className="text-2xl font-bold mb-6 mt-8 text-white leading-tight tracking-tight">{children}</h1>
           ),
