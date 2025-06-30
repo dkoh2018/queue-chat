@@ -16,7 +16,7 @@ export const ChatView = ({ messages }: ChatViewProps) => {
           >
             <div className={`${
               msg.role === 'user'
-                ? 'bg-slate-700 text-white rounded-2xl rounded-br-md px-5 py-3 border border-slate-600/50 max-w-[85%] shadow-lg'
+                ? 'bg-gray-800 text-white rounded-2xl rounded-br-md px-5 py-3 border border-gray-700/50 max-w-[85%] shadow-lg'
                 : 'text-gray-100 w-full'
             }`}>
               {msg.role === 'assistant' ? (

@@ -40,7 +40,7 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
               // Render inline code as simple <code> tag (no block elements)
               return (
                 <code
-                  className="bg-gray-600 text-gray-100 px-1.5 py-0.5 rounded font-mono text-sm border border-gray-500"
+                  className="bg-gray-800 text-gray-100 px-1.5 py-0.5 rounded font-mono text-sm border border-gray-700"
                   {...props}
                 >
                   {children}
@@ -136,18 +136,18 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
           ),
           // Add table styling
           table: ({ children }) => (
-            <div className="overflow-x-auto my-6 border border-gray-700 rounded-lg shadow-md">
+            <div className="overflow-x-auto my-6 border border-gray-800 rounded-lg shadow-md">
               <table className="w-full text-sm text-left text-gray-300">{children}</table>
             </div>
           ),
           thead: ({ children }) => (
-            <thead className="bg-gray-800/80 text-xs text-gray-200 uppercase tracking-wider">{children}</thead>
+            <thead className="bg-gray-900/80 text-xs text-gray-200 uppercase tracking-wider">{children}</thead>
           ),
           tbody: ({ children }) => (
-            <tbody className="divide-y divide-gray-700">{children}</tbody>
+            <tbody className="divide-y divide-gray-800">{children}</tbody>
           ),
           tr: ({ children }) => (
-            <tr className="hover:bg-gray-800/60 transition-colors duration-200 ease-in-out">{children}</tr>
+            <tr className="hover:bg-gray-900/60 transition-colors duration-200 ease-in-out">{children}</tr>
           ),
           th: ({ children }) => (
             <th scope="col" className="py-3 px-6 font-semibold">{children}</th>

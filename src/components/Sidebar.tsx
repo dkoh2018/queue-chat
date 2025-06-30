@@ -38,16 +38,16 @@ export const Sidebar = ({
       {/* Sidebar */}
       <div className={`${
         sidebarOpen ? 'w-64' : 'w-0'
-      } bg-gray-800 flex flex-col transition-all duration-300 overflow-hidden
+      } bg-gray-900 flex flex-col transition-all duration-300 overflow-hidden
         md:relative fixed left-0 top-0 h-full z-50 md:z-auto`}>
         {/* Sidebar Header */}
-        <div className="p-4 border-b border-gray-700">
+        <div className="p-4 border-b border-gray-800">
           <div className="flex items-center justify-between mb-4">
-            <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-700 rounded">
+            <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-800 rounded">
               <MenuIcon />
             </button>
             <h1 className="text-xl font-bold text-white tracking-tight">Jarvis</h1>
-            <button className="p-2 hover:bg-gray-700 rounded">
+            <button className="p-2 hover:bg-gray-800 rounded">
               <SearchIcon />
             </button>
           </div>
@@ -55,11 +55,11 @@ export const Sidebar = ({
           <Button
             onClick={onNewChat}
             className={`w-full mb-4 transition-all duration-200 ${
-              newChatClicked 
-                ? 'bg-emerald-600 scale-95' 
-                : !currentConversationId 
-                  ? 'bg-emerald-600 hover:bg-emerald-700' 
-                  : 'bg-gray-700 hover:bg-gray-600'
+              newChatClicked
+                ? 'bg-emerald-600 scale-95'
+                : !currentConversationId
+                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                  : 'bg-gray-800 hover:bg-gray-700'
             }`}
           >
             <div className="flex items-center justify-center">
@@ -81,7 +81,7 @@ export const Sidebar = ({
                   key={conversation.id}
                   onClick={() => onSelectConversation(conversation)}
                   className={`group flex items-center justify-between px-3 py-2 mx-2 rounded-lg cursor-pointer sidebar-item ${
-                    currentConversationId === conversation.id ? 'bg-gray-700' : ''
+                    currentConversationId === conversation.id ? 'bg-gray-800 glowing-border' : ''
                   }`}
                 >
                   <span className="text-sm font-medium text-gray-100 truncate leading-relaxed">{conversation.title}</span>
