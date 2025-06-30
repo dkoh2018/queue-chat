@@ -10,6 +10,8 @@ import { MessageInput } from '@/components/MessageInput';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { MessageQueueView } from '@/components/MessageQueueView';
 import { MessageInputContainer } from '@/components/MessageInputContainer';
+import { QueueToggle } from '@/components/QueueToggle';
+import { MenuIcon } from '@/components/icons';
 
 export default function Jarvis() {
   // UI State
@@ -18,6 +20,7 @@ export default function Jarvis() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
   const [newChatClicked, setNewChatClicked] = useState(false);
+  const [queueVisible, setQueueVisible] = useState(false);
 
   // Custom Hooks for Business Logic (must come before any useEffect that uses their values)
   const {
@@ -190,6 +193,16 @@ export default function Jarvis() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col relative">
+        {/* Floating Sidebar Toggle Button */}
+        {!sidebarOpen && (
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="fixed top-4 left-4 z-50 p-2 bg-gray-800/50 rounded-full text-white hover:bg-gray-700/70 backdrop-blur-sm transition-all duration-300"
+            title="Open sidebar"
+          >
+            <MenuIcon />
+          </button>
+        )}
         {/* Chat Area or Welcome - now takes full height */}
         {!messages || messages.length === 0 ? (
           <WelcomeView currentConversationId={currentConversationId} />
@@ -199,13 +212,23 @@ export default function Jarvis() {
 
         {/* Fixed Message Input - positioned inside main content */}
         <MessageInputContainer>
+          {/* Queue Toggle Button */}
+          <QueueToggle
+            isOpen={queueVisible}
+            onToggle={() => setQueueVisible(!queueVisible)}
+            queueCount={messageQueue.length}
+          />
+
+          {/* Queue View */}
           <MessageQueueView
             messageQueue={messageQueue}
             onRemoveMessage={removeMessageFromQueue}
             onClearQueue={clearQueue}
             isProcessing={isProcessingQueue}
             onReorderQueue={reorderQueue}
+            isVisible={queueVisible}
           />
+
           <MessageInput
             inputText={inputText}
             setInputText={setInputText}

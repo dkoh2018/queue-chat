@@ -116,7 +116,13 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
   }, []);
 
   const removeMessageFromQueue = useCallback((index: number) => {
-    setMessageQueue(prev => prev.filter((_, i) => i !== index));
+    console.log('🗑️ Removing message at index:', index);
+    setMessageQueue(prev => {
+      const newQueue = prev.filter((_, i) => i !== index);
+      console.log('🗑️ Queue before removal:', prev);
+      console.log('🗑️ Queue after removal:', newQueue);
+      return newQueue;
+    });
   }, []);
 
   const clearQueue = useCallback(() => {

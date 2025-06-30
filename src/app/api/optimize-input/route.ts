@@ -82,7 +82,7 @@ export async function POST(request: Request) {
       originalInput: userInput,
       optimizedInput: optimizedInput 
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Input optimization error:', err);
     // Fallback to original input if optimization fails
     return NextResponse.json({ 

@@ -8,6 +8,7 @@ interface MessageQueueViewProps {
   onClearQueue: () => void;
   onReorderQueue: (startIndex: number, endIndex: number) => void;
   isProcessing: boolean;
+  isVisible: boolean;
 }
 
 export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
@@ -16,8 +17,9 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
   onClearQueue,
   onReorderQueue,
   isProcessing,
+  isVisible,
 }) => {
-  const hasQueue = messageQueue.length > 0;
+  console.log('🔄 MessageQueueView re-render, queue:', messageQueue);
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) {
@@ -26,22 +28,26 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
     onReorderQueue(result.source.index, result.destination.index);
   };
 
+  if (!isVisible) {
+    return null;
+  }
+
   return (
-    <div
-      className={`absolute bottom-full left-0 right-0 z-0 transition-all duration-300 ease-in-out ${
-        hasQueue ? 'transform translate-y-0 opacity-100' : 'transform translate-y-full opacity-0'
-      }`}
-    >
+    <div className="absolute bottom-full right-0 w-96 z-40 transition-all duration-300 ease-in-out transform translate-y-0 opacity-100 mb-2">
       <div className="bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 shadow-lg rounded-t-lg p-4">
         <div className="flex justify-between items-center mb-2">
-          <h3 className="text-lg font-semibold text-white">Message Queue</h3>
-          <button
-            onClick={onClearQueue}
-            className="text-gray-400 hover:text-white transition-colors"
-            title="Clear queue"
-          >
-            <XIcon className="w-5 h-5" />
-          </button>
+          <h3 className="text-lg font-semibold text-white">
+            {messageQueue.length === 0 ? 'No Queue' : `Next Prompt (${messageQueue.length})`}
+          </h3>
+          {messageQueue.length > 0 && (
+            <button
+              onClick={onClearQueue}
+              className="text-gray-400 hover:text-white transition-colors"
+              title="Clear queue"
+            >
+              <XIcon className="w-5 h-5" />
+            </button>
+          )}
         </div>
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable
@@ -54,10 +60,15 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
               <ul
                 {...provided.droppableProps}
                 ref={provided.innerRef}
-                className="space-y-2 max-h-48 overflow-y-auto"
+                className="space-y-2 max-h-48 overflow-y-auto chat-scroll"
               >
-                {messageQueue.map((message, index) => (
-                  <Draggable key={message} draggableId={message} index={index}>
+                {messageQueue.length === 0 ? (
+                  <li className="text-gray-400 text-center py-4 italic">
+                    No messages queued... yet!
+                  </li>
+                ) : (
+                  messageQueue.map((message, index) => (
+                  <Draggable key={`${message}-${index}`} draggableId={`${message}-${index}`} index={index}>
                     {(provided) => (
                       <li
                         ref={provided.innerRef}
@@ -70,7 +81,11 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
                         <span className="font-mono text-sm mr-2">{`[${index + 1}]`}</span>
                         <span className="flex-1">{message}</span>
                         <button
-                          onClick={() => onRemoveMessage(index)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onRemoveMessage(index);
+                          }}
                           className="text-gray-400 hover:text-white transition-colors ml-2"
                           title="Remove message"
                         >
@@ -79,7 +94,8 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
                       </li>
                     )}
                   </Draggable>
-                ))}
+                  ))
+                )}
                 {provided.placeholder}
               </ul>
             )}

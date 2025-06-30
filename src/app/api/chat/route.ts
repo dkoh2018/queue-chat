@@ -62,7 +62,7 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({ model: 'gpt-4.1', messages: messagesForAPI }),
+      body: JSON.stringify({ model: 'gpt-4.1-mini', messages: messagesForAPI }),
     });
 
     if (!response.ok) {
@@ -82,6 +82,12 @@ export async function POST(request: Request) {
       }
     });
 
+    // Manually update the conversation's updatedAt timestamp
+    await prisma.conversation.update({
+      where: { id: conversation.id },
+      data: { updatedAt: new Date() },
+    });
+
     // Log chat completion
     console.log('💬 CHAT COMPLETED:', {
       conversationId: conversation.id,
@@ -89,12 +95,13 @@ export async function POST(request: Request) {
       wasOptimized: !!optimizedInput
     });
 
-    return NextResponse.json({ 
-      content, 
-      conversationId: conversation.id 
+    return NextResponse.json({
+      content,
+      conversationId: conversation.id
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
     console.error('Chat API error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

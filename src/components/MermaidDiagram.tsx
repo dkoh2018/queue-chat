@@ -46,7 +46,11 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
         if (!validChart) {
           throw new Error("Mermaid chart is empty or invalid.");
         }
-        const { svg } = await mermaid.render(graphId, validChart);
+        
+        // Remove any style definitions from the chart to allow theme to take precedence
+        const chartWithoutStyles = validChart.replace(/style .*/g, '');
+
+        const { svg } = await mermaid.render(graphId, chartWithoutStyles);
         if (containerRef.current) {
           containerRef.current.innerHTML = svg;
         }
