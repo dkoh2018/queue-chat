@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useConversations, useChat } from '@/hooks';
 import { Conversation } from '@/types';
-import { Sidebar } from '@/components/Sidebar';
+import Sidebar from '@/components/Sidebar';
 import { ChatView } from '@/components/ChatView';
 import { WelcomeView } from '@/components/WelcomeView';
 import { MessageInput } from '@/components/MessageInput';
@@ -16,6 +16,49 @@ import { MenuIcon } from '@/components/icons';
 export default function Jarvis() {
   // UI State
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarWidth, setSidebarWidth] = useState(256);
+  const [isResizing, setIsResizing] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  const handleMouseUp = () => {
+    setIsResizing(false);
+    document.body.style.cursor = 'auto';
+    document.body.style.userSelect = 'auto';
+    if (sidebarRef.current) {
+      setSidebarWidth(sidebarRef.current.offsetWidth);
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isResizing && sidebarRef.current) {
+      const newWidth = e.clientX;
+      if (newWidth > 200 && newWidth < 500) {
+        sidebarRef.current.style.width = `${newWidth}px`;
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    } else {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
   const [inputText, setInputText] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
@@ -180,8 +223,11 @@ export default function Jarvis() {
   return (
     <div className="flex h-screen bg-gray-900 text-white relative">
       <Sidebar
+        ref={sidebarRef}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        width={sidebarWidth}
+        isResizing={isResizing}
         newChatClicked={newChatClicked}
         currentConversationId={currentConversationId}
         conversations={conversations}
@@ -190,6 +236,12 @@ export default function Jarvis() {
         onSelectConversation={handleSelectConversation}
         onDeleteClick={handleDeleteClick}
       />
+      <div
+        onMouseDown={handleMouseDown}
+        className="group w-2 cursor-col-resize bg-gray-800/50 hover:bg-gray-700/70 transition-colors duration-200 flex items-center justify-center"
+      >
+        <div className="w-1 h-8 bg-gray-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col relative">

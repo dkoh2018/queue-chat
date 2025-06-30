@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { Conversation } from '@/types';
 import { PlusIcon, SearchIcon, MenuIcon, XIcon } from '@/components/icons';
 import Button from '@/components/ui/Button';
@@ -5,6 +6,8 @@ import Button from '@/components/ui/Button';
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  width: number;
+  isResizing: boolean;
   newChatClicked: boolean;
   currentConversationId: string | null;
   conversations: Conversation[];
@@ -14,9 +17,11 @@ interface SidebarProps {
   onDeleteClick: (conversation: Conversation, e: React.MouseEvent) => void;
 }
 
-export const Sidebar = ({
+const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   sidebarOpen,
   setSidebarOpen,
+  width,
+  isResizing,
   newChatClicked,
   currentConversationId,
   conversations,
@@ -24,22 +29,26 @@ export const Sidebar = ({
   onNewChat,
   onSelectConversation,
   onDeleteClick,
-}: SidebarProps) => {
+}, ref) => {
   return (
     <>
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
       
       {/* Sidebar */}
-      <div className={`${
-        sidebarOpen ? 'w-64' : 'w-0'
-      } bg-gray-900 flex flex-col transition-all duration-300 overflow-hidden
-        md:relative fixed left-0 top-0 h-full z-50 md:z-auto`}>
+      <div
+        ref={ref}
+        className={`${
+          sidebarOpen ? '' : 'w-0'
+        } bg-[#111827] flex flex-col ${isResizing ? '' : 'transition-all duration-300'} overflow-hidden
+        md:relative fixed left-0 top-0 h-full z-50 md:z-auto`}
+        style={{ width: sidebarOpen ? width : 0 }}
+      >
         {/* Sidebar Header */}
         <div className="p-4 border-b border-gray-800">
           <div className="flex items-center justify-between mb-4">
@@ -102,4 +111,8 @@ export const Sidebar = ({
       </div>
     </>
   );
-};
+});
+
+Sidebar.displayName = 'Sidebar';
+
+export default Sidebar;
