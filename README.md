@@ -1,58 +1,86 @@
 # Queue Chat
 
-Queue Chat is a sophisticated chat application with a unique message queueing system that allows for thoughtful, asynchronous interaction with an AI assistant. This document provides a detailed overview of the message queue implementation, which is the core feature of this project.
+An asynchronous chat application featuring intelligent message queue processing and two-stage AI optimization for enhanced conversational context and response quality.
 
-## Message Queue Implementation
+![Queue Chat Workflow](./public/project_exmaple.png)
 
-The message queue is the central feature of Queue Chat. It allows users to submit multiple prompts, which are then processed sequentially by the AI. This enables a more deliberate and organized workflow, as users can queue up a series of questions or tasks without waiting for each one to complete.
+## Problem Statement
 
-### Workflow
+Traditional chat-based AI interactions follow a linear, depth-first conversation pattern that can be inefficient for complex, multi-faceted queries. Users often experience:
 
-The message queue workflow is as follows:
+- **Context Fragmentation**: Sequential questioning prevents the AI from understanding the full scope of the inquiry
+- **Processing Inefficiency**: Users must wait for each response before formulating the next question
+- **Suboptimal Response Quality**: Limited context results in less comprehensive and accurate responses
 
-1.  **Queueing Messages**: Users can add messages to the queue at any time. These messages are displayed in a dedicated queue view, where they can be reordered or removed.
-2.  **Sequential Processing**: The queue is processed one message at a time. When the AI is available, it takes the next message from the queue and begins processing it.
-3.  **Two Stage AI Processing**: Each message undergoes a two stage AI process. First, the user's input is optimized by an AI that considers the conversation history. This enhanced input is then sent to the main AI, which generates a higher quality response.
-4.  **Real Time Updates**: The user interface provides real time updates on the status of the queue. The currently processing message is highlighted, and the queue is updated as messages are completed.
+## Solution Architecture
 
-### Visualization
+Queue Chat implements an asynchronous message queue system that enables breadth-first conversation exploration, allowing users to batch related queries for enhanced contextual processing.
 
-The following diagram illustrates the message queue workflow:
+### Core Features
 
-```mermaid
-graph TD
-    A[User Input] --> B{Message Queue};
-    B --> C{Is AI Busy?};
-    C -->|No| D[Process Next Message];
-    C -->|Yes| B;
-    D --> E[Optimize Input];
-    E --> F[Generate Response];
-    F --> G[Display Response];
-    G --> B;
+**Message Queue Management**
+- Asynchronous message batching and sequential processing
+- Dynamic queue reordering via drag-and-drop interface
+- Real-time processing status indicators
+
+**Two-Stage AI Processing Pipeline**
+1. **Input Optimization**: Initial AI model refines user input based on conversation history
+2. **Response Generation**: Main AI model processes optimized prompts with enhanced context
+
+**Enterprise-Ready UI Components**
+- Responsive design with TypeScript type safety
+- Real-time queue state management
+- Intuitive queue manipulation controls
+
+## Technical Implementation
+
+### Frontend Architecture
+```
+├── useChat Hook          # Queue state management and API orchestration
+├── MessageQueueView      # Queue visualization and user interactions  
+├── QueueToggle          # Queue visibility controls
+└── ChatView             # Main conversation interface
 ```
 
-### User Interface
+### Backend Processing
+- RESTful API endpoints for queue management
+- OpenAI API integration with prompt optimization
+- PostgreSQL persistence layer with Prisma ORM
 
-The message queue is managed through a dedicated view that provides the following features:
-
-*   **Drag and Drop Reordering**: Users can reorder messages in the queue by dragging and dropping them.
-*   **Message Removal**: Individual messages can be removed from the queue.
-*   **Clear Queue**: The entire queue can be cleared with a single click.
-*   **Real Time Status**: The UI indicates which message is currently being processed.
-
-## Architecture
-
-The message queue is implemented using a combination of React hooks and components. The `useChat` hook manages the state of the queue, including adding, removing, and reordering messages. The `MessageQueueView` component renders the queue and handles user interactions.
-
-The two stage AI processing is handled by a backend API that uses the OpenAI API to optimize user input and generate responses. The frontend communicates with this API to process the messages in the queue.
+### Key Technical Benefits
+- **Improved Response Quality**: Context optimization enables focus on the most relevant information
+- **Operational Efficiency**: Batch processing reduces user wait times and improves system throughput
+- **Scalable Architecture**: Stateful queue management supports complex, multi-turn conversations
 
 ## Getting Started
 
-To get started with Queue Chat, you will need Node.js, npm or yarn, and a PostgreSQL database.
+### Prerequisites
+- Node.js 18+
+- PostgreSQL database
+- OpenAI API key
 
-1.  Clone the repository.
-2.  Install the dependencies using `npm install`.
-3.  Set up your environment variables by creating a `.env` file with your database connection string and OpenAI API key.
-4.  Set up the database by running `npx prisma migrate dev`.
-5.  Start the development server with `npm run dev`.
-6.  Open your browser to `http://localhost:3000`.
+### Installation
+
+```bash
+# Clone and install dependencies
+npm install
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your DATABASE_URL and OPENAI_API_KEY
+
+# Initialize database
+npx prisma migrate dev
+
+# Start development server
+npm run dev
+```
+
+Access the application at [http://localhost:3000](http://localhost:3000)
+
+## Tech Stack
+
+- **Frontend**: Next.js 13+ (App Router), React, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, Prisma ORM, PostgreSQL
+- **AI Integration**: OpenAI API with custom prompt optimization pipeline
+- **State Management**: React hooks with optimistic updates
