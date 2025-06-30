@@ -43,10 +43,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
       {/* Sidebar */}
       <div
         ref={ref}
-        className={`${
-          sidebarOpen ? '' : 'w-0'
-        } bg-[#111827] flex flex-col ${isResizing ? '' : 'transition-all duration-300'} overflow-hidden
-        md:relative fixed left-0 top-0 h-full z-50 md:z-auto`}
+        className={`bg-[#111827] flex flex-col ${isResizing ? '' : 'transition-all duration-300'} overflow-hidden md:relative fixed left-0 top-0 h-full z-50 md:z-auto`}
         style={{ width: sidebarOpen ? width : 0 }}
       >
         {/* Sidebar Header */}

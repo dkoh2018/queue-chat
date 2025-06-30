@@ -19,10 +19,14 @@ export default function Jarvis() {
   const [sidebarWidth, setSidebarWidth] = useState(256);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const dragStart = useRef<{ x: number, y: number } | null>(null);
+  const wasDragged = useRef(false);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
+    wasDragged.current = false;
+    dragStart.current = { x: e.clientX, y: e.clientY };
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
   };
@@ -31,13 +35,20 @@ export default function Jarvis() {
     setIsResizing(false);
     document.body.style.cursor = 'auto';
     document.body.style.userSelect = 'auto';
-    if (sidebarRef.current) {
+    if (sidebarRef.current && wasDragged.current) {
       setSidebarWidth(sidebarRef.current.offsetWidth);
     }
   };
 
   const handleMouseMove = (e: MouseEvent) => {
     if (isResizing && sidebarRef.current) {
+      if (dragStart.current) {
+        const dx = Math.abs(e.clientX - dragStart.current.x);
+        const dy = Math.abs(e.clientY - dragStart.current.y);
+        if (dx > 10 || dy > 10) {
+          wasDragged.current = true;
+        }
+      }
       const newWidth = e.clientX;
       if (newWidth > 200 && newWidth < 500) {
         sidebarRef.current.style.width = `${newWidth}px`;
@@ -238,9 +249,18 @@ export default function Jarvis() {
       />
       <div
         onMouseDown={handleMouseDown}
+        onClick={() => {
+          if (!wasDragged.current) {
+            const newOpenState = !sidebarOpen;
+            if (newOpenState && sidebarWidth === 0) {
+              setSidebarWidth(256); // Restore to default width if it was 0
+            }
+            setSidebarOpen(newOpenState);
+          }
+        }}
         className="group w-2 cursor-col-resize bg-gray-800/50 hover:bg-gray-700/70 transition-colors duration-200 flex items-center justify-center"
       >
-        <div className="w-1 h-8 bg-gray-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="w-1 h-8 bg-gray-600 rounded-full transition-opacity duration-300" />
       </div>
 
       {/* Main Content */}
