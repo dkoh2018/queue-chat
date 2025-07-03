@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { UIMessage } from '@/types';
 import MarkdownMessage from '@/components/MarkdownMessage';
 
@@ -5,9 +6,9 @@ interface ChatViewProps {
   messages: UIMessage[];
 }
 
-export const ChatView = ({ messages }: ChatViewProps) => {
+export const ChatView = forwardRef<HTMLDivElement, ChatViewProps>(({ messages }, ref) => {
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 sm:px-6 md:px-8 lg:px-12 py-4 md:py-8 min-h-0">
+    <div ref={ref} className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 sm:px-6 md:px-8 lg:px-12 py-4 md:py-8 min-h-0">
       <div className="max-w-4xl w-full mx-auto space-y-8 md:space-y-24" style={{ paddingBottom: '15rem' }}>
         {messages?.map((msg, index) => (
             <div
@@ -34,4 +35,6 @@ export const ChatView = ({ messages }: ChatViewProps) => {
       </div>
     </div>
   );
-};
+});
+
+ChatView.displayName = 'ChatView';

@@ -1,4 +1,4 @@
-import { forwardRef, useState, useMemo } from 'react';
+import { forwardRef, useState, useMemo, memo } from 'react';
 import { Conversation } from '@/types';
 import { PlusIcon, SearchIcon, MenuIcon, XIcon } from '@/components/icons';
 import Button from '@/components/ui/Button';
@@ -16,6 +16,39 @@ interface SidebarProps {
   onSelectConversation: (conversation: Conversation) => void;
   onDeleteClick: (conversation: Conversation, e: React.MouseEvent) => void;
 }
+
+interface ConversationItemProps {
+  conversation: Conversation;
+  isActive: boolean;
+  onSelectConversation: (conversation: Conversation) => void;
+  onDeleteClick: (conversation: Conversation, e: React.MouseEvent) => void;
+}
+
+const ConversationItem = memo(({ 
+  conversation, 
+  isActive, 
+  onSelectConversation, 
+  onDeleteClick 
+}: ConversationItemProps) => {
+  return (
+    <div
+      key={conversation.id}
+      onClick={() => onSelectConversation(conversation)}
+      className={`group flex items-center justify-between px-2 sm:px-3 py-2 mx-2 sm:mx-3 rounded-lg cursor-pointer sidebar-item transition-all duration-200 ${
+        isActive ? 'glass-card glass-glow-green' : 'hover:glass-card'
+      }`}
+    >
+      <span className="text-sm font-medium text-gray-100 truncate leading-relaxed pr-2">{conversation.title}</span>
+      <button
+        onClick={(e) => onDeleteClick(conversation, e)}
+        className="opacity-0 group-hover:opacity-100 p-1.5 glass-button rounded transition-all duration-200 text-gray-400 hover:text-white flex-shrink-0 hover:border-red-500/60 hover:shadow-red-500/20"
+        title="Delete conversation"
+      >
+        <XIcon />
+      </button>
+    </div>
+  );
+});
 
 const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   sidebarOpen,
@@ -125,22 +158,13 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
                 {searchQuery ? `RESULTS (${filteredConversations.length})` : `CHATS (${filteredConversations.length})`}
               </div>
               {filteredConversations.map((conversation) => (
-                <div
+                <ConversationItem
                   key={conversation.id}
-                  onClick={() => onSelectConversation(conversation)}
-                  className={`group flex items-center justify-between px-2 sm:px-3 py-2 mx-2 sm:mx-3 rounded-lg cursor-pointer sidebar-item transition-all duration-200 ${
-                    currentConversationId === conversation.id ? 'glass-card glass-glow-green' : 'hover:glass-card'
-                  }`}
-                >
-                  <span className="text-sm font-medium text-gray-100 truncate leading-relaxed pr-2">{conversation.title}</span>
-                  <button
-                    onClick={(e) => onDeleteClick(conversation, e)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 glass-button rounded transition-all duration-200 text-gray-400 hover:text-white flex-shrink-0 hover:border-red-500/60 hover:shadow-red-500/20"
-                    title="Delete conversation"
-                  >
-                    <XIcon />
-                  </button>
-                </div>
+                  conversation={conversation}
+                  isActive={currentConversationId === conversation.id}
+                  onSelectConversation={onSelectConversation}
+                  onDeleteClick={onDeleteClick}
+                />
               ))}
             </>
           ) : (

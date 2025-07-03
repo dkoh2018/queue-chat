@@ -105,6 +105,8 @@ textarea::-webkit-scrollbar-thumb {
   position: relative;
   overflow: hidden;
   transition: all 0.2s ease;
+  will-change: background, border-color, box-shadow;
+  transform: translateZ(0);
 }
 
 .glass-card::before {
@@ -134,6 +136,8 @@ textarea::-webkit-scrollbar-thumb {
   position: relative;
   overflow: hidden;
   transition: all 0.2s ease;
+  will-change: background, border-color, box-shadow;
+  transform: translateZ(0);
 }
 
 .glass-button::before {
@@ -171,10 +175,12 @@ textarea::-webkit-scrollbar-thumb {
 
 .glass-glow-green {
   box-shadow: 
-    0 0 20px rgba(34, 197, 94, 0.5),
-    0 0 40px rgba(34, 197, 94, 0.3),
-    0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    0 0 10px rgba(34, 197, 94, 0.4),
+    0 0 20px rgba(34, 197, 94, 0.2),
+    0 2px 4px -1px rgba(0, 0, 0, 0.1);
   border-color: rgba(34, 197, 94, 0.5);
+  will-change: box-shadow, border-color;
+  transform: translateZ(0);
 }
 
 .glass-glow-purple {
@@ -231,14 +237,3 @@ textarea::-webkit-scrollbar-thumb {
   }
 }
 
-/* Fixed mobile sidebar width */
-@media (max-width: 1023px) {
-  .glass-panel.fixed.left-0[style*="width"] {
-    width: 85vw !important;
-  }
-  
-  /* When closed, respect the 0 width */
-  .glass-panel.fixed.left-0[style*="width: 0"] {
-    width: 0 !important;
-  }
-}

@@ -75,6 +75,9 @@ export default function Jarvis() {
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
   const [newChatClicked, setNewChatClicked] = useState(false);
   const [queueVisible, setQueueVisible] = useState(false);
+  
+  // Refs for better performance
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // Custom Hooks for Business Logic (must come before any useEffect that uses their values)
   const {
@@ -102,9 +105,8 @@ export default function Jarvis() {
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     const scrollToBottom = () => {
-      const chatContainer = document.querySelector('.chat-scroll');
-      if (chatContainer) {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+      if (chatScrollRef.current) {
+        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
       }
     };
     
@@ -118,15 +120,12 @@ export default function Jarvis() {
   // Save scroll position when user scrolls in any conversation
   useEffect(() => {
     const handleScroll = () => {
-      if (currentConversationId && typeof window !== 'undefined') {
-        const chatContainer = document.querySelector('.chat-scroll');
-        if (chatContainer) {
-          localStorage.setItem(`scroll-${currentConversationId}`, String(chatContainer.scrollTop));
-        }
+      if (currentConversationId && typeof window !== 'undefined' && chatScrollRef.current) {
+        localStorage.setItem(`scroll-${currentConversationId}`, String(chatScrollRef.current.scrollTop));
       }
     };
 
-    const chatContainer = document.querySelector('.chat-scroll');
+    const chatContainer = chatScrollRef.current;
     if (chatContainer) {
       chatContainer.addEventListener('scroll', handleScroll);
       return () => chatContainer.removeEventListener('scroll', handleScroll);
@@ -221,10 +220,6 @@ export default function Jarvis() {
     clearMessages();
     setCurrentConversationId(null);
     
-    // Clear from localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('currentConversationId');
-    }
     
     // Close sidebar on mobile after creating new chat
     if (window.innerWidth < 768) {
@@ -310,10 +305,9 @@ export default function Jarvis() {
     
     // Restore saved scroll position for this conversation
     setTimeout(() => {
-      const chatContainer = document.querySelector('.chat-scroll');
-      if (chatContainer && typeof window !== 'undefined') {
+      if (chatScrollRef.current && typeof window !== 'undefined') {
         const savedPosition = localStorage.getItem(`scroll-${conversation.id}`);
-        chatContainer.scrollTop = savedPosition ? Number(savedPosition) : 0;
+        chatScrollRef.current.scrollTop = savedPosition ? Number(savedPosition) : 0;
       }
     }, 100);
   };
@@ -390,7 +384,7 @@ export default function Jarvis() {
         {!messages || messages.length === 0 ? (
           <WelcomeView currentConversationId={currentConversationId} />
         ) : (
-          <ChatView messages={messages} />
+          <ChatView messages={messages} ref={chatScrollRef} />
         )}
 
         {/* Fixed Message Input - positioned inside main content */}
