@@ -85,24 +85,15 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   };
 
   return (
-    <>
-      {/* Sidebar Overlay for smaller screens */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-      
-      {/* Sidebar */}
-      <div
-        ref={ref}
-        className={`glass-panel border-r border-gray-600/50 flex flex-col ${isResizing ? '' : 'transition-all duration-300'} overflow-hidden lg:relative fixed left-0 top-0 h-full z-50 lg:z-auto`}
-        style={{ 
-          width: sidebarOpen ? width : 0,
-          transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'
-        }}
-      >
+    <div
+      ref={ref}
+      className={`glass-panel border-r border-gray-600/50 flex flex-col ${isResizing ? '' : 'transition-all duration-300'} overflow-hidden relative h-full`}
+      style={{
+        width: sidebarOpen ? width : 0,
+        minWidth: sidebarOpen ? Math.min(width, window.innerWidth * 0.6) : 0,
+        maxWidth: sidebarOpen ? Math.min(width, window.innerWidth * 0.85) : 0
+      }}
+    >
         {/* Sidebar Header */}
         <div className="p-3 sm:p-4 border-b border-gray-600/50">
           {isSearching ? (
@@ -173,8 +164,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
             </div>
           )}
         </div>
-      </div>
-    </>
+    </div>
   );
 });
 

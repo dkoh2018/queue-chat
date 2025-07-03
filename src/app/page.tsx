@@ -154,32 +154,22 @@ export default function Jarvis() {
 
   // Load sidebar state from localStorage after mount (client-side only)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedSidebarOpen = localStorage.getItem('sidebarOpen');
-      const savedSidebarWidth = localStorage.getItem('sidebarWidth');
-      
-      if (savedSidebarOpen !== null) {
-        // User has a saved preference
-        setSidebarOpen(JSON.parse(savedSidebarOpen));
-      } else {
-        // First visit - set based on screen size
-        if (window.innerWidth >= 768) {
-          setSidebarOpen(true); // Desktop default
-        } else {
-          setSidebarOpen(false); // Mobile default
-        }
-      }
-      
-      if (savedSidebarWidth !== null) {
-        setSidebarWidth(Number(savedSidebarWidth));
-      } else {
-        // Set default width based on screen size
-        if (window.innerWidth < 768) {
-          setSidebarWidth(300); // Fixed mobile width
-        } else {
-          setSidebarWidth(256); // Desktop default
-        }
-      }
+    const savedSidebarOpen = localStorage.getItem('sidebarOpen');
+    const savedSidebarWidth = localStorage.getItem('sidebarWidth');
+    
+    if (savedSidebarOpen !== null) {
+      // User has a saved preference
+      setSidebarOpen(JSON.parse(savedSidebarOpen));
+    } else {
+      // First visit - default based on screen size
+      setSidebarOpen(window.innerWidth >= 768);
+    }
+    
+    if (savedSidebarWidth !== null) {
+      setSidebarWidth(Number(savedSidebarWidth));
+    } else {
+      // Default responsive width
+      setSidebarWidth(256);
     }
   }, []);
 
@@ -199,18 +189,6 @@ export default function Jarvis() {
     }
   }, [sidebarWidth, isResizing]);
 
-  // Handle responsive sidebar behavior (respect user preferences)
-  useEffect(() => {
-    const handleResize = () => {
-      // Close sidebar on small screens to prevent layout issues
-      if (window.innerWidth < 1024) {
-        setSidebarOpen(false);
-      }
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const handleNewChat = useCallback(() => {
     // Provide immediate visual feedback
@@ -221,7 +199,7 @@ export default function Jarvis() {
     setCurrentConversationId(null);
     
     
-    // Close sidebar on mobile after creating new chat
+    // Close sidebar on small screens after creating new chat
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
@@ -352,8 +330,9 @@ export default function Jarvis() {
         onSelectConversation={handleSelectConversation}
         onDeleteClick={handleDeleteClick}
       />
+      {/* Resize handle - disabled on small screens */}
       <div
-        onMouseDown={handleMouseDown}
+        onMouseDown={window.innerWidth >= 768 ? handleMouseDown : undefined}
         onClick={() => {
           if (!wasDragged.current) {
             const newOpenState = !sidebarOpen;
@@ -363,7 +342,9 @@ export default function Jarvis() {
             setSidebarOpen(newOpenState);
           }
         }}
-        className="group w-2 cursor-col-resize bg-gray-800/50 hover:bg-gray-700/70 transition-colors duration-200 flex items-center justify-center hidden md:flex"
+        className={`group w-2 bg-gray-800/50 hover:bg-gray-700/70 transition-colors duration-200 flex items-center justify-center ${
+          window.innerWidth >= 768 ? 'cursor-col-resize' : 'cursor-pointer'
+        }`}
       >
         <div className="w-1 h-8 bg-gray-600 rounded-full transition-opacity duration-300" />
       </div>

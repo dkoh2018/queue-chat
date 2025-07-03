@@ -8,17 +8,17 @@ interface ChatViewProps {
 
 export const ChatView = forwardRef<HTMLDivElement, ChatViewProps>(({ messages }, ref) => {
   return (
-    <div ref={ref} className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 sm:px-6 md:px-8 lg:px-12 py-4 md:py-8 min-h-0">
+    <div ref={ref} className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 sm:px-6 lg:px-8 py-4 lg:py-8 min-h-0">
       <div className="max-w-4xl w-full mx-auto space-y-8 md:space-y-24" style={{ paddingBottom: '15rem' }}>
         {messages?.map((msg, index) => (
             <div
               key={index}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-4 md:mb-8`}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-4 lg:mb-8`}
             >
               <div className={`${
                 msg.role === 'user'
-                  ? 'bg-gray-800 text-white rounded-2xl rounded-br-md px-3 md:px-5 py-2 md:py-3 border border-gray-700/50 max-w-[85%] md:max-w-[80%] shadow-lg'
-                  : 'text-gray-100 w-full max-w-[95%] md:max-w-full'
+                  ? 'bg-gray-800 text-white rounded-2xl rounded-br-md px-3 lg:px-5 py-2 lg:py-3 border border-gray-700/50 max-w-[85%] lg:max-w-[80%] shadow-lg'
+                  : 'text-gray-100 w-full max-w-[95%] lg:max-w-full'
               }`}>
                 {msg.role === 'assistant' ? (
                   <div className="prose prose-invert prose-sm md:prose-lg max-w-none">
