@@ -113,7 +113,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
         </div>
 
         {/* Chat History */}
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 overflow-y-auto chat-scroll py-2">
           {loading ? (
             <div className="text-xs text-gray-400 px-3">Loading conversations...</div>
           ) : filteredConversations.length > 0 ? (

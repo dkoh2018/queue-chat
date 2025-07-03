@@ -7,7 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:start": "prisma dev",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset",
+    "db:studio": "prisma studio --port 5555",
+    "db:studio-reset": "npm run db:reset && npm run db:studio",
     "postinstall": "prisma generate"
   },
   "dependencies": {

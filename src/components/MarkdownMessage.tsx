@@ -67,9 +67,15 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
                 if (child.type === 'div' || child.type === 'pre' || child.type === 'blockquote' || child.type === 'table') {
                   return true;
                 }
-                // Code blocks (our custom component)
-                if (typeof child.type === 'function' &&
-                    (child.type.name === 'CodeBlock' || (child.type as React.FC).displayName === 'CodeBlock')) {
+                // Code blocks (our custom component) - check both function name and displayName
+                if (typeof child.type === 'function') {
+                  const componentName = child.type.displayName || child.type.name;
+                  if (componentName === 'CodeBlock') {
+                    return true;
+                  }
+                }
+                // Check if it's our CodeBlock component by reference
+                if (child.type === CodeBlock) {
                   return true;
                 }
                 // Check props for block code indicators
