@@ -348,9 +348,7 @@ export default function Jarvis() {
             setSidebarOpen(newOpenState);
           }
         }}
-        className={`group w-2 bg-gray-800/50 hover:bg-gray-700/70 transition-colors duration-200 flex items-center justify-center ${
-          typeof window !== 'undefined' && window.innerWidth >= 768 ? 'cursor-col-resize' : 'cursor-pointer'
-        }`}
+        className="group w-2 bg-gray-800/50 hover:bg-gray-700/70 transition-colors duration-200 flex items-center justify-center cursor-col-resize"
       >
         <div className="w-1 h-8 bg-gray-600 rounded-full transition-opacity duration-300" />
       </div>

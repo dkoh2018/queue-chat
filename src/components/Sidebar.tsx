@@ -73,7 +73,6 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
 }, ref) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [windowWidth, setWindowWidth] = useState(1024); // Default for SSR
 
   const filteredConversations = useMemo(() => {
     if (!searchQuery) {
@@ -93,28 +92,13 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
     setSearchQuery('');
   };
 
-  // Update window width on client-side
-  useEffect(() => {
-    const updateWindowWidth = () => {
-      setWindowWidth(window.innerWidth);
-    };
-    
-    // Set initial width
-    updateWindowWidth();
-    
-    // Add resize listener
-    window.addEventListener('resize', updateWindowWidth);
-    return () => window.removeEventListener('resize', updateWindowWidth);
-  }, []);
 
   return (
     <div
       ref={ref}
       className={`glass-panel border-r border-gray-600/50 flex flex-col ${isResizing ? '' : 'transition-all duration-300'} overflow-hidden relative h-full`}
       style={{
-        width: sidebarOpen ? width : 0,
-        minWidth: sidebarOpen ? Math.min(width, typeof window !== 'undefined' ? window.innerWidth * 0.6 : 400) : 0,
-        maxWidth: sidebarOpen ? Math.min(width, typeof window !== 'undefined' ? window.innerWidth * 0.85 : 600) : 0
+        width: sidebarOpen ? width : 0
       }}
     >
         {/* Sidebar Header */}
