@@ -1,13 +1,5 @@
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-interface LogEntry {
-  level: LogLevel;
-  message: string;
-  timestamp: string;
-  context?: string;
-  data?: any;
-}
-
 class Logger {
   private isDevelopment = process.env.NODE_ENV === 'development';
   
@@ -25,7 +17,7 @@ class Logger {
     return emojis[level];
   }
 
-  private log(level: LogLevel, message: string, context?: string, data?: any): void {
+  private log(level: LogLevel, message: string, context?: string, data?: unknown): void {
     if (!this.isDevelopment) return;
 
     const timestamp = this.formatTimestamp();
@@ -49,36 +41,36 @@ class Logger {
     }
   }
 
-  debug(message: string, context?: string, data?: any): void {
+  debug(message: string, context?: string, data?: unknown): void {
     this.log('debug', message, context, data);
   }
 
-  info(message: string, context?: string, data?: any): void {
+  info(message: string, context?: string, data?: unknown): void {
     this.log('info', message, context, data);
   }
 
-  warn(message: string, context?: string, data?: any): void {
+  warn(message: string, context?: string, data?: unknown): void {
     this.log('warn', message, context, data);
   }
 
-  error(message: string, context?: string, data?: any): void {
+  error(message: string, context?: string, data?: unknown): void {
     this.log('error', message, context, data);
   }
 
   // Specialized methods for common use cases
-  api(message: string, data?: any): void {
+  api(message: string, data?: unknown): void {
     this.info(message, 'API', data);
   }
 
-  db(message: string, data?: any): void {
+  db(message: string, data?: unknown): void {
     this.info(message, 'DATABASE', data);
   }
 
-  ui(message: string, data?: any): void {
+  ui(message: string, data?: unknown): void {
     this.info(message, 'UI', data);
   }
 
-  conversation(message: string, data?: any): void {
+  conversation(message: string, data?: unknown): void {
     this.info(message, 'CONVERSATION', data);
   }
 }
