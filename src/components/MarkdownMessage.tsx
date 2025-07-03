@@ -69,7 +69,7 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
                 }
                 // Code blocks (our custom component) - check both function name and displayName
                 if (typeof child.type === 'function') {
-                  const componentName = child.type.displayName || child.type.name;
+                  const componentName = (child.type as { displayName?: string; name?: string }).displayName || (child.type as { name?: string }).name;
                   if (componentName === 'CodeBlock') {
                     return true;
                   }

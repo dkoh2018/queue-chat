@@ -14,8 +14,8 @@ import { QueueToggle } from '@/components/QueueToggle';
 import { MenuIcon } from '@/components/icons';
 
 export default function Jarvis() {
-  // UI State
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // UI State - Start with sidebar closed on mobile
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(256);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -119,6 +119,25 @@ export default function Jarvis() {
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
+
+  // Handle responsive sidebar behavior
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        // Desktop: open sidebar by default
+        setSidebarOpen(true);
+      } else {
+        // Mobile: close sidebar by default
+        setSidebarOpen(false);
+      }
+    };
+
+    // Set initial state based on screen size
+    handleResize();
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleNewChat = () => {
     // Provide immediate visual feedback
@@ -232,7 +251,7 @@ export default function Jarvis() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white relative">
+    <div className="flex min-h-screen bg-gray-900 text-white relative">
       <Sidebar
         ref={sidebarRef}
         sidebarOpen={sidebarOpen}
@@ -258,7 +277,7 @@ export default function Jarvis() {
             setSidebarOpen(newOpenState);
           }
         }}
-        className="group w-2 cursor-col-resize bg-gray-800/50 hover:bg-gray-700/70 transition-colors duration-200 flex items-center justify-center"
+        className="group w-2 cursor-col-resize bg-gray-800/50 hover:bg-gray-700/70 transition-colors duration-200 flex items-center justify-center hidden md:flex"
       >
         <div className="w-1 h-8 bg-gray-600 rounded-full transition-opacity duration-300" />
       </div>

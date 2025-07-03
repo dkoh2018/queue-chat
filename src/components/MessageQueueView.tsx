@@ -1,5 +1,22 @@
 import React from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { XIcon } from './icons';
 
 interface MessageQueueViewProps {
@@ -11,6 +28,57 @@ interface MessageQueueViewProps {
   isVisible: boolean;
 }
 
+interface SortableItemProps {
+  id: string;
+  message: string;
+  index: number;
+  onRemoveMessage: (index: number) => void;
+  isProcessing: boolean;
+}
+
+const SortableItem: React.FC<SortableItemProps> = ({ id, message, index, onRemoveMessage, isProcessing }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`flex items-center justify-between text-gray-300 bg-gray-700/50 p-2 rounded-md cursor-grab active:cursor-grabbing ${
+        isProcessing && index === 0 ? 'animate-pulse border border-blue-500 shadow-lg shadow-blue-500/50' : ''
+      }`}
+    >
+      <span className="font-mono text-sm mr-2">{`[${index + 1}]`}</span>
+      <span className="flex-1">{message}</span>
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onRemoveMessage(index);
+        }}
+        className="text-gray-400 hover:text-white transition-colors ml-2"
+        title="Remove message"
+      >
+        <XIcon className="w-4 h-4" />
+      </button>
+    </li>
+  );
+};
+
 export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
   messageQueue,
   onRemoveMessage,
@@ -21,11 +89,24 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
 }) => {
   console.log('🔄 MessageQueueView re-render, queue:', messageQueue);
 
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination) {
-      return;
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = messageQueue.findIndex((_, index) => `${messageQueue[index]}-${index}` === active.id);
+      const newIndex = messageQueue.findIndex((_, index) => `${messageQueue[index]}-${index}` === over?.id);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        onReorderQueue(oldIndex, newIndex);
+      }
     }
-    onReorderQueue(result.source.index, result.destination.index);
   };
 
   if (!isVisible) {
@@ -49,58 +130,35 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
             </button>
           )}
         </div>
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable
-            droppableId="messageQueue"
-            isDropDisabled={false}
-            isCombineEnabled={false}
-            ignoreContainerClipping={false}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={messageQueue.map((message, index) => `${message}-${index}`)}
+            strategy={verticalListSortingStrategy}
           >
-            {(provided) => (
-              <ul
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="space-y-2 max-h-48 overflow-y-auto chat-scroll"
-              >
-                {messageQueue.length === 0 ? (
-                  <li className="text-gray-400 text-center py-4 italic">
-                    No messages queued... yet!
-                  </li>
-                ) : (
-                  messageQueue.map((message, index) => (
-                  <Draggable key={`${message}-${index}`} draggableId={`${message}-${index}`} index={index}>
-                    {(provided) => (
-                      <li
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className={`flex items-center justify-between text-gray-300 bg-gray-700/50 p-2 rounded-md ${
-                          isProcessing && index === 0 ? 'animate-pulse border border-blue-500 shadow-lg shadow-blue-500/50' : ''
-                        }`}
-                      >
-                        <span className="font-mono text-sm mr-2">{`[${index + 1}]`}</span>
-                        <span className="flex-1">{message}</span>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onRemoveMessage(index);
-                          }}
-                          className="text-gray-400 hover:text-white transition-colors ml-2"
-                          title="Remove message"
-                        >
-                          <XIcon className="w-4 h-4" />
-                        </button>
-                      </li>
-                    )}
-                  </Draggable>
-                  ))
-                )}
-                {provided.placeholder}
-              </ul>
-            )}
-          </Droppable>
-        </DragDropContext>
+            <ul className="space-y-2 max-h-48 overflow-y-auto chat-scroll">
+              {messageQueue.length === 0 ? (
+                <li className="text-gray-400 text-center py-4 italic">
+                  No messages queued... yet!
+                </li>
+              ) : (
+                messageQueue.map((message, index) => (
+                  <SortableItem
+                    key={`${message}-${index}`}
+                    id={`${message}-${index}`}
+                    message={message}
+                    index={index}
+                    onRemoveMessage={onRemoveMessage}
+                    isProcessing={isProcessing}
+                  />
+                ))
+              )}
+            </ul>
+          </SortableContext>
+        </DndContext>
       </div>
     </div>
   );

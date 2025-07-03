@@ -46,7 +46,7 @@ const CodeBlock = ({ children, className }: CodeBlockProps) => {
       <Highlight
         theme={themes.vsDark}
         code={children.trim()}
-        language={language as any}
+        language={language as Parameters<typeof Highlight>[0]['language']}
       >
         {({ className, style, tokens, getLineProps, getTokenProps }) => (
           <pre

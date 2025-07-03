@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Jarvis",
   description: "ChatGPT interface clone",
+  viewport: "width=device-width, initial-scale=1.0",
 };
 
 export default function RootLayout({
