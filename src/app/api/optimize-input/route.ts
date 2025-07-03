@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     console.log(`   Optimized: "${cleanOptimizedInput.slice(0, 80)}${cleanOptimizedInput.length > 80 ? '...' : ''}"`);
     console.log(`   Improvement: ${cleanOptimizedInput.length - userInput.length > 0 ? '+' : ''}${cleanOptimizedInput.length - userInput.length} chars`);
     if (isDiagramRequest) {
-      console.log('   🎨 DIAGRAM REQUEST DETECTED');
+      console.log('DIAGRAM REQUEST DETECTED');
     }
 
     return NextResponse.json({ 
