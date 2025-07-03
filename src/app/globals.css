@@ -210,7 +210,7 @@ textarea::-webkit-scrollbar-thumb {
 }
 
 /* Mobile responsive glass effects */
-@media (max-width: 768px) {
+@media (max-width: 1023px) {
   .glass-panel {
     backdrop-filter: blur(24px) saturate(180%);
     background: rgba(255, 255, 255, 0.12);
@@ -228,5 +228,17 @@ textarea::-webkit-scrollbar-thumb {
   
   .glass-button {
     backdrop-filter: blur(16px) saturate(140%);
+  }
+}
+
+/* Fixed mobile sidebar width */
+@media (max-width: 1023px) {
+  .glass-panel.fixed.left-0[style*="width"] {
+    width: 85vw !important;
+  }
+  
+  /* When closed, respect the 0 width */
+  .glass-panel.fixed.left-0[style*="width: 0"] {
+    width: 0 !important;
   }
 }

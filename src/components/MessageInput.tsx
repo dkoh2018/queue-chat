@@ -67,6 +67,7 @@ export const MessageInput = ({ inputText, setInputText, onSend }: MessageInputPr
           }}
           placeholder="Ask anything..."
           className="w-full text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none font-medium"
+          suppressHydrationWarning
           style={{
             padding: '20px',
             fontSize: '16px',

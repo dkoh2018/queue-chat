@@ -173,6 +173,13 @@ export default function Jarvis() {
       
       if (savedSidebarWidth !== null) {
         setSidebarWidth(Number(savedSidebarWidth));
+      } else {
+        // Set default width based on screen size
+        if (window.innerWidth < 768) {
+          setSidebarWidth(300); // Fixed mobile width
+        } else {
+          setSidebarWidth(256); // Desktop default
+        }
       }
     }
   }, []);
@@ -185,10 +192,13 @@ export default function Jarvis() {
   }, [sidebarOpen]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('sidebarWidth', String(sidebarWidth));
+    if (typeof window !== 'undefined' && sidebarWidth > 0) {
+      // Only save width if it's a user-initiated change, not auto-adjustment
+      if (!isResizing) {
+        localStorage.setItem('sidebarWidth', String(sidebarWidth));
+      }
     }
-  }, [sidebarWidth]);
+  }, [sidebarWidth, isResizing]);
 
   // Handle responsive sidebar behavior (respect user preferences)
   useEffect(() => {
