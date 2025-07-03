@@ -375,7 +375,7 @@ export default function Jarvis() {
         {!sidebarOpen && (
           <button
             onClick={() => setSidebarOpen(true)}
-            className="fixed top-4 left-4 z-30 p-2 bg-gray-800/80 rounded-full text-white hover:bg-gray-700/90 backdrop-blur-sm transition-all duration-300 md:hidden"
+            className="fixed top-4 left-4 z-30 p-2 bg-gray-800/80 rounded-full text-white hover:bg-gray-700/90 backdrop-blur-sm transition-all duration-300"
             title="Open sidebar"
           >
             <MenuIcon />

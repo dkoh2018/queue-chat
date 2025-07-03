@@ -62,8 +62,8 @@ const SortableItem: React.FC<SortableItemProps> = ({ id, message, index, onRemov
         isProcessing && index === 0 ? 'animate-pulse border border-blue-500 shadow-lg shadow-blue-500/50' : ''
       }`}
     >
-      <span className="font-mono text-sm mr-2">{`[${index + 1}]`}</span>
-      <span className="flex-1">{message}</span>
+      <span className="font-mono text-xs sm:text-sm mr-2 flex-shrink-0">{`[${index + 1}]`}</span>
+      <span className="flex-1 truncate pr-2 text-sm">{message}</span>
       <button
         onClick={(e) => {
           e.preventDefault();
@@ -114,8 +114,8 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
   }
 
   return (
-    <div className="absolute bottom-full right-0 w-96 z-40 transition-all duration-300 ease-in-out transform translate-y-0 opacity-100 mb-2">
-      <div className="bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 shadow-lg rounded-t-lg p-4">
+    <div className="absolute bottom-full right-0 w-80 sm:w-96 z-40 transition-all duration-300 ease-in-out transform translate-y-0 opacity-100 mb-2 max-w-[calc(100vw-2rem)]">
+      <div className="bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 shadow-lg rounded-t-lg p-3 sm:p-4">
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-lg font-semibold text-white">
             {messageQueue.length === 0 ? 'No Queue' : `Next Prompt (${messageQueue.length})`}
