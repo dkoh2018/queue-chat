@@ -7,7 +7,7 @@ interface ChatViewProps {
 
 export const ChatView = ({ messages }: ChatViewProps) => {
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-2 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8">
+    <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-2 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8 min-h-0">
       <div className="max-w-4xl w-full mx-auto space-y-6 md:space-y-12 pb-24 md:pb-48">
         {messages?.map((msg, index) => (
             <div

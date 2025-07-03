@@ -251,7 +251,7 @@ export default function Jarvis() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-900 text-white relative">
+    <div className="flex h-screen bg-gray-900 text-white relative">
       <Sidebar
         ref={sidebarRef}
         sidebarOpen={sidebarOpen}
