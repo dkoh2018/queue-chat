@@ -1,4 +1,4 @@
-import { forwardRef, useState, useMemo, memo, useEffect } from 'react';
+import { forwardRef, useState, useMemo, memo } from 'react';
 import { Conversation } from '@/types';
 import { PlusIcon, SearchIcon, MenuIcon, XIcon } from '@/components/icons';
 import Button from '@/components/ui/Button';
