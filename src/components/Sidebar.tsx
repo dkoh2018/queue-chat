@@ -66,7 +66,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
         ref={ref}
         className={`glass-panel border-r border-gray-600/50 flex flex-col ${isResizing ? '' : 'transition-all duration-300'} overflow-hidden lg:relative fixed left-0 top-0 h-full z-50 lg:z-auto`}
         style={{ 
-          width: sidebarOpen ? width : 0,
+          width: sidebarOpen ? `min(${width}px, 85vw)` : 0,
           transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'
         }}
       >

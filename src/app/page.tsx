@@ -196,15 +196,6 @@ export default function Jarvis() {
       // Close sidebar on small screens to prevent layout issues
       if (window.innerWidth < 1024) {
         setSidebarOpen(false);
-        // Set responsive width based on screen size
-        if (window.innerWidth < 768) {
-          setSidebarWidth(280); // Mobile
-        } else {
-          setSidebarWidth(240); // Small desktop
-        }
-      } else {
-        // Large desktop default width
-        setSidebarWidth(256);
       }
     };
     
