@@ -21,7 +21,7 @@
 
 /* Custom chat scrollbar: seamless overlay */
 .chat-scroll {
-  overflow-y: overlay;
+  overflow-y: auto;
 }
 
 .chat-scroll::-webkit-scrollbar {

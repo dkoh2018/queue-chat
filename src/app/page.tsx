@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useConversations, useChat } from '@/hooks';
 import { Conversation } from '@/types';
 import Sidebar from '@/components/Sidebar';
@@ -108,12 +108,30 @@ export default function Jarvis() {
       }
     };
     
-    // Scroll to bottom whenever messages change (with null safety)
+    // Scroll to bottom whenever messages change
     if (messages && messages.length > 0) {
       // Use setTimeout to ensure DOM is updated
       setTimeout(scrollToBottom, 100);
     }
   }, [messages]);
+
+  // Save scroll position when user scrolls in any conversation
+  useEffect(() => {
+    const handleScroll = () => {
+      if (currentConversationId && typeof window !== 'undefined') {
+        const chatContainer = document.querySelector('.chat-scroll');
+        if (chatContainer) {
+          localStorage.setItem(`scroll-${currentConversationId}`, String(chatContainer.scrollTop));
+        }
+      }
+    };
+
+    const chatContainer = document.querySelector('.chat-scroll');
+    if (chatContainer) {
+      chatContainer.addEventListener('scroll', handleScroll);
+      return () => chatContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [currentConversationId]);
 
   // Load conversations from database on mount
   useEffect(() => {
@@ -186,7 +204,7 @@ export default function Jarvis() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleNewChat = () => {
+  const handleNewChat = useCallback(() => {
     // Provide immediate visual feedback
     setNewChatClicked(true);
     
@@ -213,19 +231,23 @@ export default function Jarvis() {
       // Reset the clicked state after a short delay
       setNewChatClicked(false);
     }, 150);
-  };
+  }, [clearMessages, setCurrentConversationId]);
 
   const handleCancelDelete = () => {
     setDeleteModalOpen(false);
     setConversationToDelete(null);
   };
 
-  // Keyboard shortcut for new chat (Cmd+K)
+  // Keyboard shortcuts (Cmd+K for new chat, Cmd+\ for sidebar toggle)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey && event.key === 'k') {
         event.preventDefault();
         handleNewChat();
+      }
+      if (event.metaKey && event.key === '\\') {
+        event.preventDefault();
+        setSidebarOpen(prev => !prev);
       }
     };
 
@@ -276,6 +298,15 @@ export default function Jarvis() {
     
     // Set current conversation in conversations hook
     selectConversation(conversation);
+    
+    // Restore saved scroll position for this conversation
+    setTimeout(() => {
+      const chatContainer = document.querySelector('.chat-scroll');
+      if (chatContainer && typeof window !== 'undefined') {
+        const savedPosition = localStorage.getItem(`scroll-${conversation.id}`);
+        chatContainer.scrollTop = savedPosition ? Number(savedPosition) : 0;
+      }
+    }, 100);
   };
 
   const handleDeleteClick = (conversation: Conversation, e: React.MouseEvent) => {
