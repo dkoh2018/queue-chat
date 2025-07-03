@@ -97,9 +97,9 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
           
           <Button
             onClick={onNewChat}
-            className={`w-full mb-4 transition-all duration-200 ${
+            className={`w-full mb-4 ${
               newChatClicked
-                ? 'bg-emerald-600 scale-95'
+                ? 'bg-emerald-600'
                 : !currentConversationId
                   ? 'bg-emerald-600 hover:bg-emerald-700'
                   : 'bg-gray-800 hover:bg-gray-700'

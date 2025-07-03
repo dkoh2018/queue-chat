@@ -41,6 +41,9 @@ export const useConversations = (): UseConversationsReturn => {
 
   const selectConversation = useCallback((conversation: Conversation) => {
     setCurrentConversationId(conversation.id);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('currentConversationId', conversation.id);
+    }
   }, []);
 
   const deleteConversation = useCallback(async (conversationId: string) => {
@@ -53,6 +56,9 @@ export const useConversations = (): UseConversationsReturn => {
       // Clear current conversation if it was deleted
       if (currentConversationId === conversationId) {
         setCurrentConversationId(null);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('currentConversationId');
+        }
       }
       
       console.log('🗑️ Conversation deleted:', conversationId);
@@ -67,6 +73,27 @@ export const useConversations = (): UseConversationsReturn => {
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
+
+  // Load currentConversationId from localStorage after mount (client-side only)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedConversationId = localStorage.getItem('currentConversationId');
+      if (savedConversationId) {
+        setCurrentConversationId(savedConversationId);
+      }
+    }
+  }, []);
+
+  // Save to localStorage when currentConversationId changes (but not on initial mount)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (currentConversationId) {
+        localStorage.setItem('currentConversationId', currentConversationId);
+      } else {
+        localStorage.removeItem('currentConversationId');
+      }
+    }
+  }, [currentConversationId]);
 
   return {
     conversations,

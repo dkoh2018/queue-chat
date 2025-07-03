@@ -14,8 +14,8 @@ import { QueueToggle } from '@/components/QueueToggle';
 import { MenuIcon } from '@/components/icons';
 
 export default function Jarvis() {
-  // UI State - Start with sidebar closed on mobile
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // UI State - Default values for server rendering (consistent initial state)
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(256);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -120,20 +120,67 @@ export default function Jarvis() {
     fetchConversations();
   }, [fetchConversations]);
 
-  // Handle responsive sidebar behavior
+  // Restore conversation state on page load
+  useEffect(() => {
+    if (currentConversationId && conversations.length > 0) {
+      const conversation = conversations.find(c => c.id === currentConversationId);
+      if (conversation) {
+        // Restore messages for the current conversation
+        const uiMessages = conversation.messages.map(msg => ({
+          role: msg.role.toLowerCase() as 'user' | 'assistant',
+          content: msg.content
+        }));
+        setMessages(uiMessages);
+      }
+    }
+  }, [currentConversationId, conversations, setMessages]);
+
+  // Load sidebar state from localStorage after mount (client-side only)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedSidebarOpen = localStorage.getItem('sidebarOpen');
+      const savedSidebarWidth = localStorage.getItem('sidebarWidth');
+      
+      if (savedSidebarOpen !== null) {
+        // User has a saved preference
+        setSidebarOpen(JSON.parse(savedSidebarOpen));
+      } else {
+        // First visit - set based on screen size
+        if (window.innerWidth >= 768) {
+          setSidebarOpen(true); // Desktop default
+        } else {
+          setSidebarOpen(false); // Mobile default
+        }
+      }
+      
+      if (savedSidebarWidth !== null) {
+        setSidebarWidth(Number(savedSidebarWidth));
+      }
+    }
+  }, []);
+
+  // Save sidebar state changes to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+    }
+  }, [sidebarOpen]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sidebarWidth', String(sidebarWidth));
+    }
+  }, [sidebarWidth]);
+
+  // Handle responsive sidebar behavior (respect user preferences)
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        // Desktop: open sidebar by default
-        setSidebarOpen(true);
-      } else {
-        // Mobile: close sidebar by default
+      // Only force close on mobile if user hasn't explicitly opened it
+      if (window.innerWidth < 768) {
         setSidebarOpen(false);
       }
+      // On desktop, respect the user's saved preference or leave as is
     };
-
-    // Set initial state based on screen size
-    handleResize();
     
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -146,6 +193,11 @@ export default function Jarvis() {
     // Start new conversation
     clearMessages();
     setCurrentConversationId(null);
+    
+    // Clear from localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('currentConversationId');
+    }
     
     // Close sidebar on mobile after creating new chat
     if (window.innerWidth < 768) {
