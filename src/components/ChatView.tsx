@@ -21,11 +21,11 @@ export const ChatView = forwardRef<HTMLDivElement, ChatViewProps>(({ messages },
                   : 'text-gray-100 w-full max-w-[95%] lg:max-w-full'
               }`}>
                 {msg.role === 'assistant' ? (
-                  <div className="prose prose-invert prose-sm md:prose-lg max-w-none">
+                  <div className="prose prose-invert prose-sm lg:prose-lg max-w-none">
                     <MarkdownMessage content={msg.content} />
                   </div>
                 ) : (
-                  <div className="text-sm md:text-[15px] leading-relaxed font-medium whitespace-pre-wrap break-words">
+                  <div className="text-sm lg:text-[15px] leading-relaxed font-medium whitespace-pre-wrap break-words">
                     {msg.content}
                   </div>
                 )}
