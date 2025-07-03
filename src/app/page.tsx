@@ -40,7 +40,7 @@ export default function Jarvis() {
     }
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isResizing && sidebarRef.current) {
       if (dragStart.current) {
         const dx = Math.abs(e.clientX - dragStart.current.x);
@@ -54,7 +54,7 @@ export default function Jarvis() {
         sidebarRef.current.style.width = `${newWidth}px`;
       }
     }
-  };
+  }, [isResizing]);
 
   useEffect(() => {
     if (isResizing) {
@@ -69,7 +69,7 @@ export default function Jarvis() {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizing]);
+  }, [isResizing, handleMouseMove]);
   const [inputText, setInputText] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
@@ -84,6 +84,9 @@ export default function Jarvis() {
     conversations,
     currentConversationId,
     loading,
+    refreshing,
+    error: conversationsError,
+    isOnline,
     fetchConversations,
     selectConversation,
     deleteConversation,
@@ -162,7 +165,7 @@ export default function Jarvis() {
       setSidebarOpen(JSON.parse(savedSidebarOpen));
     } else {
       // First visit - default based on screen size
-      setSidebarOpen(window.innerWidth >= 768);
+      setSidebarOpen(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
     }
     
     if (savedSidebarWidth !== null) {
@@ -200,7 +203,7 @@ export default function Jarvis() {
     
     
     // Close sidebar on small screens after creating new chat
-    if (window.innerWidth < 768) {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setSidebarOpen(false);
     }
     
@@ -326,13 +329,16 @@ export default function Jarvis() {
         currentConversationId={currentConversationId}
         conversations={conversations}
         loading={loading}
+        refreshing={refreshing}
+        isOnline={isOnline}
+        error={conversationsError}
         onNewChat={handleNewChat}
         onSelectConversation={handleSelectConversation}
         onDeleteClick={handleDeleteClick}
       />
       {/* Resize handle - disabled on small screens */}
       <div
-        onMouseDown={window.innerWidth >= 768 ? handleMouseDown : undefined}
+        onMouseDown={typeof window !== 'undefined' && window.innerWidth >= 768 ? handleMouseDown : undefined}
         onClick={() => {
           if (!wasDragged.current) {
             const newOpenState = !sidebarOpen;
@@ -343,7 +349,7 @@ export default function Jarvis() {
           }
         }}
         className={`group w-2 bg-gray-800/50 hover:bg-gray-700/70 transition-colors duration-200 flex items-center justify-center ${
-          window.innerWidth >= 768 ? 'cursor-col-resize' : 'cursor-pointer'
+          typeof window !== 'undefined' && window.innerWidth >= 768 ? 'cursor-col-resize' : 'cursor-pointer'
         }`}
       >
         <div className="w-1 h-8 bg-gray-600 rounded-full transition-opacity duration-300" />

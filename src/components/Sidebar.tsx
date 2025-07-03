@@ -1,4 +1,4 @@
-import { forwardRef, useState, useMemo, memo } from 'react';
+import { forwardRef, useState, useMemo, memo, useEffect } from 'react';
 import { Conversation } from '@/types';
 import { PlusIcon, SearchIcon, MenuIcon, XIcon } from '@/components/icons';
 import Button from '@/components/ui/Button';
@@ -12,6 +12,9 @@ interface SidebarProps {
   currentConversationId: string | null;
   conversations: Conversation[];
   loading: boolean;
+  refreshing: boolean;
+  isOnline: boolean;
+  error: string | null;
   onNewChat: () => void;
   onSelectConversation: (conversation: Conversation) => void;
   onDeleteClick: (conversation: Conversation, e: React.MouseEvent) => void;
@@ -50,6 +53,8 @@ const ConversationItem = memo(({
   );
 });
 
+ConversationItem.displayName = 'ConversationItem';
+
 const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   sidebarOpen,
   setSidebarOpen,
@@ -59,12 +64,16 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   currentConversationId,
   conversations,
   loading,
+  refreshing,
+  isOnline,
+  error,
   onNewChat,
   onSelectConversation,
   onDeleteClick,
 }, ref) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [windowWidth, setWindowWidth] = useState(1024); // Default for SSR
 
   const filteredConversations = useMemo(() => {
     if (!searchQuery) {
@@ -84,14 +93,28 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
     setSearchQuery('');
   };
 
+  // Update window width on client-side
+  useEffect(() => {
+    const updateWindowWidth = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
+    // Set initial width
+    updateWindowWidth();
+    
+    // Add resize listener
+    window.addEventListener('resize', updateWindowWidth);
+    return () => window.removeEventListener('resize', updateWindowWidth);
+  }, []);
+
   return (
     <div
       ref={ref}
       className={`glass-panel border-r border-gray-600/50 flex flex-col ${isResizing ? '' : 'transition-all duration-300'} overflow-hidden relative h-full`}
       style={{
         width: sidebarOpen ? width : 0,
-        minWidth: sidebarOpen ? Math.min(width, window.innerWidth * 0.6) : 0,
-        maxWidth: sidebarOpen ? Math.min(width, window.innerWidth * 0.85) : 0
+        minWidth: sidebarOpen ? Math.min(width, typeof window !== 'undefined' ? window.innerWidth * 0.6 : 400) : 0,
+        maxWidth: sidebarOpen ? Math.min(width, typeof window !== 'undefined' ? window.innerWidth * 0.85 : 600) : 0
       }}
     >
         {/* Sidebar Header */}
@@ -115,7 +138,15 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
               <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-white/20 rounded transition-colors">
                 <MenuIcon />
               </button>
-              <h1 className="text-xl font-bold text-white tracking-tight">Jarvis</h1>
+              <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                Jarvis
+                {refreshing && (
+                  <div className="w-3 h-3 border border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                )}
+                {!isOnline && (
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" title="Offline" />
+                )}
+              </h1>
               <button onClick={handleSearchClick} className="p-2 hover:bg-white/20 rounded transition-colors">
                 <SearchIcon />
               </button>
@@ -141,6 +172,11 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
 
         {/* Chat History */}
         <div className="flex-1 overflow-y-auto chat-scroll py-2">
+          {error && (
+            <div className="text-xs text-orange-400 px-3 sm:px-4 mb-3 bg-orange-500/10 py-2 mx-2 rounded border border-orange-500/20">
+              {error}
+            </div>
+          )}
           {loading ? (
             <div className="text-xs text-gray-400 px-3 sm:px-4">Loading conversations...</div>
           ) : filteredConversations.length > 0 ? (
