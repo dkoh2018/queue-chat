@@ -193,13 +193,17 @@ export default function Jarvis() {
   // Handle responsive sidebar behavior (respect user preferences)
   useEffect(() => {
     const handleResize = () => {
-      // Only force close on mobile if user hasn't explicitly opened it
-      if (window.innerWidth < 768) {
+      // Close sidebar on small screens to prevent layout issues
+      if (window.innerWidth < 1024) {
         setSidebarOpen(false);
-        // Set mobile-optimized width
-        setSidebarWidth(280);
+        // Set responsive width based on screen size
+        if (window.innerWidth < 768) {
+          setSidebarWidth(280); // Mobile
+        } else {
+          setSidebarWidth(240); // Small desktop
+        }
       } else {
-        // Desktop default width
+        // Large desktop default width
         setSidebarWidth(256);
       }
     };
@@ -375,7 +379,7 @@ export default function Jarvis() {
         {!sidebarOpen && (
           <button
             onClick={() => setSidebarOpen(true)}
-            className="fixed top-4 left-4 z-30 p-2 bg-gray-800/80 rounded-full text-white hover:bg-gray-700/90 backdrop-blur-sm transition-all duration-300"
+            className="fixed top-4 left-4 z-30 p-2 bg-gray-800/60 backdrop-blur-sm rounded-lg text-white hover:bg-gray-700/60 transition-all duration-200"
             title="Open sidebar"
           >
             <MenuIcon />

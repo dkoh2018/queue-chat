@@ -53,10 +53,10 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
 
   return (
     <>
-      {/* Mobile Sidebar Overlay */}
+      {/* Sidebar Overlay for smaller screens */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -64,14 +64,14 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
       {/* Sidebar */}
       <div
         ref={ref}
-        className={`bg-[#111827] flex flex-col ${isResizing ? '' : 'transition-all duration-300'} overflow-hidden md:relative fixed left-0 top-0 h-full z-50 md:z-auto`}
+        className={`glass-panel border-r border-gray-600/50 flex flex-col ${isResizing ? '' : 'transition-all duration-300'} overflow-hidden lg:relative fixed left-0 top-0 h-full z-50 lg:z-auto`}
         style={{ 
           width: sidebarOpen ? width : 0,
           transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'
         }}
       >
         {/* Sidebar Header */}
-        <div className="p-3 sm:p-4 border-b border-gray-800">
+        <div className="p-3 sm:p-4 border-b border-gray-600/50">
           {isSearching ? (
             <div className="flex items-center justify-between mb-4">
               <input
@@ -79,20 +79,20 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search conversations..."
-                className="w-full bg-gray-800 text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full bg-white/10 backdrop-blur-md text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 border border-white/20"
                 autoFocus
               />
-              <button onClick={handleCancelSearch} className="p-2 hover:bg-gray-700 rounded ml-2">
+              <button onClick={handleCancelSearch} className="p-2 hover:bg-white/20 rounded ml-2 transition-colors">
                 <XIcon />
               </button>
             </div>
           ) : (
             <div className="flex items-center justify-between mb-4">
-              <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-800 rounded">
+              <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-white/20 rounded transition-colors">
                 <MenuIcon />
               </button>
               <h1 className="text-xl font-bold text-white tracking-tight">Jarvis</h1>
-              <button onClick={handleSearchClick} className="p-2 hover:bg-gray-800 rounded">
+              <button onClick={handleSearchClick} className="p-2 hover:bg-white/20 rounded transition-colors">
                 <SearchIcon />
               </button>
             </div>
@@ -128,14 +128,14 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
                 <div
                   key={conversation.id}
                   onClick={() => onSelectConversation(conversation)}
-                  className={`group flex items-center justify-between px-2 sm:px-3 py-2 mx-2 sm:mx-3 rounded-lg cursor-pointer sidebar-item transition-colors duration-200 hover:bg-gray-800/50 ${
-                    currentConversationId === conversation.id ? 'bg-gray-800 glowing-border' : ''
+                  className={`group flex items-center justify-between px-2 sm:px-3 py-2 mx-2 sm:mx-3 rounded-lg cursor-pointer sidebar-item transition-all duration-200 ${
+                    currentConversationId === conversation.id ? 'glass-card glass-glow-green' : 'hover:glass-card'
                   }`}
                 >
                   <span className="text-sm font-medium text-gray-100 truncate leading-relaxed pr-2">{conversation.title}</span>
                   <button
                     onClick={(e) => onDeleteClick(conversation, e)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-600 rounded transition-all duration-200 text-gray-400 hover:text-white flex-shrink-0"
+                    className="opacity-0 group-hover:opacity-100 p-1.5 glass-button rounded transition-all duration-200 text-gray-400 hover:text-white flex-shrink-0 hover:border-red-500/60 hover:shadow-red-500/20"
                     title="Delete conversation"
                   >
                     <XIcon />
