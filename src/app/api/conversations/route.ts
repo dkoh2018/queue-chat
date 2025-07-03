@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db';
 
 export async function GET() {
   try {
+    console.log('🔍 Starting conversation fetch...');
+    
     const conversations = await prisma.conversation.findMany({
       include: {
         messages: {
@@ -16,10 +18,18 @@ export async function GET() {
       }
     });
 
+    console.log('✅ Conversations fetched successfully:', conversations.length);
     return NextResponse.json(conversations);
   } catch (error) {
-    console.error('Failed to fetch conversations:', error);
-    return NextResponse.json({ error: 'Failed to fetch conversations' }, { status: 500 });
+    console.error('❌ Failed to fetch conversations:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    return NextResponse.json({ 
+      error: 'Failed to fetch conversations',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 
