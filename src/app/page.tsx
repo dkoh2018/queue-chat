@@ -272,6 +272,9 @@ export default function Jarvis() {
   };
 
   const handleSelectConversation = (conversation: Conversation) => {
+    // Set current conversation in conversations hook FIRST
+    selectConversation(conversation);
+    
     // Convert database messages to UI format and load them
     const uiMessages = conversation.messages.map(msg => ({
       role: msg.role.toLowerCase() as 'user' | 'assistant',
@@ -280,9 +283,6 @@ export default function Jarvis() {
     
     // Set messages in chat hook
     setMessages(uiMessages);
-    
-    // Set current conversation in conversations hook
-    selectConversation(conversation);
     
     // Restore saved scroll position for this conversation
     setTimeout(() => {
