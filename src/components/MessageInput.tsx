@@ -68,12 +68,12 @@ export const MessageInput = ({ inputText, setInputText, onSend }: MessageInputPr
           placeholder="Ask anything..."
           className="w-full text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none font-medium"
           style={{
-            padding: '16px',
-            fontSize: '15px',
+            padding: '20px',
+            fontSize: '16px',
             lineHeight: '1.5',
             wordBreak: 'break-word',
-            minHeight: '36px',
-            maxHeight: '192px',
+            minHeight: '55px',
+            maxHeight: '240px',
             transition: 'height 0.2s ease'
           }}
         />
