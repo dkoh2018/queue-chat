@@ -61,7 +61,7 @@ export async function POST(request: Request) {
         model: 'gpt-4.1-mini', 
         messages: optimizationMessages,
         temperature: 0.7,
-        max_tokens: 800, // Increased for longer context-aware optimizations
+        max_tokens: 1500, // Increased for longer context-aware optimizations
         presence_penalty: 0.1, // Encourage diverse responses
         frequency_penalty: 0.1 // Reduce repetition
       }),
