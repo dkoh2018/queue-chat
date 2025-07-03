@@ -12,7 +12,7 @@ import { MessageQueueView } from '@/components/MessageQueueView';
 import { MessageInputContainer } from '@/components/MessageInputContainer';
 import { QueueToggle } from '@/components/QueueToggle';
 import { MenuIcon } from '@/components/icons';
-import { WidthToggle, ChatWidth } from '@/components/WidthToggle';
+import { WidthSlider, ChatWidth } from '@/components/WidthToggle';
 
 export default function Jarvis() {
   // UI State - Default values for server rendering (consistent initial state)
@@ -76,7 +76,7 @@ export default function Jarvis() {
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
   const [newChatClicked, setNewChatClicked] = useState(false);
   const [queueVisible, setQueueVisible] = useState(false);
-  const [chatWidth, setChatWidth] = useState<ChatWidth>('regular');
+  const [chatWidth, setChatWidth] = useState<ChatWidth>('lg');
   
   // Refs for better performance
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -194,6 +194,22 @@ export default function Jarvis() {
     }
   }, [sidebarWidth, isResizing]);
 
+  // Load chat width from localStorage on initial mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedWidth = localStorage.getItem('chatWidth') as ChatWidth | null;
+      if (savedWidth) {
+        setChatWidth(savedWidth);
+      }
+    }
+  }, []);
+
+  // Save chat width to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('chatWidth', chatWidth);
+    }
+  }, [chatWidth]);
 
   const handleNewChat = useCallback(() => {
     // Provide immediate visual feedback
@@ -319,8 +335,8 @@ export default function Jarvis() {
     }
   };
 
-  const handleToggleChatWidth = () => {
-    setChatWidth(currentWidth => currentWidth === 'regular' ? 'narrow' : 'regular');
+  const handleChatWidthChange = (width: ChatWidth) => {
+    setChatWidth(width);
   };
 
   return (
@@ -361,23 +377,21 @@ export default function Jarvis() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col relative">
-        {/* Floating Sidebar Toggle Button */}
+        {/* Floating Control Buttons */}
         {!sidebarOpen && (
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="fixed top-4 left-4 z-30 p-2 bg-gray-800/60 backdrop-blur-sm rounded-lg text-white hover:bg-gray-700/60 transition-all duration-200"
-            title="Open sidebar"
-          >
-            <MenuIcon />
-          </button>
-        )}
-
-        {/* Width Toggle Button - only show when sidebar is closed */}
-        {!sidebarOpen && (
-          <WidthToggle 
-            onClick={handleToggleChatWidth} 
-            currentWidth={chatWidth}
-          />
+          <div className="fixed top-4 left-4 z-30 flex items-center space-x-2">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 bg-gray-800/60 backdrop-blur-sm rounded-lg text-white hover:bg-gray-700/60 transition-all duration-200"
+              title="Open sidebar (⌘+\)"
+            >
+              <MenuIcon />
+            </button>
+            <WidthSlider 
+              value={chatWidth}
+              onChange={handleChatWidthChange}
+            />
+          </div>
         )}
         {/* Chat Area or Welcome - now takes full height */}
         {!messages || messages.length === 0 ? (

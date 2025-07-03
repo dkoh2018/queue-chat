@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { logger } from '@/utils';
 
 export async function GET() {
   try {
-    console.log('🔍 Starting conversation fetch...');
+    logger.db('Starting conversation fetch');
     
     const conversations = await prisma.conversation.findMany({
       include: {
@@ -18,7 +19,7 @@ export async function GET() {
       }
     });
 
-    console.log('✅ Conversations fetched successfully:', conversations.length);
+    logger.db('Conversations fetched successfully', { count: conversations.length });
     
     const response = NextResponse.json(conversations);
     
@@ -28,8 +29,7 @@ export async function GET() {
     
     return response;
   } catch (error) {
-    console.error('❌ Failed to fetch conversations:', error);
-    console.error('Error details:', {
+    logger.error('Failed to fetch conversations', 'DATABASE', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined
     });
@@ -55,7 +55,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Failed to delete conversation:', error);
+    logger.error('Failed to delete conversation', 'DATABASE', error);
     return NextResponse.json({ error: 'Failed to delete conversation' }, { status: 500 });
   }
 }

@@ -8,8 +8,12 @@ interface MessageInputContainerProps {
 
 export const MessageInputContainer: React.FC<MessageInputContainerProps> = ({ children, width }) => {
   const widthClasses = {
-    regular: 'max-w-4xl',
-    narrow: 'max-w-3xl',
+    xs: 'max-w-lg',
+    sm: 'max-w-2xl', 
+    md: 'max-w-3xl',
+    lg: 'max-w-4xl',
+    xl: 'max-w-6xl',
+    full: 'max-w-full px-8',
   };
 
   return (

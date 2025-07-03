@@ -155,7 +155,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
         </div>
 
         {/* Chat History */}
-        <div className="flex-1 overflow-y-auto chat-scroll py-2">
+        <div className="flex-1 overflow-y-auto custom-scrollbar py-2">
           {error && (
             <div className="text-xs text-orange-400 px-3 sm:px-4 mb-3 bg-orange-500/10 py-2 mx-2 rounded border border-orange-500/20">
               {error}

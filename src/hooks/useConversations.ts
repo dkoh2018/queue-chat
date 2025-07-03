@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import useSWR, { mutate } from 'swr';
 import { Conversation } from '@/types';
 import { conversationsService } from '@/services';
+import { logger } from '@/utils';
 
 interface UseConversationsReturn {
   conversations: Conversation[];
@@ -37,10 +38,10 @@ export const useConversations = (): UseConversationsReturn => {
     errorRetryCount: 3,
     errorRetryInterval: 1000,
     onSuccess: (data) => {
-      console.log('✅ Conversations fetched successfully:', data?.length || 0);
+      logger.conversation('Conversations fetched successfully', { count: data?.length || 0 });
     },
     onError: (err) => {
-      console.error('❌ Failed to fetch conversations:', err);
+      logger.error('Failed to fetch conversations', 'SWR', err);
     }
   });
 
@@ -78,10 +79,10 @@ export const useConversations = (): UseConversationsReturn => {
         }
       }
       
-      console.log('🗑️ Conversation deleted:', conversationId);
+      logger.conversation('Conversation deleted', { conversationId });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete conversation';
-      console.error('❌ Failed to delete conversation:', err);
+      logger.error('Failed to delete conversation', 'CONVERSATION', err);
       // Revalidate to restore correct state
       await revalidate();
       throw new Error(errorMessage);
@@ -91,13 +92,13 @@ export const useConversations = (): UseConversationsReturn => {
   // Online/offline detection
   useEffect(() => {
     const handleOnline = () => {
-      console.log('🟢 Back online');
+      logger.ui('Back online - refreshing data');
       setIsOnline(true);
       revalidate();
     };
 
     const handleOffline = () => {
-      console.log('🔴 Gone offline - using cached data');
+      logger.ui('Gone offline - using cached data');
       setIsOnline(false);
     };
 
