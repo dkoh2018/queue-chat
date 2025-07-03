@@ -20,6 +20,9 @@ export async function POST(request: Request) {
       systemPrompt += "\n\nConsider the conversation context to make the optimized input more relevant and specific to the ongoing discussion. Reference previous topics when appropriate.";
     }
 
+    // Add diagram detection instruction
+    systemPrompt += "\n\nIMPORTANT: Also analyze if the user is requesting any kind of diagram, chart, flowchart, visualization, or Mermaid diagram. If they are, respond with 'DIAGRAM_REQUEST: true' at the beginning of your response.";
+
     // Prepare messages for optimization
     const optimizationMessages = [
       {
@@ -72,15 +75,25 @@ export async function POST(request: Request) {
     const data = await response.json();
     const optimizedInput = data.choices?.[0]?.message?.content ?? userInput;
 
+    // Check for diagram request flag
+    const isDiagramRequest = optimizedInput.startsWith('DIAGRAM_REQUEST: true');
+    const cleanOptimizedInput = isDiagramRequest 
+      ? optimizedInput.replace('DIAGRAM_REQUEST: true', '').trim()
+      : optimizedInput;
+
     // Log optimization comparison
     console.log('🔧 INPUT OPTIMIZATION:');
     console.log(`   Original: "${userInput.slice(0, 80)}${userInput.length > 80 ? '...' : ''}"`);
-    console.log(`   Optimized: "${optimizedInput.slice(0, 80)}${optimizedInput.length > 80 ? '...' : ''}"`);
-    console.log(`   Improvement: ${optimizedInput.length - userInput.length > 0 ? '+' : ''}${optimizedInput.length - userInput.length} chars`);
+    console.log(`   Optimized: "${cleanOptimizedInput.slice(0, 80)}${cleanOptimizedInput.length > 80 ? '...' : ''}"`);
+    console.log(`   Improvement: ${cleanOptimizedInput.length - userInput.length > 0 ? '+' : ''}${cleanOptimizedInput.length - userInput.length} chars`);
+    if (isDiagramRequest) {
+      console.log('   🎨 DIAGRAM REQUEST DETECTED');
+    }
 
     return NextResponse.json({ 
       originalInput: userInput,
-      optimizedInput: optimizedInput 
+      optimizedInput: cleanOptimizedInput,
+      isDiagramRequest: isDiagramRequest
     });
   } catch (err: unknown) {
     console.error('Input optimization error:', err);
@@ -88,6 +101,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       originalInput: userInput,
       optimizedInput: userInput,
+      isDiagramRequest: false,
       error: 'Optimization failed, using original input'
     });
   }

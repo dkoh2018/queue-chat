@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { SYSTEM_PROMPTS } from '@/lib/prompts';
 
 export async function POST(request: Request) {
-  const { messages, conversationId, originalInput, optimizedInput } = await request.json();
+  const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest } = await request.json();
   const apiKey = process.env.OPENAI_API_KEY;
   
   if (!apiKey) {
@@ -51,9 +52,17 @@ export async function POST(request: Request) {
     }
 
     // Use optimized messages for OpenAI API call (with optimized input)
-    const messagesForAPI = optimizedInput ? 
+    let messagesForAPI = optimizedInput ? 
       [...messages.slice(0, -1), { role: 'user', content: optimizedInput }] : 
       messages;
+
+    // If this is a diagram request, prepend the Mermaid expert system prompt
+    if (isDiagramRequest) {
+      messagesForAPI = [
+        { role: 'system', content: SYSTEM_PROMPTS.MERMAID_EXPERT },
+        ...messagesForAPI
+      ];
+    }
 
     // Get OpenAI response
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -92,7 +101,8 @@ export async function POST(request: Request) {
     console.log('💬 CHAT COMPLETED:', {
       conversationId: conversation.id,
       responseLength: content.length,
-      wasOptimized: !!optimizedInput
+      wasOptimized: !!optimizedInput,
+      isDiagramRequest: !!isDiagramRequest
     });
 
     return NextResponse.json({

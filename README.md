@@ -20,19 +20,13 @@ Queue Chat implements an asynchronous message queue system that enables breadth-
 
 ### Core Features
 
-**Message Queue Management**
-- Asynchronous message batching and sequential processing
-- Dynamic queue reordering via drag-and-drop interface
-- Real-time processing status indicators
+- **Asynchronous Message Queue**: Users can submit multiple queries at once, which are processed sequentially. The queue can be reordered via drag-and-drop and shows real-time status updates.
 
-**Two-Stage AI Processing Pipeline**
-1. **Input Optimization**: Initial AI model refines user input based on conversation history
-2. **Response Generation**: Main AI model processes optimized prompts with enhanced context
+- **Two-Stage AI Processing**: A pipeline that first uses an AI model to optimize the user's input, then passes the refined prompt to a second model for response generation. This improves the context and quality of the final answer.
 
-**Enterprise-Ready UI Components**
-- Responsive design with TypeScript type safety
-- Real-time queue state management
-- Intuitive queue manipulation controls
+- **AI-Assisted Diagramming**: The application detects user requests for diagrams and uses a specialized system prompt to guide the LLM in generating valid Mermaid.js syntax. This makes diagram generation more reliable.
+
+- **Responsive UI**: The interface is built with TypeScript and features a responsive design with reusable components for the chat, message queue, and markdown rendering.
 
 ## Technical Implementation
 
@@ -49,10 +43,10 @@ Queue Chat implements an asynchronous message queue system that enables breadth-
 - OpenAI API integration with prompt optimization
 - PostgreSQL persistence layer with Prisma ORM
 
-### Key Technical Benefits
-- **Improved Response Quality**: Context optimization enables focus on the most relevant information
-- **Operational Efficiency**: Batch processing reduces user wait times and improves system throughput
-- **Scalable Architecture**: Stateful queue management supports complex, multi-turn conversations
+### Architectural Highlights
+- **Contextual Improvement**: The two-stage AI process provides the main model with a clearer, more detailed prompt, leading to more relevant responses.
+- **Efficient Workflow**: The message queue allows for a "breadth-first" questioning style, where users can offload multiple related thoughts at once instead of waiting for a linear conversation.
+- **Modern Foundation**: The stack (Next.js, Prisma, PostgreSQL) provides a robust, type-safe, and scalable base for the application.
 
 ## Getting Started
 

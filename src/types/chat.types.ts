@@ -15,6 +15,7 @@ export interface ChatRequest {
   conversationId?: string | null;
   originalInput?: string;
   optimizedInput?: string;
+  isDiagramRequest?: boolean;
 }
 
 export interface ChatResponse {
@@ -30,5 +31,6 @@ export interface OptimizationRequest {
 export interface OptimizationResponse {
   originalInput: string;
   optimizedInput: string;
+  isDiagramRequest?: boolean;
   error?: string;
 }

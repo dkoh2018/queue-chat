@@ -49,7 +49,8 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       });
 
       const optimizedInput = optimizationResult.optimizedInput || text;
-      console.log('✨ Input optimized:', { original: text, optimized: optimizedInput });
+      const isDiagramRequest = optimizationResult.isDiagramRequest || false;
+      console.log('✨ Input optimized:', { original: text, optimized: optimizedInput, isDiagramRequest });
 
       const optimizedMessages: UIMessage[] = [
         ...messages,
@@ -62,6 +63,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
         conversationId: currentConversationId,
         originalInput: text,
         optimizedInput,
+        isDiagramRequest,
       });
 
       if (chatResponse.conversationId && !currentConversationId) {
