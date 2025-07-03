@@ -6,4 +6,3 @@ export { VoiceIcon } from './VoiceIcon';
 export { UpArrowIcon } from './UpArrowIcon';
 export { XIcon } from './XIcon';
 export { MenuIcon } from './MenuIcon';
-export { WidthIcon } from './WidthIcon';
