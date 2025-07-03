@@ -7,8 +7,8 @@ interface ChatViewProps {
 
 export const ChatView = ({ messages }: ChatViewProps) => {
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-2 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8 min-h-0">
-      <div className="max-w-4xl w-full mx-auto space-y-6 md:space-y-12 pb-24 md:pb-48">
+    <div className="flex-1 flex flex-col overflow-y-auto chat-scroll px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8 min-h-0">
+      <div className="max-w-4xl w-full mx-auto space-y-4 md:space-y-12 pb-24 md:pb-48">
         {messages?.map((msg, index) => (
             <div
               key={index}
@@ -16,8 +16,8 @@ export const ChatView = ({ messages }: ChatViewProps) => {
             >
               <div className={`${
                 msg.role === 'user'
-                  ? 'bg-gray-800 text-white rounded-2xl rounded-br-md px-3 md:px-5 py-2 md:py-3 border border-gray-700/50 max-w-[90%] md:max-w-[85%] shadow-lg'
-                  : 'text-gray-100 w-full'
+                  ? 'bg-gray-800 text-white rounded-2xl rounded-br-md px-3 md:px-5 py-2 md:py-3 border border-gray-700/50 max-w-[85%] md:max-w-[80%] shadow-lg'
+                  : 'text-gray-100 w-full max-w-[95%] md:max-w-full'
               }`}>
                 {msg.role === 'assistant' ? (
                   <div className="prose prose-invert prose-sm md:prose-lg max-w-none">

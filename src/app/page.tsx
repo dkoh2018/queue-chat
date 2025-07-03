@@ -196,8 +196,12 @@ export default function Jarvis() {
       // Only force close on mobile if user hasn't explicitly opened it
       if (window.innerWidth < 768) {
         setSidebarOpen(false);
+        // Set mobile-optimized width
+        setSidebarWidth(280);
+      } else {
+        // Desktop default width
+        setSidebarWidth(256);
       }
-      // On desktop, respect the user's saved preference or leave as is
     };
     
     window.addEventListener('resize', handleResize);
@@ -371,7 +375,7 @@ export default function Jarvis() {
         {!sidebarOpen && (
           <button
             onClick={() => setSidebarOpen(true)}
-            className="fixed top-4 left-4 z-50 p-2 bg-gray-800/50 rounded-full text-white hover:bg-gray-700/70 backdrop-blur-sm transition-all duration-300"
+            className="fixed top-4 left-4 z-30 p-2 bg-gray-800/80 rounded-full text-white hover:bg-gray-700/90 backdrop-blur-sm transition-all duration-300 md:hidden"
             title="Open sidebar"
           >
             <MenuIcon />

@@ -65,10 +65,13 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
       <div
         ref={ref}
         className={`bg-[#111827] flex flex-col ${isResizing ? '' : 'transition-all duration-300'} overflow-hidden md:relative fixed left-0 top-0 h-full z-50 md:z-auto`}
-        style={{ width: sidebarOpen ? width : 0 }}
+        style={{ 
+          width: sidebarOpen ? width : 0,
+          transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'
+        }}
       >
         {/* Sidebar Header */}
-        <div className="p-4 border-b border-gray-800">
+        <div className="p-3 sm:p-4 border-b border-gray-800">
           {isSearching ? (
             <div className="flex items-center justify-between mb-4">
               <input
@@ -115,24 +118,24 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
         {/* Chat History */}
         <div className="flex-1 overflow-y-auto chat-scroll py-2">
           {loading ? (
-            <div className="text-xs text-gray-400 px-3">Loading conversations...</div>
+            <div className="text-xs text-gray-400 px-3 sm:px-4">Loading conversations...</div>
           ) : filteredConversations.length > 0 ? (
             <>
-              <div className="text-xs font-semibold text-gray-400 px-3 mb-4 tracking-wider uppercase">
+              <div className="text-xs font-semibold text-gray-400 px-3 sm:px-4 mb-3 sm:mb-4 tracking-wider uppercase">
                 {searchQuery ? `RESULTS (${filteredConversations.length})` : `CHATS (${filteredConversations.length})`}
               </div>
               {filteredConversations.map((conversation) => (
                 <div
                   key={conversation.id}
                   onClick={() => onSelectConversation(conversation)}
-                  className={`group flex items-center justify-between px-3 py-2 mx-2 rounded-lg cursor-pointer sidebar-item ${
+                  className={`group flex items-center justify-between px-2 sm:px-3 py-2 mx-2 sm:mx-3 rounded-lg cursor-pointer sidebar-item transition-colors duration-200 hover:bg-gray-800/50 ${
                     currentConversationId === conversation.id ? 'bg-gray-800 glowing-border' : ''
                   }`}
                 >
-                  <span className="text-sm font-medium text-gray-100 truncate leading-relaxed">{conversation.title}</span>
+                  <span className="text-sm font-medium text-gray-100 truncate leading-relaxed pr-2">{conversation.title}</span>
                   <button
                     onClick={(e) => onDeleteClick(conversation, e)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-600 rounded transition-all duration-200 text-gray-400 hover:text-white"
+                    className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-600 rounded transition-all duration-200 text-gray-400 hover:text-white flex-shrink-0"
                     title="Delete conversation"
                   >
                     <XIcon />
@@ -141,7 +144,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
               ))}
             </>
           ) : (
-            <div className="text-xs text-gray-400 px-3">
+            <div className="text-xs text-gray-400 px-3 sm:px-4">
               {searchQuery ? 'No conversations found.' : 'No conversations yet'}
             </div>
           )}
