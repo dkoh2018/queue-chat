@@ -1,15 +1,22 @@
 import { forwardRef } from 'react';
 import { UIMessage } from '@/types';
 import MarkdownMessage from '@/components/MarkdownMessage';
+import { ChatWidth } from '@/components/WidthToggle';
 
 interface ChatViewProps {
   messages: UIMessage[];
+  width: ChatWidth;
 }
 
-export const ChatView = forwardRef<HTMLDivElement, ChatViewProps>(({ messages }, ref) => {
+export const ChatView = forwardRef<HTMLDivElement, ChatViewProps>(({ messages, width }, ref) => {
+  const widthClasses = {
+    regular: 'max-w-4xl',
+    narrow: 'max-w-3xl',
+  };
+
   return (
     <div ref={ref} className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 sm:px-6 lg:px-8 py-4 lg:py-8 min-h-0">
-      <div className="max-w-4xl w-full mx-auto space-y-8 md:space-y-24" style={{ paddingBottom: '15rem' }}>
+      <div className={`${widthClasses[width]} w-full mx-auto space-y-8 md:space-y-24`} style={{ paddingBottom: '15rem' }}>
         {messages?.map((msg, index) => (
             <div
               key={index}

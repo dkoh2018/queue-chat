@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import useSWR, { mutate } from 'swr';
 import { Conversation } from '@/types';
 import { conversationsService } from '@/services';
 
@@ -15,52 +16,40 @@ interface UseConversationsReturn {
   setCurrentConversationId: (id: string | null) => void;
 }
 
+const CONVERSATIONS_KEY = '/api/conversations';
+
 export const useConversations = (): UseConversationsReturn => {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isOnline, setIsOnline] = useState(true);
-  const [lastFetchTime, setLastFetchTime] = useState<number>(Date.now());
-
-  const fetchConversations = useCallback(async (isRefresh = false) => {
-    if (!isOnline) {
-      console.log('📴 Offline - skipping fetch');
-      return;
-    }
-
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-      setError(null);
-      console.log('🔍 Fetching conversations from database...');
-      
-      const data = await conversationsService.getConversations();
-      console.log('💾 Conversations data received:', data);
-      console.log('📊 Number of conversations:', data?.length || 0);
-      
-      setConversations(data);
-      setLastFetchTime(Date.now());
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch conversations';
+  
+  // SWR for smart caching and data fetching
+  const { 
+    data: conversations = [], 
+    error, 
+    isLoading: loading, 
+    isValidating: refreshing,
+    mutate: revalidate 
+  } = useSWR(CONVERSATIONS_KEY, conversationsService.getConversations, {
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    revalidateOnMount: true,
+    refreshInterval: 0, // Disable automatic polling
+    dedupingInterval: 5000, // Dedupe requests within 5 seconds
+    errorRetryCount: 3,
+    errorRetryInterval: 1000,
+    onSuccess: (data) => {
+      console.log('✅ Conversations fetched successfully:', data?.length || 0);
+    },
+    onError: (err) => {
       console.error('❌ Failed to fetch conversations:', err);
-      
-      // Check if it's a network error
-      if (err instanceof Error && (err.message.includes('fetch') || err.message.includes('network'))) {
-        setIsOnline(false);
-        setError('Connection lost. Using cached data.');
-      } else {
-        setError(errorMessage);
-      }
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
     }
-  }, [isOnline]);
+  });
+
+  // Detect online/offline status
+  const [isOnline, setIsOnline] = useState(true);
+
+  const fetchConversations = useCallback(async () => {
+    await revalidate();
+  }, [revalidate]);
 
   const selectConversation = useCallback((conversation: Conversation) => {
     setCurrentConversationId(conversation.id);
@@ -73,8 +62,13 @@ export const useConversations = (): UseConversationsReturn => {
     try {
       await conversationsService.deleteConversation(conversationId);
       
-      // Remove from local state
-      setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+      // Optimistic update: remove from cache immediately
+      await mutate(
+        CONVERSATIONS_KEY,
+        (currentData: Conversation[] | undefined) => 
+          currentData?.filter(conv => conv.id !== conversationId) || [],
+        false
+      );
       
       // Clear current conversation if it was deleted
       if (currentConversationId === conversationId) {
@@ -88,64 +82,23 @@ export const useConversations = (): UseConversationsReturn => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete conversation';
       console.error('❌ Failed to delete conversation:', err);
+      // Revalidate to restore correct state
+      await revalidate();
       throw new Error(errorMessage);
     }
-  }, [currentConversationId]);
-
-  // Load conversations on mount
-  useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
-
-  // Auto-refresh conversations for multi-device sync
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      // When user returns to app (switching devices), refresh if data is stale
-      if (!document.hidden && Date.now() - lastFetchTime > 30000) { // 30 seconds
-        console.log('🔄 Auto-refreshing conversations after device switch');
-        fetchConversations(true);
-      }
-    };
-
-    const handleFocus = () => {
-      // When app gets focus, refresh if data is stale
-      if (Date.now() - lastFetchTime > 30000) {
-        console.log('🔄 Auto-refreshing conversations on focus');
-        fetchConversations(true);
-      }
-    };
-
-    // Auto-refresh every 2 minutes when app is active
-    const interval = setInterval(() => {
-      if (!document.hidden && Date.now() - lastFetchTime > 120000) { // 2 minutes
-        console.log('🔄 Periodic auto-refresh of conversations');
-        fetchConversations(true);
-      }
-    }, 60000); // Check every minute
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-      clearInterval(interval);
-    };
-  }, [fetchConversations, lastFetchTime]);
+  }, [currentConversationId, revalidate]);
 
   // Online/offline detection
   useEffect(() => {
     const handleOnline = () => {
-      console.log('🟢 Back online - refreshing conversations');
+      console.log('🟢 Back online');
       setIsOnline(true);
-      setError(null);
-      fetchConversations(true);
+      revalidate();
     };
 
     const handleOffline = () => {
-      console.log('🔴 Gone offline - will use cached data');
+      console.log('🔴 Gone offline - using cached data');
       setIsOnline(false);
-      setError('Connection lost. Using cached data.');
     };
 
     window.addEventListener('online', handleOnline);
@@ -155,7 +108,7 @@ export const useConversations = (): UseConversationsReturn => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [fetchConversations]);
+  }, [revalidate]);
 
   // Load currentConversationId from localStorage after mount (client-side only)
   useEffect(() => {
@@ -167,7 +120,7 @@ export const useConversations = (): UseConversationsReturn => {
     }
   }, []);
 
-  // Save to localStorage when currentConversationId changes (but not on initial mount)
+  // Save to localStorage when currentConversationId changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (currentConversationId) {
@@ -183,7 +136,7 @@ export const useConversations = (): UseConversationsReturn => {
     currentConversationId,
     loading,
     refreshing,
-    error,
+    error: error?.message || null,
     isOnline,
     fetchConversations,
     selectConversation,

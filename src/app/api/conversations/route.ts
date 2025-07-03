@@ -19,7 +19,14 @@ export async function GET() {
     });
 
     console.log('✅ Conversations fetched successfully:', conversations.length);
-    return NextResponse.json(conversations);
+    
+    const response = NextResponse.json(conversations);
+    
+    // Add caching headers to reduce database load
+    response.headers.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=30');
+    response.headers.set('ETag', `"conversations-${conversations.length}-${Date.now()}"`);
+    
+    return response;
   } catch (error) {
     console.error('❌ Failed to fetch conversations:', error);
     console.error('Error details:', {

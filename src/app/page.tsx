@@ -12,6 +12,7 @@ import { MessageQueueView } from '@/components/MessageQueueView';
 import { MessageInputContainer } from '@/components/MessageInputContainer';
 import { QueueToggle } from '@/components/QueueToggle';
 import { MenuIcon } from '@/components/icons';
+import { WidthToggle, ChatWidth } from '@/components/WidthToggle';
 
 export default function Jarvis() {
   // UI State - Default values for server rendering (consistent initial state)
@@ -75,6 +76,7 @@ export default function Jarvis() {
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
   const [newChatClicked, setNewChatClicked] = useState(false);
   const [queueVisible, setQueueVisible] = useState(false);
+  const [chatWidth, setChatWidth] = useState<ChatWidth>('regular');
   
   // Refs for better performance
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -317,6 +319,10 @@ export default function Jarvis() {
     }
   };
 
+  const handleToggleChatWidth = () => {
+    setChatWidth(currentWidth => currentWidth === 'regular' ? 'narrow' : 'regular');
+  };
+
   return (
     <div className="flex h-screen bg-gray-900 text-white relative">
       <Sidebar
@@ -365,15 +371,23 @@ export default function Jarvis() {
             <MenuIcon />
           </button>
         )}
+
+        {/* Width Toggle Button - only show when sidebar is closed */}
+        {!sidebarOpen && (
+          <WidthToggle 
+            onClick={handleToggleChatWidth} 
+            currentWidth={chatWidth}
+          />
+        )}
         {/* Chat Area or Welcome - now takes full height */}
         {!messages || messages.length === 0 ? (
           <WelcomeView currentConversationId={currentConversationId} />
         ) : (
-          <ChatView messages={messages} ref={chatScrollRef} />
+          <ChatView messages={messages} ref={chatScrollRef} width={chatWidth} />
         )}
 
         {/* Fixed Message Input - positioned inside main content */}
-        <MessageInputContainer>
+        <MessageInputContainer width={chatWidth}>
           {/* Queue Toggle Button */}
           <QueueToggle
             isOpen={queueVisible}
