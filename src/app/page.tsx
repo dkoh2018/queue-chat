@@ -229,11 +229,11 @@ export default function Jarvis() {
   // Keyboard shortcuts (Cmd+K for new chat, Cmd+\ for sidebar toggle)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.metaKey && event.key === 'k') {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
         event.preventDefault();
         handleNewChat();
       }
-      if (event.metaKey && event.key === '\\') {
+      if ((event.metaKey || event.ctrlKey) && event.key === '\\') {
         event.preventDefault();
         setSidebarOpen(prev => !prev);
       }
