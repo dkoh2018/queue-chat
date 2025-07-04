@@ -99,6 +99,7 @@ export default function Jarvis() {
     messages,
     messageQueue,
     isProcessingQueue,
+    isLoading,
     sendMessage,
     clearMessages,
     setMessages,
@@ -279,6 +280,7 @@ export default function Jarvis() {
 
     const originalText = text;
     setIsOptimizing(true);
+    setInputText(''); // Clear text during optimization
 
     try {
       const response = await optimizationService.optimizeInput({
@@ -290,7 +292,7 @@ export default function Jarvis() {
       setInputText(response.optimizedInput);
     } catch (error) {
       console.error('Optimization failed:', error);
-      // Keep original text if optimization fails
+      // Restore original text if optimization fails
       setInputText(originalText);
     } finally {
       setIsOptimizing(false);
@@ -396,7 +398,7 @@ export default function Jarvis() {
         {!messages || messages.length === 0 ? (
           <WelcomeView currentConversationId={currentConversationId} />
         ) : (
-          <ChatView messages={messages} ref={chatScrollRef} />
+          <ChatView messages={messages} isLoading={isLoading} ref={chatScrollRef} />
         )}
 
         {/* Fixed Message Input - positioned inside main content */}

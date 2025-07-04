@@ -83,10 +83,6 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
               } else if (e.key === 'e' && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
                 onOptimize?.();
-                // Keep focus on textarea after optimize
-                setTimeout(() => {
-                  textareaRef.current?.focus();
-                }, 0);
               }
             }}
             placeholder="Ask anything..."
