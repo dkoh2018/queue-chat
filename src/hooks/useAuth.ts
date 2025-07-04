@@ -8,7 +8,7 @@ interface UseAuthReturn {
   loading: boolean;
   error: string | null;
   signInWithGoogle: () => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: (clearAppData?: () => void) => Promise<void>;
 }
 
 export const useAuth = (): UseAuthReturn => {
@@ -95,21 +95,64 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, []);
 
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(async (clearAppData?: () => void) => {
     try {
       setError(null);
-      const { error } = await supabase.auth.signOut();
+      
+      // Clear user state immediately for security
+      setUser(null);
+      
+      // Clear app data (conversations, messages, etc.)
+      if (clearAppData) {
+        clearAppData();
+      }
+      
+      // Clear all localStorage data related to the user
+      if (typeof window !== 'undefined') {
+        // Clear conversation-related localStorage
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('scroll-') || key.startsWith('conversation-') || key.startsWith('user-'))) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
+        // Clear any other sensitive data
+        localStorage.removeItem('lastConversationId');
+        localStorage.removeItem('currentUser');
+        sessionStorage.clear(); // Clear all session storage
+      }
+      
+      // Sign out from Supabase (this clears auth cookies/tokens)
+      const { error } = await supabase.auth.signOut({
+        scope: 'global' // This ensures logout from all sessions/devices
+      });
       
       if (error) {
         setError(error.message);
         logger.error('Sign out failed', 'AUTH', error);
       } else {
-        logger.info('User signed out successfully', 'AUTH');
+        logger.info('User signed out successfully - all data cleared', 'AUTH');
+        
+        // Force a page reload to ensure complete cleanup
+        if (typeof window !== 'undefined') {
+          window.location.reload();
+        }
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign out';
       setError(errorMessage);
       logger.error('Sign out error', 'AUTH', err);
+      
+      // Even if there's an error, clear local state for security
+      setUser(null);
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.reload();
+      }
     }
   }, []);
 

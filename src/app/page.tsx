@@ -96,6 +96,7 @@ function MainChatInterface() {
     selectConversation,
     deleteConversation,
     setCurrentConversationId,
+    clearAllData: clearConversationData,
   } = useConversations();
 
   const {
@@ -109,6 +110,7 @@ function MainChatInterface() {
     removeMessageFromQueue,
     clearQueue,
     reorderQueue,
+    clearAllData: clearChatData,
   } = useChat(user ? fetchConversations : undefined);
 
   // Auto-scroll to bottom when messages change
@@ -346,6 +348,11 @@ function MainChatInterface() {
     }
   };
 
+  // Create clear all app data function for logout
+  const handleClearAllAppData = useCallback(() => {
+    clearConversationData();
+    clearChatData();
+  }, [clearConversationData, clearChatData]);
 
   return (
     <div className="flex h-screen bg-gray-900 text-white relative">
@@ -365,6 +372,7 @@ function MainChatInterface() {
         onNewChat={handleNewChat}
         onSelectConversation={handleSelectConversation}
         onDeleteClick={handleDeleteClick}
+        onClearAppData={handleClearAllAppData}
       />
       {/* Resize handle - disabled on small screens */}
       <div

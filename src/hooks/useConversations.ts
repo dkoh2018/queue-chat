@@ -15,6 +15,7 @@ interface UseConversationsReturn {
   selectConversation: (conversation: Conversation) => void;
   deleteConversation: (conversationId: string) => Promise<void>;
   setCurrentConversationId: (id: string | null) => void;
+  clearAllData: () => void;
 }
 
 const CONVERSATIONS_KEY = '/api/conversations';
@@ -130,6 +131,28 @@ export const useConversations = (): UseConversationsReturn => {
     }
   }, [currentConversationId]);
 
+  // Clear all conversation data (for logout)
+  const clearAllData = useCallback(() => {
+    // Clear SWR cache
+    mutate(CONVERSATIONS_KEY, [], false);
+    
+    // Clear current conversation
+    setCurrentConversationId(null);
+    
+    // Clear localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('currentConversationId');
+      // Clear all scroll positions
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('scroll-')) {
+          localStorage.removeItem(key);
+        }
+      });
+    }
+    
+    logger.info('All conversation data cleared', 'CONVERSATION');
+  }, []);
+
   return {
     conversations,
     currentConversationId,
@@ -141,5 +164,6 @@ export const useConversations = (): UseConversationsReturn => {
     selectConversation,
     deleteConversation,
     setCurrentConversationId,
+    clearAllData,
   };
 };

@@ -15,6 +15,7 @@ interface UseChatReturn {
   removeMessageFromQueue: (index: number) => void;
   clearQueue: () => void;
   reorderQueue: (startIndex: number, endIndex: number) => void;
+  clearAllData: () => void;
 }
 
 export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
@@ -146,6 +147,17 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     });
   }, []);
 
+  // Clear all chat data (for logout)
+  const clearAllData = useCallback(() => {
+    setMessages([]);
+    setMessageQueue([]);
+    setIsLoading(false);
+    setIsProcessingQueue(false);
+    setError(null);
+    setCurrentConversationId(null);
+    setProcessingMessage(null);
+  }, []);
+
   return {
     messages,
     messageQueue,
@@ -158,5 +170,6 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     removeMessageFromQueue,
     clearQueue,
     reorderQueue,
+    clearAllData,
   };
 };

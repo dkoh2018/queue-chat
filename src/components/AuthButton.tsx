@@ -1,19 +1,50 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 
 interface AuthButtonProps {
   className?: string;
+  onClearAppData?: () => void;
 }
 
-export default function AuthButton({ className = '' }: AuthButtonProps) {
+export default function AuthButton({ className = '', onClearAppData }: AuthButtonProps) {
   const { user, loading, signInWithGoogle, signOut } = useAuth();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleAuthClick = async () => {
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleAuthClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (user) {
-      await signOut();
+      setIsDropdownOpen(!isDropdownOpen);
     } else {
       await signInWithGoogle();
+    }
+  };
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await signOut(onClearAppData);
+      setIsDropdownOpen(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
     }
   };
 
@@ -57,34 +88,85 @@ export default function AuthButton({ className = '' }: AuthButtonProps) {
   }
 
   return (
-    <button
-      onClick={handleAuthClick}
-      className={`w-10 h-10 rounded-full glass-button flex items-center justify-center text-white font-semibold text-xs transition-all duration-200 hover:glass-glow-red ${className} relative overflow-hidden group`}
-      title={user ? `Click to logout (${getUserDisplayName()})` : 'Login with Google'}
-    >
-      {user ? (
-        <>
-          {user.user_metadata?.avatar_url ? (
-            <img
-              src={user.user_metadata.avatar_url}
-              alt="Profile"
-              className="w-full h-full rounded-full object-cover group-hover:opacity-70 transition-opacity"
-            />
-          ) : (
-            <span className="text-xs font-bold group-hover:opacity-70 transition-opacity">
-              {getUserInitials()}
-            </span>
-          )}
-          {/* Logout indicator on hover */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-red-500/20 rounded-full">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+    <div className={`relative ${className}`} ref={dropdownRef}>
+      <button
+        onClick={handleAuthClick}
+        className={`w-10 h-10 rounded-full glass-button flex items-center justify-center text-white font-semibold text-xs transition-all duration-200 hover:glass-glow ${isDropdownOpen ? 'glass-glow' : ''} relative overflow-hidden group cursor-pointer`}
+        title={user ? `Click for menu (${getUserDisplayName()})` : 'Login with Google'}
+      >
+        {user ? (
+          <>
+            {user.user_metadata?.avatar_url ? (
+              <Image
+                src={user.user_metadata.avatar_url}
+                alt="Profile"
+                width={40}
+                height={40}
+                className="w-full h-full rounded-full object-cover"
+              />
+            ) : (
+              <span className="text-xs font-bold">
+                {getUserInitials()}
+              </span>
+            )}
+            {/* Dropdown indicator */}
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gray-700 rounded-full border border-gray-600 flex items-center justify-center">
+              <svg 
+                className={`w-2 h-2 text-white transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </>
+        ) : (
+          <span className="text-xs font-bold">PP</span>
+        )}
+      </button>
+
+      {/* Dropdown Menu - Above the button */}
+      {user && isDropdownOpen && (
+        <div className="absolute right-0 bottom-12 w-56 bg-gray-800/95 backdrop-blur-sm border border-gray-700 rounded-lg shadow-xl z-[9999] overflow-hidden pointer-events-auto">
+          {/* User Info Header */}
+          <div className="px-4 py-3 border-b border-gray-700">
+            <div className="flex items-center space-x-3">
+              {user.user_metadata?.avatar_url ? (
+                <Image
+                  src={user.user_metadata.avatar_url}
+                  alt="Profile"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold">
+                  {getUserInitials()}
+                </div>
+              )}
+              <div>
+                <div className="text-sm font-medium text-white truncate">{getUserDisplayName()}</div>
+                <div className="text-xs text-gray-400 truncate">{user.email}</div>
+              </div>
+            </div>
           </div>
-        </>
-      ) : (
-        <span className="text-xs font-bold">PP</span>
+
+          {/* Menu Items */}
+          <div className="py-2">
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200 flex items-center group"
+            >
+              <svg className="w-4 h-4 mr-3 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Sign Out
+            </button>
+          </div>
+        </div>
       )}
-    </button>
+    </div>
   );
 }

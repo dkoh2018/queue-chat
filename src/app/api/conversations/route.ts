@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       // Sort messages within each conversation by created_at ascending
       const conversationsWithSortedMessages = conversations?.map(conv => ({
         ...conv,
-        messages: conv.messages?.sort((a, b) =>
+        messages: conv.messages?.sort((a: { created_at: string }, b: { created_at: string }) =>
           new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         ) || []
       })) || [];

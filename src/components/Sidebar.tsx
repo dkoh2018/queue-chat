@@ -19,6 +19,7 @@ interface SidebarProps {
   onNewChat: () => void;
   onSelectConversation: (conversation: Conversation) => void;
   onDeleteClick: (conversation: Conversation, e: React.MouseEvent) => void;
+  onClearAppData?: () => void;
 }
 
 interface ConversationItemProps {
@@ -71,6 +72,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   onNewChat,
   onSelectConversation,
   onDeleteClick,
+  onClearAppData,
 }, ref) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -188,7 +190,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
 
         {/* Authentication Button - Bottom Right */}
         <div className="absolute bottom-4 right-4">
-          <AuthButton />
+          <AuthButton onClearAppData={onClearAppData} />
         </div>
     </div>
   );
