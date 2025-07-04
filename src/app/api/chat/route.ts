@@ -1,22 +1,44 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { getAuthenticatedUser } from '@/lib/auth-utils';
 import { SYSTEM_PROMPTS } from '@/lib/prompts';
+import { logger } from '@/utils';
 
-export async function POST(request: Request) {
-  const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest } = await request.json();
-  const apiKey = process.env.OPENAI_API_KEY;
-  
-  if (!apiKey) {
-    return NextResponse.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
-  }
-
+export async function POST(request: NextRequest) {
   try {
+    // Require authentication for chat
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest } = await request.json();
+    const apiKey = process.env.OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      return NextResponse.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
+    }
+
+    let conversation = null;
+
+    // Authenticated user - handle database operations
+    logger.info('Processing chat for authenticated user', 'CHAT', { userId: user.id });
+
     // Get or create conversation
-    let conversation;
     if (conversationId) {
-      conversation = await prisma.conversation.findUnique({
-        where: { id: conversationId }
+      // Find the conversation and verify ownership
+      conversation = await prisma.conversation.findFirst({
+        where: {
+          id: conversationId,
+          userId: user.id
+        }
       });
+
+      if (!conversation) {
+        return NextResponse.json({
+          error: 'Conversation not found'
+        }, { status: 404 });
+      }
     }
 
     if (!conversation) {
@@ -24,32 +46,40 @@ export async function POST(request: Request) {
       const title = originalInput?.slice(0, 50) + '...' || 'New conversation';
       
       conversation = await prisma.conversation.create({
-        data: { title }
+        data: {
+          title,
+          userId: user.id
+        }
+      });
+
+      logger.info('Created new conversation for authenticated user', 'CHAT', {
+        userId: user.id,
+        conversationId: conversation.id
       });
     }
 
-    // Save ORIGINAL user message to database (not optimized)
-    if (originalInput) {
-      await prisma.message.create({
-        data: {
-          role: 'USER',
-          content: originalInput,
-          conversationId: conversation.id
-        }
-      });
-    } else {
-      // Fallback to previous behavior if no originalInput provided
-      const lastUserMessage = messages[messages.length - 1];
-      if (lastUserMessage.role === 'user') {
+      // Save ORIGINAL user message to database (not optimized)
+      if (originalInput) {
         await prisma.message.create({
           data: {
             role: 'USER',
-            content: lastUserMessage.content,
+            content: originalInput,
             conversationId: conversation.id
           }
         });
+      } else {
+        // Fallback to previous behavior if no originalInput provided
+        const lastUserMessage = messages[messages.length - 1];
+        if (lastUserMessage.role === 'user') {
+          await prisma.message.create({
+            data: {
+              role: 'USER',
+              content: lastUserMessage.content,
+              conversationId: conversation.id
+            }
+          });
+        }
       }
-    }
 
     // Use optimized messages for OpenAI API call (with optimized input)
     let messagesForAPI = optimizedInput ? 
@@ -71,7 +101,7 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({ model: 'gpt-4.1-mini', messages: messagesForAPI }),
+      body: JSON.stringify({ model: 'gpt-4o-mini', messages: messagesForAPI }),
     });
 
     if (!response.ok) {
@@ -97,8 +127,9 @@ export async function POST(request: Request) {
       data: { updatedAt: new Date() },
     });
 
-    // Log chat completion
-    console.log('💬 CHAT COMPLETED:', {
+    // Log chat completion for authenticated user
+    logger.info('Chat completed for authenticated user', 'CHAT', {
+      userId: user.id,
       conversationId: conversation.id,
       responseLength: content.length,
       wasOptimized: !!optimizedInput,
@@ -111,7 +142,7 @@ export async function POST(request: Request) {
     });
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-    console.error('Chat API error:', err);
+    logger.error('Chat API error', 'CHAT', err);
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

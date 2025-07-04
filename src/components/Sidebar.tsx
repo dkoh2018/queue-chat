@@ -2,6 +2,7 @@ import { forwardRef, useState, useMemo, memo } from 'react';
 import { Conversation } from '@/types';
 import { PlusIcon, SearchIcon, MenuIcon, XIcon } from '@/components/icons';
 import Button from '@/components/ui/Button';
+import AuthButton from '@/components/AuthButton';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -183,6 +184,11 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
               {searchQuery ? 'No conversations found.' : 'No conversations yet'}
             </div>
           )}
+        </div>
+
+        {/* Authentication Button - Bottom Right */}
+        <div className="absolute bottom-4 right-4">
+          <AuthButton />
         </div>
     </div>
   );

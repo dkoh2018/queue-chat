@@ -1,12 +1,34 @@
 import { Conversation } from '@/types';
 import { API_ENDPOINTS } from '@/utils';
+import { supabase } from '@/lib/supabase';
 
 class ConversationsService {
   /**
+   * Get auth headers for API requests
+   */
+  private getAuthHeaders = async (): Promise<HeadersInit> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add authorization header if user is authenticated
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+
+    return headers;
+  }
+
+  /**
    * Fetch all conversations
    */
-  async getConversations(): Promise<Conversation[]> {
-    const response = await fetch(API_ENDPOINTS.CONVERSATIONS);
+  getConversations = async (): Promise<Conversation[]> => {
+    const headers = await this.getAuthHeaders();
+    const response = await fetch(API_ENDPOINTS.CONVERSATIONS, {
+      headers,
+    });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Failed to fetch conversations' }));
@@ -19,9 +41,11 @@ class ConversationsService {
   /**
    * Delete a conversation
    */
-  async deleteConversation(conversationId: string): Promise<void> {
+  deleteConversation = async (conversationId: string): Promise<void> => {
+    const headers = await this.getAuthHeaders();
     const response = await fetch(`${API_ENDPOINTS.CONVERSATIONS}?id=${conversationId}`, {
       method: 'DELETE',
+      headers,
     });
 
     if (!response.ok) {

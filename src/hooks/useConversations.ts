@@ -30,13 +30,13 @@ export const useConversations = (): UseConversationsReturn => {
     isValidating: refreshing,
     mutate: revalidate 
   } = useSWR(CONVERSATIONS_KEY, conversationsService.getConversations, {
-    revalidateOnFocus: true,
-    revalidateOnReconnect: true,
+    revalidateOnFocus: false, // Stop aggressive revalidation
+    revalidateOnReconnect: false, // Stop reconnection spam
     revalidateOnMount: true,
-    refreshInterval: 0, // Disable automatic polling
-    dedupingInterval: 5000, // Dedupe requests within 5 seconds
-    errorRetryCount: 3,
-    errorRetryInterval: 1000,
+    refreshInterval: 0,
+    dedupingInterval: 10000, // Increase deduping interval
+    errorRetryCount: 1, // Reduce retry attempts
+    errorRetryInterval: 2000,
     onSuccess: (data) => {
       logger.conversation('Conversations fetched successfully', { count: data?.length || 0 });
     },
@@ -89,16 +89,14 @@ export const useConversations = (): UseConversationsReturn => {
     }
   }, [currentConversationId, revalidate]);
 
-  // Online/offline detection
+  // Online/offline detection - simplified
   useEffect(() => {
     const handleOnline = () => {
-      logger.ui('Back online - refreshing data');
       setIsOnline(true);
-      revalidate();
+      // Don't auto-revalidate on reconnect to prevent spam
     };
 
     const handleOffline = () => {
-      logger.ui('Gone offline - using cached data');
       setIsOnline(false);
     };
 
@@ -109,7 +107,7 @@ export const useConversations = (): UseConversationsReturn => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [revalidate]);
+  }, []);
 
   // Load currentConversationId from localStorage after mount (client-side only)
   useEffect(() => {

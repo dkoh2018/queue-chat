@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useConversations, useChat } from '@/hooks';
+import { useConversations, useChat, useAuth } from '@/hooks';
 import { Conversation } from '@/types';
 import { optimizationService } from '@/services/api/optimization.service';
+import { AuthGate } from '@/components/AuthGate';
 import Sidebar from '@/components/Sidebar';
 import { ChatView } from '@/components/ChatView';
 import { WelcomeView } from '@/components/WelcomeView';
@@ -14,7 +15,9 @@ import { MessageInputContainer } from '@/components/MessageInputContainer';
 import { QueueToggle } from '@/components/QueueToggle';
 import { MenuIcon } from '@/components/icons';
 
-export default function Jarvis() {
+function MainChatInterface() {
+  // Authentication state - user is guaranteed to be authenticated here
+  const { user } = useAuth();
   // UI State - Default values for server rendering (consistent initial state)
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(256);
@@ -81,7 +84,7 @@ export default function Jarvis() {
   // Refs for better performance
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
-  // Custom Hooks for Business Logic (must come before any useEffect that uses their values)
+  // Custom Hooks for Business Logic - only load if user is authenticated or auth is required
   const {
     conversations,
     currentConversationId,
@@ -106,7 +109,7 @@ export default function Jarvis() {
     removeMessageFromQueue,
     clearQueue,
     reorderQueue,
-  } = useChat(fetchConversations);
+  } = useChat(user ? fetchConversations : undefined);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -203,7 +206,6 @@ export default function Jarvis() {
     // Start new conversation
     clearMessages();
     setCurrentConversationId(null);
-    
     
     // Close sidebar on small screens after creating new chat
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
@@ -395,7 +397,11 @@ export default function Jarvis() {
         )}
         {/* Chat Area or Welcome - now takes full height */}
         {!messages || messages.length === 0 ? (
-          <WelcomeView currentConversationId={currentConversationId} />
+          <WelcomeView
+            currentConversationId={currentConversationId}
+            user={user}
+            authLoading={false}
+          />
         ) : (
           <ChatView messages={messages} isLoading={isLoading} ref={chatScrollRef} />
         )}
@@ -436,5 +442,13 @@ export default function Jarvis() {
         conversationTitle={conversationToDelete?.title || ''}
       />
     </div>
+  );
+}
+
+export default function Jarvis() {
+  return (
+    <AuthGate>
+      <MainChatInterface />
+    </AuthGate>
   );
 }

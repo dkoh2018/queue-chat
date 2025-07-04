@@ -24,14 +24,22 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [processingMessage, setProcessingMessage] = useState<string | null>(null);
 
   const processQueue = useCallback(async () => {
     if (isProcessingQueue || messageQueue.length === 0) {
       return;
     }
 
-    setIsProcessingQueue(true);
     const text = messageQueue[0];
+    
+    // Prevent duplicate processing
+    if (processingMessage === text) {
+      return;
+    }
+
+    setIsProcessingQueue(true);
+    setProcessingMessage(text);
 
     try {
       setIsLoading(true);
@@ -84,8 +92,9 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     } finally {
       setIsLoading(false);
       setIsProcessingQueue(false);
+      setProcessingMessage(null);
     }
-  }, [isProcessingQueue, messageQueue, messages, onConversationUpdate, currentConversationId]);
+  }, [isProcessingQueue, messageQueue, messages, onConversationUpdate, currentConversationId, processingMessage]);
 
   useEffect(() => {
     if (messageQueue.length > 0 && !isProcessingQueue) {
@@ -98,11 +107,17 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     conversationId?: string | null
   ): Promise<void> => {
     if (!text.trim()) return;
+    
+    // Prevent duplicate messages
+    if (messageQueue.includes(text) || processingMessage === text) {
+      return;
+    }
+    
     if (conversationId && !currentConversationId) {
       setCurrentConversationId(conversationId);
     }
     setMessageQueue(prev => [...prev, text]);
-  }, [currentConversationId]);
+  }, [currentConversationId, messageQueue, processingMessage]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);

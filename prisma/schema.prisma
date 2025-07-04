@@ -13,11 +13,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id            String   @id @db.Uuid
+  email         String   @unique
+  name          String?
+  avatarUrl     String?  @map("avatar_url")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  conversations Conversation[]
+
+  @@map("users")
+}
+
 model Conversation {
   id        String   @id @default(cuid())
   title     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages  Message[]
 
   @@map("conversations")
@@ -25,16 +39,11 @@ model Conversation {
 
 model Message {
   id             String       @id @default(cuid())
-  role           MessageRole
+  role           String
   content        String
-  createdAt      DateTime     @default(now())
-  conversationId String
+  createdAt      DateTime     @default(now()) @map("created_at")
+  conversationId String       @map("conversation_id")
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@map("messages")
-}
-
-enum MessageRole {
-  USER
-  ASSISTANT
 }
