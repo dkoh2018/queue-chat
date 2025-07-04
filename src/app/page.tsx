@@ -4,15 +4,15 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useConversations, useChat, useAuth } from '@/hooks';
 import { Conversation } from '@/types';
 import { optimizationService } from '@/services/api/optimization.service';
-import { AuthGate } from '@/components/AuthGate';
-import Sidebar from '@/components/Sidebar';
-import { ChatView } from '@/components/ChatView';
-import { WelcomeView } from '@/components/WelcomeView';
-import { MessageInput } from '@/components/MessageInput';
-import { ConfirmationModal } from '@/components/ConfirmationModal';
-import { MessageQueueView } from '@/components/MessageQueueView';
-import { MessageInputContainer } from '@/components/MessageInputContainer';
-import { QueueToggle } from '@/components/QueueToggle';
+import { AuthGate } from '@/components/auth/AuthGate';
+import Sidebar from '@/components/features/sidebar/Sidebar';
+import { ChatView } from '@/components/chat/ChatView';
+import { WelcomeView } from '@/components/chat/WelcomeView';
+import { MessageInput } from '@/components/chat/MessageInput';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { MessageQueueView } from '@/components/chat/MessageQueueView';
+import { MessageInputContainer } from '@/components/chat/MessageInputContainer';
+import { QueueToggle } from '@/components/features/sidebar/QueueToggle';
 import { MenuIcon } from '@/components/icons';
 
 function MainChatInterface() {

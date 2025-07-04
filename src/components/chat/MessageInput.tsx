@@ -1,9 +1,9 @@
 import { useRef, useEffect } from 'react';
 import { AttachIcon } from '@/components/icons';
-import { UpArrowIcon } from './icons/UpArrowIcon';
-import OptimizeButton from './OptimizeButton';
-import { TypingDots } from './TypingDots';
-import { VoiceRecordingButton } from './VoiceRecordingButton';
+import { UpArrowIcon } from '@/components/icons';
+import OptimizeButton from '@/components/features/optimization/OptimizeButton';
+import { TypingDots } from '@/components/ui/TypingDots';
+import { VoiceRecordingButton } from '@/components/features/voice/VoiceRecordingButton';
 import { useVoiceRecording } from '@/hooks';
 
 interface MessageInputProps {

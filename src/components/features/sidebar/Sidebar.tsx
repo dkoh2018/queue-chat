@@ -2,7 +2,7 @@ import { forwardRef, useState, useMemo, memo } from 'react';
 import { Conversation } from '@/types';
 import { PlusIcon, SearchIcon, MenuIcon, XIcon } from '@/components/icons';
 import Button from '@/components/ui/Button';
-import AuthButton from '@/components/AuthButton';
+import AuthButton from '@/components/auth/AuthButton';
 
 interface SidebarProps {
   sidebarOpen: boolean;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { LoadingScreen } from './LoadingScreen';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { LoginPage } from './LoginPage';
 
 interface AuthGateProps {

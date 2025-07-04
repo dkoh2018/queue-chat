@@ -17,7 +17,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { XIcon } from './icons';
+import { XIcon } from '@/components/icons';
 
 interface MessageQueueViewProps {
   messageQueue: string[];

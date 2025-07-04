@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import { UIMessage } from '@/types';
-import MarkdownMessage from '@/components/MarkdownMessage';
-import { TypingDots } from './TypingDots';
+import MarkdownMessage from '@/components/content/MarkdownMessage';
+import { TypingDots } from '@/components/ui/TypingDots';
 
 interface ChatViewProps {
   messages: UIMessage[];
