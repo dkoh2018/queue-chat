@@ -1,14 +1,18 @@
 import { useRef, useEffect } from 'react';
 import { AttachIcon, MicIcon } from '@/components/icons';
 import { UpArrowIcon } from './icons/UpArrowIcon';
+import OptimizeButton from './OptimizeButton';
+import { TypingDots } from './TypingDots';
 
 interface MessageInputProps {
   inputText: string;
   setInputText: (text: string) => void;
   onSend: () => void;
+  onOptimize?: () => void;
+  isOptimizing?: boolean;
 }
 
-export const MessageInput = ({ inputText, setInputText, onSend }: MessageInputProps) => {
+export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false }: MessageInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize textarea with line-by-line expansion
@@ -54,30 +58,51 @@ export const MessageInput = ({ inputText, setInputText, onSend }: MessageInputPr
       <div className="flex flex-col bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 shadow-lg transition-all duration-200 hover:border-gray-500/60 focus-within:border-emerald-400/60 focus-within:shadow-emerald-500/20"
            style={{ borderRadius: '12px' }}>
         
-        {/* Textarea */}
-        <textarea
-          ref={textareaRef}
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              onSend();
-            }
-          }}
-          placeholder="Ask anything..."
-          className="w-full text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none font-medium"
-          suppressHydrationWarning
-          style={{
-            padding: '20px',
-            fontSize: '16px',
-            lineHeight: '1.5',
-            wordBreak: 'break-word',
-            minHeight: '55px',
-            maxHeight: '240px',
-            transition: 'height 0.2s ease'
-          }}
-        />
+        {/* Textarea or Loading State */}
+        {isOptimizing ? (
+          <div 
+            className="w-full text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none font-medium flex items-center"
+            style={{
+              padding: '20px',
+              fontSize: '16px',
+              lineHeight: '1.5',
+              minHeight: '55px',
+            }}
+          >
+            <TypingDots />
+          </div>
+        ) : (
+          <textarea
+            ref={textareaRef}
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                onSend();
+              } else if (e.key === 'e' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                onOptimize?.();
+                // Keep focus on textarea after optimize
+                setTimeout(() => {
+                  textareaRef.current?.focus();
+                }, 0);
+              }
+            }}
+            placeholder="Ask anything..."
+            className="w-full text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none font-medium"
+            suppressHydrationWarning
+            style={{
+              padding: '20px',
+              fontSize: '16px',
+              lineHeight: '1.5',
+              wordBreak: 'break-word',
+              minHeight: '55px',
+              maxHeight: '240px',
+              transition: 'height 0.2s ease'
+            }}
+          />
+        )}
         
         {/* Buttons Container */}
         <div className="flex justify-between items-center p-2">
@@ -95,30 +120,39 @@ export const MessageInput = ({ inputText, setInputText, onSend }: MessageInputPr
             </button>
           </div>
           
-          {/* Send Button */}
-           <button
-             onClick={onSend}
-             disabled={!inputText.trim()}
-             className={`rounded-full transition-all duration-200 w-8 h-8 flex items-center justify-center ${
-               inputText.trim()
-                 ? 'bg-white hover:bg-gray-200 shadow-md'
-                 : 'bg-transparent'
-             }`}
-             title={inputText.trim() ? 'Send message' : 'Type a message to send'}
-           >
-             <UpArrowIcon
-               className={
-                 inputText.trim() ? 'text-black' : 'text-gray-400'
-               }
-             />
-           </button>
+          {/* Action Buttons */}
+          <div className="flex items-center space-x-2">
+            {/* Optimize Button */}
+            <OptimizeButton 
+              onClick={onOptimize}
+              disabled={!inputText.trim() || isOptimizing}
+            />
+            
+            {/* Send Button */}
+            <button
+              onClick={onSend}
+              disabled={!inputText.trim() || isOptimizing}
+              className={`rounded-full transition-all duration-200 w-8 h-8 flex items-center justify-center ${
+                inputText.trim() && !isOptimizing
+                  ? 'bg-white hover:bg-gray-200 shadow-md'
+                  : 'bg-transparent'
+              }`}
+              title={inputText.trim() ? 'Send message' : 'Type a message to send'}
+            >
+              <UpArrowIcon
+                className={
+                  inputText.trim() && !isOptimizing ? 'text-black' : 'text-gray-400'
+                }
+              />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Disclaimer */}
       <div className="text-center mt-2">
         <p className="text-xs text-gray-500">
-          Jarvis can make mistakes. Check important info.
+          Jarvis can make mistakes.
         </p>
       </div>
     </>

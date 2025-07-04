@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useConversations, useChat } from '@/hooks';
 import { Conversation } from '@/types';
+import { optimizationService } from '@/services/api/optimization.service';
 import Sidebar from '@/components/Sidebar';
 import { ChatView } from '@/components/ChatView';
 import { WelcomeView } from '@/components/WelcomeView';
@@ -75,6 +76,7 @@ export default function Jarvis() {
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
   const [newChatClicked, setNewChatClicked] = useState(false);
   const [queueVisible, setQueueVisible] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
   
   // Refs for better performance
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -271,6 +273,30 @@ export default function Jarvis() {
     await sendMessage(text, currentConversationId);
   };
 
+  const handleOptimize = async () => {
+    const text = inputText.trim();
+    if (!text || isOptimizing) return;
+
+    const originalText = text;
+    setIsOptimizing(true);
+
+    try {
+      const response = await optimizationService.optimizeInput({
+        userInput: text,
+        conversationHistory: messages,
+      });
+      
+      // Replace the input text with optimized version
+      setInputText(response.optimizedInput);
+    } catch (error) {
+      console.error('Optimization failed:', error);
+      // Keep original text if optimization fails
+      setInputText(originalText);
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
   const handleSelectConversation = (conversation: Conversation) => {
     // Set current conversation in conversations hook FIRST
     selectConversation(conversation);
@@ -396,6 +422,8 @@ export default function Jarvis() {
             inputText={inputText}
             setInputText={setInputText}
             onSend={handleSend}
+            onOptimize={handleOptimize}
+            isOptimizing={isOptimizing}
           />
         </MessageInputContainer>
       </div>
