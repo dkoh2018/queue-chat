@@ -87,8 +87,6 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
   isProcessing,
   isVisible,
 }) => {
-  console.log('🔄 MessageQueueView re-render, queue:', messageQueue);
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {

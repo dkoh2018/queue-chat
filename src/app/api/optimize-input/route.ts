@@ -90,7 +90,7 @@ export async function POST(request: Request) {
       console.log('DIAGRAM REQUEST DETECTED');
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       originalInput: userInput,
       optimizedInput: cleanOptimizedInput,
       isDiagramRequest: isDiagramRequest

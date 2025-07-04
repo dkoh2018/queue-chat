@@ -290,8 +290,7 @@ export default function Jarvis() {
       
       // Replace the input text with optimized version
       setInputText(response.optimizedInput);
-    } catch (error) {
-      console.error('Optimization failed:', error);
+    } catch {
       // Restore original text if optimization fails
       setInputText(originalText);
     } finally {
@@ -337,8 +336,8 @@ export default function Jarvis() {
       if (currentConversationId === conversationToDelete.id) {
         handleNewChat();
       }
-    } catch (error) {
-      console.error('Failed to delete conversation:', error);
+    } catch {
+      // Error handled silently - user will see UI feedback
     } finally {
       setDeleteModalOpen(false);
       setConversationToDelete(null);

@@ -54,8 +54,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
         if (containerRef.current) {
           containerRef.current.innerHTML = svg;
         }
-      } catch (error) {
-        console.error('Mermaid rendering error:', error);
+      } catch {
         setHasError(true);
       } finally {
         setIsLoading(false);

@@ -23,7 +23,6 @@ class OptimizationService {
     
     // If optimization failed, return original input as fallback
     if (data.error) {
-      console.warn('Optimization failed, using original input:', data.error);
       return {
         originalInput: request.userInput,
         optimizedInput: request.userInput,

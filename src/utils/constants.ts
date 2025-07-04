@@ -3,6 +3,7 @@ export const API_ENDPOINTS = {
   CHAT: '/api/chat',
   CONVERSATIONS: '/api/conversations',
   OPTIMIZE_INPUT: '/api/optimize-input',
+  TRANSCRIBE: '/api/transcribe',
 } as const;
 
 // UI Constants
