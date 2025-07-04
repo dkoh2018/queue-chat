@@ -23,6 +23,9 @@ export async function POST(request: Request) {
     // Add diagram detection instruction
     systemPrompt += "\n\nIMPORTANT: Also analyze if the user is requesting any kind of diagram, chart, flowchart, visualization, or Mermaid diagram. If they are, respond with 'DIAGRAM_REQUEST: true' at the beginning of your response.";
 
+    // Add calendar detection instruction
+    systemPrompt += "\n\nCALENDAR DETECTION: Also analyze if the user is asking about scheduling, calendar, appointments, meetings, events, availability, time management, or any time-related requests. If they are, respond with 'CALENDAR_REQUEST: true' at the beginning of your response (can be combined with DIAGRAM_REQUEST if both apply).";
+
     // Prepare messages for optimization
     const optimizationMessages = [
       {
@@ -58,7 +61,7 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({ 
-        model: 'gpt-4.1-mini', 
+        model: 'gpt-4o-mini', 
         messages: optimizationMessages,
         temperature: 0.7,
         max_tokens: 1500, // Increased for longer context-aware optimizations
@@ -75,11 +78,18 @@ export async function POST(request: Request) {
     const data = await response.json();
     const optimizedInput = data.choices?.[0]?.message?.content ?? userInput;
 
-    // Check for diagram request flag
-    const isDiagramRequest = optimizedInput.startsWith('DIAGRAM_REQUEST: true');
-    const cleanOptimizedInput = isDiagramRequest 
-      ? optimizedInput.replace('DIAGRAM_REQUEST: true', '').trim()
-      : optimizedInput;
+    // Check for request type flags
+    const isDiagramRequest = optimizedInput.includes('DIAGRAM_REQUEST: true');
+    const isCalendarRequest = optimizedInput.includes('CALENDAR_REQUEST: true');
+    
+    // Clean the optimized input by removing flags
+    let cleanOptimizedInput = optimizedInput;
+    if (isDiagramRequest) {
+      cleanOptimizedInput = cleanOptimizedInput.replace('DIAGRAM_REQUEST: true', '').trim();
+    }
+    if (isCalendarRequest) {
+      cleanOptimizedInput = cleanOptimizedInput.replace('CALENDAR_REQUEST: true', '').trim();
+    }
 
     // Log optimization comparison
     console.log('🔧 INPUT OPTIMIZATION:');
@@ -87,13 +97,17 @@ export async function POST(request: Request) {
     console.log(`   Optimized: "${cleanOptimizedInput.slice(0, 80)}${cleanOptimizedInput.length > 80 ? '...' : ''}"`);
     console.log(`   Improvement: ${cleanOptimizedInput.length - userInput.length > 0 ? '+' : ''}${cleanOptimizedInput.length - userInput.length} chars`);
     if (isDiagramRequest) {
-      console.log('DIAGRAM REQUEST DETECTED');
+      console.log('📊 DIAGRAM REQUEST DETECTED');
+    }
+    if (isCalendarRequest) {
+      console.log('📅 CALENDAR REQUEST DETECTED');
     }
 
     return NextResponse.json({
       originalInput: userInput,
       optimizedInput: cleanOptimizedInput,
-      isDiagramRequest: isDiagramRequest
+      isDiagramRequest: isDiagramRequest,
+      isCalendarRequest: isCalendarRequest
     });
   } catch (err: unknown) {
     console.error('Input optimization error:', err);
@@ -102,6 +116,7 @@ export async function POST(request: Request) {
       originalInput: userInput,
       optimizedInput: userInput,
       isDiagramRequest: false,
+      isCalendarRequest: false,
       error: 'Optimization failed, using original input'
     });
   }

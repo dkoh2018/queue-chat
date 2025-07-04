@@ -16,6 +16,7 @@ export interface ChatRequest {
   originalInput?: string;
   optimizedInput?: string;
   isDiagramRequest?: boolean;
+  isCalendarRequest?: boolean;
 }
 
 export interface ChatResponse {
@@ -32,5 +33,6 @@ export interface OptimizationResponse {
   originalInput: string;
   optimizedInput: string;
   isDiagramRequest?: boolean;
+  isCalendarRequest?: boolean;
   error?: string;
 }

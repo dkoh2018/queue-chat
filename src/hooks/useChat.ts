@@ -58,6 +58,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
 
       const optimizedInput = optimizationResult.optimizedInput || text;
       const isDiagramRequest = optimizationResult.isDiagramRequest || false;
+      const isCalendarRequest = optimizationResult.isCalendarRequest || false;
 
       const optimizedMessages: UIMessage[] = [
         ...messages,
@@ -70,6 +71,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
         originalInput: text,
         optimizedInput,
         isDiagramRequest,
+        isCalendarRequest,
       });
 
       if (chatResponse.conversationId && !currentConversationId) {
