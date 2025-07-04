@@ -1,8 +1,9 @@
 import { useRef, useEffect } from 'react';
-import { AttachIcon, MicIcon } from '@/components/icons';
+import { AttachIcon } from '@/components/icons';
 import { UpArrowIcon } from './icons/UpArrowIcon';
 import OptimizeButton from './OptimizeButton';
 import { TypingDots } from './TypingDots';
+import { VoiceRecordingButton } from './VoiceRecordingButton';
 import { useVoiceRecording } from '@/hooks';
 
 interface MessageInputProps {
@@ -20,6 +21,7 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
   // Voice recording functionality
   const {
     state: voiceState,
+    mediaStream,
     startRecording,
     stopRecording
   } = useVoiceRecording();
@@ -119,19 +121,6 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
           />
         )}
         
-        {/* Recording Timer Display */}
-        {voiceState.isRecording && (
-          <div className="flex items-center justify-center py-2 px-4 bg-red-500/10 border-t border-red-500/20">
-            <div className="flex items-center space-x-2 text-red-400">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              <span className="text-sm font-mono">
-                00:{String(30 - voiceState.timeRemaining).padStart(2, '0')}
-              </span>
-              <span className="text-xs">Recording...</span>
-            </div>
-          </div>
-        )}
-
         {/* Buttons Container */}
         <div className="flex justify-between items-center p-2">
           {/* Tool Buttons */}
@@ -141,27 +130,14 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
               title="Attach file">
               <AttachIcon />
             </button>
-            <button
-              onClick={voiceState.isRecording ? stopRecording : startRecording}
-              disabled={voiceState.isTranscribing}
-              className={`rounded-full transition-colors p-1.5 ${
-                voiceState.isRecording
-                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'hover:bg-gray-600/50 opacity-70 hover:opacity-100'
-              } ${voiceState.isTranscribing ? 'opacity-50 cursor-not-allowed' : ''}`}
-              title={
-                voiceState.isTranscribing
-                  ? 'Transcribing...'
-                  : voiceState.isRecording
-                    ? `Stop recording (${voiceState.timeRemaining}s remaining)`
-                    : 'Voice input'
-              }>
-              {voiceState.isTranscribing ? (
-                <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <MicIcon />
-              )}
-            </button>
+            <VoiceRecordingButton
+              isRecording={voiceState.isRecording}
+              isTranscribing={voiceState.isTranscribing}
+              timeRemaining={voiceState.timeRemaining}
+              mediaStream={mediaStream}
+              onStartRecording={startRecording}
+              onStopRecording={stopRecording}
+            />
           </div>
           
           {/* Action Buttons */}

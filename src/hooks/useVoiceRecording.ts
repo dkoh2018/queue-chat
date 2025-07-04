@@ -14,6 +14,7 @@ export interface VoiceRecordingState {
 
 interface UseVoiceRecordingReturn {
   state: VoiceRecordingState;
+  mediaStream: MediaStream | null;
   startRecording: () => Promise<void>;
   stopRecording: () => void;
   requestPermission: () => Promise<boolean>;
@@ -221,6 +222,7 @@ export const useVoiceRecording = (): UseVoiceRecordingReturn => {
 
   return {
     state,
+    mediaStream: streamRef.current,
     startRecording,
     stopRecording,
     requestPermission,
