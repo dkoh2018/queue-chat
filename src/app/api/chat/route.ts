@@ -4,7 +4,7 @@ import { getAuthenticatedUser } from '@/lib/auth-utils';
 import { SYSTEM_PROMPTS } from '@/lib/prompts';
 import { BASE_SYSTEM_PROMPT } from '@/lib/base-prompts';
 import { calendarService } from '@/services/api/calendar.service';
-import { getGoogleAccessToken } from '@/lib/token-utils';
+import { getGoogleAccessTokenFromSession } from '@/lib/token-utils';
 import { logger, UI_CONSTANTS } from '@/utils';
 import { getIntegration } from '@/integrations';
 import { IntegrationType } from '@/types';
@@ -158,16 +158,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Calendar integration handling (keeping existing logic for now)
+    // Calendar integration handling - using ONLY session tokens (the working method)
     if (isCalendarRequest) {
       try {
-        // Get user's Google access token using the working method - prioritize frontend token
-        let accessToken = providerToken;
-        
-        if (!accessToken) {
-          // Fallback to backend token retrieval
-          accessToken = await getGoogleAccessToken(user.id);
-        }
+        // Use session token from frontend - this is the ONLY working method we proved
+        const accessToken = await getGoogleAccessTokenFromSession(providerToken || '');
         
         if (accessToken) {
           // Get calendar context
@@ -191,9 +186,9 @@ export async function POST(request: NextRequest) {
             eventCount: calendarContext.totalEvents
           });
         } else {
-          // No calendar access - add prompt explaining this
+          // No session token available - add prompt explaining this
           const noAccessPrompt = `The user is asking about calendar/scheduling but you don't have access to their calendar data.
-          Politely explain that they need to sign in again to grant calendar permissions, and offer general scheduling advice instead.`;
+          This is because no session token was provided from the frontend. Politely explain that they need to refresh the page or sign in again to grant calendar permissions, and offer general scheduling advice instead.`;
           
           messagesForAPI = [
             messagesForAPI[0], // Keep base system prompt

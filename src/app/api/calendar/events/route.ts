@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-utils';
 import { calendarService } from '@/services/api/calendar.service';
-import { getGoogleAccessToken } from '@/lib/token-utils';
+import { getGoogleAccessTokenFromSession } from '@/lib/token-utils';
 import { logger } from '@/utils';
 
 export async function GET(request: NextRequest) {
@@ -19,13 +19,8 @@ export async function GET(request: NextRequest) {
     const maxResults = parseInt(searchParams.get('maxResults') || '50');
     const providerToken = searchParams.get('providerToken'); // Accept token from frontend
 
-    // Get access token using the working method - prioritize frontend token
-    let accessToken = providerToken;
-    
-    if (!accessToken) {
-      // Fallback to backend token retrieval
-      accessToken = await getGoogleAccessToken(user.id);
-    }
+    // Get access token using the ONLY working method - session token from frontend
+    const accessToken = await getGoogleAccessTokenFromSession(providerToken || '');
     
     if (!accessToken) {
       return NextResponse.json({ 
@@ -88,13 +83,8 @@ export async function POST(request: NextRequest) {
     // Get provider token from request body (like the working test endpoint)
     const { providerToken } = await request.json();
 
-    // Get access token using the working method - prioritize frontend token
-    let accessToken = providerToken;
-    
-    if (!accessToken) {
-      // Fallback to backend token retrieval
-      accessToken = await getGoogleAccessToken(user.id);
-    }
+    // Get access token using the ONLY working method - session token from frontend
+    const accessToken = await getGoogleAccessTokenFromSession(providerToken || '');
     
     if (!accessToken) {
       return NextResponse.json({ 
