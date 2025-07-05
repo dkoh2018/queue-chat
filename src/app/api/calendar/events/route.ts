@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/auth-utils';
 import { calendarService } from '@/services/api/calendar.service';
+import { getGoogleAccessToken } from '@/lib/token-utils';
 import { logger } from '@/utils';
 
 export async function GET(request: NextRequest) {
@@ -16,16 +17,28 @@ export async function GET(request: NextRequest) {
     const timeMin = searchParams.get('timeMin');
     const timeMax = searchParams.get('timeMax');
     const maxResults = parseInt(searchParams.get('maxResults') || '50');
+    const providerToken = searchParams.get('providerToken'); // Accept token from frontend
 
-    // Get access token from Supabase session
-    // Note: This requires the user to have signed in with Google OAuth with calendar scopes
-    const accessToken = await getGoogleAccessToken(user.id);
+    // Get access token using the working method - prioritize frontend token
+    let accessToken = providerToken;
+    
+    if (!accessToken) {
+      // Fallback to backend token retrieval
+      accessToken = await getGoogleAccessToken(user.id);
+    }
     
     if (!accessToken) {
       return NextResponse.json({ 
-        error: 'Calendar access not available. Please sign in again to grant calendar permissions.' 
+        error: 'Calendar access not available. Please sign in again to grant calendar permissions.',
+        suggestion: 'Make sure to pass providerToken from frontend session or refresh your login'
       }, { status: 403 });
     }
+
+    logger.info('Using calendar access token', 'CALENDAR', {
+      userId: user.id,
+      tokenSource: providerToken ? 'frontend' : 'backend',
+      tokenLength: accessToken.length
+    });
 
     // Fetch calendar events
     const events = await calendarService.getEvents(
@@ -72,14 +85,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    // Get calendar context for AI
-    const accessToken = await getGoogleAccessToken(user.id);
+    // Get provider token from request body (like the working test endpoint)
+    const { providerToken } = await request.json();
+
+    // Get access token using the working method - prioritize frontend token
+    let accessToken = providerToken;
+    
+    if (!accessToken) {
+      // Fallback to backend token retrieval
+      accessToken = await getGoogleAccessToken(user.id);
+    }
     
     if (!accessToken) {
       return NextResponse.json({ 
-        error: 'Calendar access not available. Please sign in again to grant calendar permissions.' 
+        error: 'Calendar access not available. Please sign in again to grant calendar permissions.',
+        suggestion: 'Make sure to pass providerToken from frontend session or refresh your login'
       }, { status: 403 });
     }
+
+    logger.info('Using calendar access token for context', 'CALENDAR', {
+      userId: user.id,
+      tokenSource: providerToken ? 'frontend' : 'backend',
+      tokenLength: accessToken.length
+    });
 
     // Get comprehensive calendar context
     const calendarContext = await calendarService.getCalendarContext(accessToken);
@@ -113,27 +141,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Get Google access token for the user
- * This is a placeholder - you'll need to implement this based on how Supabase stores the tokens
- */
-async function getGoogleAccessToken(userId: string): Promise<string | null> {
-  try {
-    // TODO: Implement token retrieval from Supabase
-    // This might involve:
-    // 1. Getting the user's session from Supabase
-    // 2. Extracting the provider_token (Google access token)
-    // 3. Checking if the token is still valid
-    // 4. Refreshing the token if needed
-    
-    // For now, return null to indicate calendar access is not available
-    // You'll need to implement this based on your Supabase setup
-    
-    logger.warn('Google access token retrieval not implemented', 'CALENDAR', { userId });
-    return null;
-    
-  } catch (error) {
-    logger.error('Failed to get Google access token', 'CALENDAR', error);
-    return null;
-  }
-}
+// Token retrieval is now handled by the unified token-utils module

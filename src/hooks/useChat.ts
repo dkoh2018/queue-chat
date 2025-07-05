@@ -3,6 +3,7 @@ import { UIMessage, IntegrationType } from '@/types';
 import { chatService } from '@/services';
 import { UI_CONSTANTS } from '@/utils';
 import { getIntegrationsByIds, IntegrationProcessResult } from '@/integrations';
+import { useTokenRefresh } from './useTokenRefresh';
 
 // Helper function to log to server terminal
 const logToServer = async (message: string, data?: unknown) => {
@@ -43,6 +44,9 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
   const [error, setError] = useState<string | null>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [processingMessage, setProcessingMessage] = useState<string | null>(null);
+  
+  // Enhanced token refresh system
+  const { providerToken: refreshedToken, isTokenValid, refreshToken } = useTokenRefresh();
   
   // REQUEST LIMITING SAFEGUARDS
   const [activeRequests, setActiveRequests] = useState<number>(0);
@@ -166,6 +170,23 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       let chatResponse;
       
       try {
+        // Get session token for calendar integration with auto-refresh
+        let providerToken: string | undefined;
+        if (activeIntegrations.includes('calendar')) {
+          try {
+            // Use the enhanced token refresh system
+            if (refreshedToken && isTokenValid) {
+              providerToken = refreshedToken;
+            } else if (refreshedToken && !isTokenValid) {
+              // Try to refresh the token
+              const newToken = await refreshToken();
+              providerToken = newToken || undefined;
+            }
+          } catch (error) {
+            console.warn('Failed to get session token:', error);
+          }
+        }
+
         chatResponse = await chatService.sendMessage({
           messages: optimizedMessages,
           conversationId: currentConversationId,
@@ -175,6 +196,8 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
           isDiagramRequest: activeIntegrations.includes('mermaid'),
           isCalendarRequest: activeIntegrations.includes('calendar'),
           integrationMode: activeIntegrations.length > 0 ? activeIntegrations[0] : null,
+          // NEW: Pass session token for calendar access
+          providerToken,
         });
       } catch (apiError) {
         // API call failed - remove user message since it wasn't processed

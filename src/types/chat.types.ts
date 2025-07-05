@@ -19,6 +19,7 @@ export interface ChatRequest {
   isCalendarRequest?: boolean;
   integrationMode?: 'calendar' | 'mermaid' | null;
   activeIntegrations?: string[];
+  providerToken?: string;
 }
 
 export interface ChatResponse {

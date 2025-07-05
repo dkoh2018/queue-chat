@@ -23,6 +23,17 @@ export default function CalendarTestPage() {
       // Get current session with provider tokens
       const { data: { session } } = await supabase.auth.getSession();
       
+      // Log session info for debugging
+      console.log('🔍 SESSION DEBUG INFO:');
+      console.log('Has session:', !!session);
+      console.log('Has provider_token:', !!session?.provider_token);
+      console.log('Token length:', session?.provider_token?.length || 0);
+      if (session?.provider_token) {
+        console.log('FULL TOKEN (copy this entire line):');
+        console.log(session.provider_token);
+        console.log('TOKEN END ^^^');
+      }
+      
       const response = await fetch('/api/test/calendar-simple', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

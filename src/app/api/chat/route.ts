@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/auth-utils';
-import { supabaseAdmin } from '@/lib/supabase-server';
 import { SYSTEM_PROMPTS } from '@/lib/prompts';
 import { BASE_SYSTEM_PROMPT } from '@/lib/base-prompts';
 import { calendarService } from '@/services/api/calendar.service';
+import { getGoogleAccessToken } from '@/lib/token-utils';
 import { logger, UI_CONSTANTS } from '@/utils';
 import { getIntegration } from '@/integrations';
 import { IntegrationType } from '@/types';
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest, isCalendarRequest, activeIntegrations } = await request.json();
+    const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest, isCalendarRequest, activeIntegrations, providerToken } = await request.json();
     const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
@@ -161,8 +161,13 @@ export async function POST(request: NextRequest) {
     // Calendar integration handling (keeping existing logic for now)
     if (isCalendarRequest) {
       try {
-        // Get user's Google access token (placeholder implementation)
-        const accessToken = await getGoogleAccessToken(user.id);
+        // Get user's Google access token using the working method - prioritize frontend token
+        let accessToken = providerToken;
+        
+        if (!accessToken) {
+          // Fallback to backend token retrieval
+          accessToken = await getGoogleAccessToken(user.id);
+        }
         
         if (accessToken) {
           // Get calendar context
@@ -274,45 +279,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Get Google access token for the user
- * This is a placeholder implementation - needs to be completed based on Supabase setup
- */
-async function getGoogleAccessToken(userId: string): Promise<string | null> {
-  try {
-    // Get user from Supabase admin to access provider tokens
-    const { data: { user }, error } = await supabaseAdmin.auth.admin.getUserById(userId);
-    
-    if (error || !user) {
-      logger.error('Failed to get user for token retrieval', 'CALENDAR', error);
-      return null;
-    }
-
-    // Check if user has Google identity with provider token
-    const googleIdentity = user.identities?.find((identity: { provider: string; identity_data?: { provider_token?: string } }) => identity.provider === 'google');
-    
-    if (!googleIdentity) {
-      logger.warn('User has no Google identity', 'CALENDAR', { userId });
-      return null;
-    }
-
-    // Extract the access token from the identity
-    const accessToken = googleIdentity.identity_data?.provider_token;
-    
-    if (!accessToken) {
-      logger.warn('No Google access token found in identity', 'CALENDAR', { userId });
-      return null;
-    }
-
-    // TODO: Add token expiration check and refresh logic here if needed
-    // For now, we'll use the token as-is since Google tokens are typically valid for 1 hour
-    // and the calendar service will handle API errors gracefully
-    
-    logger.info('Successfully retrieved Google access token', 'CALENDAR', { userId });
-    return accessToken;
-    
-  } catch (error) {
-    logger.error('Failed to get Google access token', 'CALENDAR', error);
-    return null;
-  }
-}
+// Token retrieval is now handled by the unified token-utils module imported above
