@@ -4,6 +4,7 @@ import { chatService } from '@/services';
 import { UI_CONSTANTS } from '@/utils';
 import { getIntegrationsByIds, IntegrationProcessResult } from '@/integrations';
 import { useTokenRefresh } from './useTokenRefresh';
+import { supabase } from '@/lib/supabase';
 
 // Helper function to log to server terminal
 const logToServer = async (message: string, data?: unknown) => {
@@ -45,8 +46,8 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [processingMessage, setProcessingMessage] = useState<string | null>(null);
   
-  // Enhanced token refresh system
-  const { providerToken: refreshedToken, isTokenValid, refreshToken } = useTokenRefresh();
+  // Keep token refresh hook for backward compatibility (but we use simple approach now)
+  useTokenRefresh();
   
   // REQUEST LIMITING SAFEGUARDS
   const [activeRequests, setActiveRequests] = useState<number>(0);
@@ -170,18 +171,13 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       let chatResponse;
       
       try {
-        // Get session token for calendar integration with auto-refresh
+        // Get session token for calendar integration (simple approach like test page)
         let providerToken: string | undefined;
         if (activeIntegrations.includes('calendar')) {
           try {
-            // Use the enhanced token refresh system
-            if (refreshedToken && isTokenValid) {
-              providerToken = refreshedToken;
-            } else if (refreshedToken && !isTokenValid) {
-              // Try to refresh the token
-              const newToken = await refreshToken();
-              providerToken = newToken || undefined;
-            }
+            // Simple token retrieval like test page - no complex validation
+            const { data: { session } } = await supabase.auth.getSession();
+            providerToken = session?.provider_token || undefined;
           } catch (error) {
             console.warn('Failed to get session token:', error);
           }
@@ -237,7 +233,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       setProcessingMessage(null);
       setActiveRequests(prev => Math.max(0, prev - 1)); // Decrement active requests
     }
-  }, [isProcessingQueue, messageQueue, messages, onConversationUpdate, currentConversationId, processingMessage, activeIntegrations, activeRequests, lastRequestTime, requestHistory, isTokenValid, refreshToken, refreshedToken]);
+  }, [isProcessingQueue, messageQueue, messages, onConversationUpdate, currentConversationId, processingMessage, activeIntegrations, activeRequests, lastRequestTime, requestHistory]);
 
   useEffect(() => {
     if (messageQueue.length > 0 && !isProcessingQueue) {
