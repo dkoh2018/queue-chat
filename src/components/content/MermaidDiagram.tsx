@@ -46,6 +46,34 @@ const CopyButton = ({ text }: CopyButtonProps) => {
   );
 };
 
+interface EnlargeButtonProps {
+  onEnlarge: () => void;
+}
+
+const EnlargeButton = ({ onEnlarge }: EnlargeButtonProps) => {
+  return (
+    <button
+      onClick={onEnlarge}
+      className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 p-1.5 sm:p-2 bg-slate-800/90 hover:bg-slate-700/90 text-slate-300 hover:text-white rounded-md border border-slate-600/50 hover:border-slate-500 transition-all duration-200 backdrop-blur-sm shadow-lg hover:shadow-xl z-10"
+      title="Enlarge diagram"
+    >
+      <svg
+        className="w-3 h-3 sm:w-4 sm:h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+        />
+      </svg>
+    </button>
+  );
+};
+
 interface MermaidDiagramProps {
   chart: string;
 }
@@ -54,8 +82,37 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [isEnlarged, setIsEnlarged] = useState(false);
   const id = useId();
   const graphId = `mermaid-graph-${id}`;
+
+  const handleEnlarge = () => {
+    setIsEnlarged(true);
+  };
+
+  const handleCloseEnlarged = () => {
+    setIsEnlarged(false);
+  };
+
+  // Handle ESC key to close enlarged view
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isEnlarged) {
+        handleCloseEnlarged();
+      }
+    };
+
+    if (isEnlarged) {
+      document.addEventListener('keydown', handleKeyDown);
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isEnlarged]);
 
   useEffect(() => {
     mermaid.initialize({
@@ -133,10 +190,51 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
   }
 
   return (
-    <div className="mermaid-diagram-container w-full p-4">
-      {isLoading && <div className="text-gray-400">Loading diagram...</div>}
-      <div ref={containerRef} className="w-full" style={{ display: isLoading ? 'none' : 'block' }} />
-    </div>
+    <>
+      <div className="mermaid-diagram-container w-full p-4 relative">
+        {isLoading && <div className="text-gray-400">Loading diagram...</div>}
+        <div ref={containerRef} className="w-full" style={{ display: isLoading ? 'none' : 'block' }} />
+        
+        {/* Enlarge button - only show when diagram is successfully rendered */}
+        {!isLoading && !hasError && (
+          <EnlargeButton onEnlarge={handleEnlarge} />
+        )}
+      </div>
+
+      {/* Enlarged Modal */}
+      {isEnlarged && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-6 sm:p-8 lg:p-12">
+          <div className="relative w-full max-w-[92vw] lg:max-w-[88vw] xl:max-w-[85vw] h-full max-h-[90vh] lg:max-h-[88vh] bg-slate-900/95 backdrop-blur-sm rounded-xl border border-slate-600/60 shadow-2xl overflow-hidden">
+            {/* Close button */}
+            <button
+              onClick={handleCloseEnlarged}
+              className="absolute top-4 right-4 p-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 z-20 shadow-lg hover:shadow-xl"
+              title="Close enlarged view (ESC)"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Enlarged diagram container */}
+            <div className="w-full h-full p-8 sm:p-10 lg:p-12 overflow-auto">
+              <div className="flex items-center justify-center min-h-full">
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: containerRef.current?.innerHTML || ''
+                  }}
+                  className="w-full max-w-none"
+                  style={{
+                    transform: 'scale(1.2)',
+                    transformOrigin: 'center center'
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

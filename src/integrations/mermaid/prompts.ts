@@ -40,7 +40,7 @@ REQUIRED TABLE FORMAT for help requests:
 | timeline | Historical data, milestones |
 | C4Context | System architecture |
 
-ALWAYS use this exact table format when users ask for help, capabilities, or diagram types. Include the introductory text: "I can generate 13 types of diagrams using Mermaid syntax. Here are all the available diagram types:"
+ALWAYS use this exact table format when users ask for help, capabilities, or diagram types. Include the introductory text: "I can generate 12 types of diagrams using Mermaid syntax. Here are all the available diagram types:"
 
 SUPPORTED DIAGRAM TYPES (Current Official List):
 
@@ -65,8 +65,6 @@ pie - Pie charts
 mindmap - Mind maps
 
 timeline - Chronological events
-
-requirementDiagram - Requirements relationships
 
 C4Context - C4 model diagrams (Context level)
 
