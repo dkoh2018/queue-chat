@@ -4,24 +4,39 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { SYSTEM_PROMPTS } from '@/lib/prompts';
 
 export default function CalendarTestPage() {
   const { user, signInWithGoogle, signOut } = useAuth();
   const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
-  const [maxResults, setMaxResults] = useState(50);
-  const [timeMinDays, setTimeMinDays] = useState(0);
-  const [timeMaxDays, setTimeMaxDays] = useState(300);
   
   // New state for pipeline testing
   const [userQuery, setUserQuery] = useState('What\'s my schedule for tomorrow?');
   const [pipelineResults, setPipelineResults] = useState({
+    stage0: '',
     stage1: '',
     stage2: '',
     stage3: ''
   });
 
   // Helper function to create JSON table format directly from raw data
+  const getTimeContext = () => {
+    const now = new Date();
+    return {
+      currentDate: now.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      currentTime: now.toLocaleTimeString('en-US', { hour12: false }),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      dayOfWeek: now.toLocaleDateString('en-US', { weekday: 'long' }),
+      currentDateTime: now.toISOString()
+    };
+  };
+
   const createJsonTableFromRaw = (rawData: Record<string, any>) => {
     if (!rawData.items) return { events: [], summary: "0 events found", totalEvents: 0, hasMoreEvents: false };
     
@@ -65,9 +80,7 @@ export default function CalendarTestPage() {
     };
   };
 
-
-
-  // 5-Stage Pipeline Test
+  // 4-Stage Pipeline Test with Parameter Intelligence
   const runPipelineTest = async () => {
     if (!user) {
       setResult('❌ Please sign in first');
@@ -75,13 +88,17 @@ export default function CalendarTestPage() {
     }
 
     setLoading(true);
-          setPipelineResults({
+    
+    try {
+      // Clear previous results
+      setPipelineResults({
+        stage0: '',
         stage1: '',
         stage2: '',
         stage3: ''
       });
-    
-    try {
+
+      // Get session for Google Calendar access
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.provider_token) {
@@ -89,21 +106,91 @@ export default function CalendarTestPage() {
         return;
       }
 
-      // STAGE 1: Get Raw API Data
-      const now = new Date();
-      const timeMin = new Date(now);
-      timeMin.setDate(now.getDate() + timeMinDays);
-      
-      const timeMax = new Date(now);
-      timeMax.setDate(now.getDate() + timeMaxDays);
+      // STAGE 0: Parameter Intelligence
+      const timeContext = getTimeContext();
+      let intelligentParams = {
+        timeMin: new Date().toISOString(),
+        timeMax: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        maxResults: 50,
+        searchQuery: '',
+        reasoning: 'Default parameters used - parameter intelligence failed',
+        queryType: 'default'
+      };
 
+      try {
+        const parameterResponse = await fetch('/api/calendar/parameter-intelligence', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            messages: [
+              {
+                role: 'system',
+                content: SYSTEM_PROMPTS.CALENDAR_PARAMETER_INTELLIGENCE
+                  .replace('{currentDate}', timeContext.currentDate)
+                  .replace('{currentTime}', timeContext.currentTime)
+                  .replace('{currentDateTime}', timeContext.currentDateTime)
+              },
+              {
+                role: 'user',
+                content: userQuery
+              }
+            ]
+          })
+        });
+
+        if (parameterResponse.ok) {
+          const paramData = await parameterResponse.json();
+          const paramContent = paramData.content || "{}";
+          
+          try {
+            // Clean the response in case there's markdown formatting
+            const cleanedContent = paramContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            const parsedParams = JSON.parse(cleanedContent);
+            
+            // Convert the new format (days) to the old format (timeMin/timeMax)
+            if (parsedParams.days && typeof parsedParams.days === 'number') {
+              const now = new Date();
+              const endDate = new Date(now.getTime() + (parsedParams.days * 24 * 60 * 60 * 1000));
+              
+              intelligentParams = {
+                timeMin: now.toISOString(),
+                timeMax: endDate.toISOString(),
+                maxResults: parsedParams.maxResults || 50,
+                searchQuery: '', // No search query - Stage 3 AI will handle filtering
+                reasoning: parsedParams.reasoning || 'AI selected time range',
+                queryType: 'intelligent'
+              };
+            }
+          } catch {
+            console.warn('Failed to parse parameter intelligence response, using defaults');
+          }
+        }
+      } catch (error) {
+        console.warn('Parameter intelligence failed, using defaults:', error);
+      }
+
+      setPipelineResults(prev => ({
+        ...prev,
+        stage0: JSON.stringify({
+          userQuery,
+          timeContext,
+          intelligentParams
+        }, null, 2)
+      }));
+
+      // STAGE 1: Raw API Data (using intelligent parameters)
       const params = new URLSearchParams({
         orderBy: 'startTime',
         singleEvents: 'true',
-        maxResults: maxResults.toString(),
-        timeMin: timeMin.toISOString(),
-        timeMax: timeMax.toISOString(),
+        maxResults: intelligentParams.maxResults.toString(),
+        timeMin: intelligentParams.timeMin,
+        timeMax: intelligentParams.timeMax,
       });
+
+      // No search query - let Stage 3 AI handle filtering
 
       const response = await fetch(
         `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,
@@ -127,9 +214,10 @@ export default function CalendarTestPage() {
       const stage1Data = {
         ...rawData,
         requestParams: {
-          maxResults,
-          timeMin: timeMin.toISOString(),
-          timeMax: timeMax.toISOString()
+          maxResults: intelligentParams.maxResults,
+          timeMin: intelligentParams.timeMin,
+          timeMax: intelligentParams.timeMax,
+          searchQuery: intelligentParams.searchQuery
         }
       };
 
@@ -148,25 +236,15 @@ export default function CalendarTestPage() {
       // STAGE 3: AI Processing (Final Response)
       let aiResponse = "AI processing failed";
       try {
-        // Get session for authentication
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        const openaiResponse = await fetch('/api/chat', {
+        const openaiResponse = await fetch('/api/calendar/stage3-ai-response', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session?.access_token}`,
           },
           body: JSON.stringify({
-            messages: [
-              {
-                role: 'user',
-                content: userQuery
-              }
-            ],
-            originalInput: userQuery,
-            isCalendarRequest: true,
-            providerToken: session?.provider_token
+            userQuery: userQuery,
+            jsonTableData: jsonTable
           })
         });
 
@@ -185,7 +263,7 @@ export default function CalendarTestPage() {
         stage3: aiResponse
       }));
 
-      setResult(`🎉 3-Stage Pipeline Test Complete!\n\nUser Query: "${userQuery}"\nEvents Processed: ${jsonTable.totalEvents}\nPipeline Status: ✅ All stages successful\n\nSee detailed results in the sections below.`);
+      setResult(`🎉 4-Stage Pipeline Test Complete!\n\nUser Query: "${userQuery}"\nParameter Intelligence: ${intelligentParams.reasoning}\nQuery Type: ${intelligentParams.queryType}\nEvents Processed: ${jsonTable.totalEvents}\nPipeline Status: ✅ All stages successful\n\nSee detailed results in the sections below.`);
 
     } catch (err) {
       setResult(`❌ Pipeline Error: ${err}`);
@@ -210,6 +288,11 @@ export default function CalendarTestPage() {
         setResult('❌ No session token found. Please sign out and sign in again.');
         return;
       }
+
+      // Use fixed parameters for direct API testing
+      const maxResults = 50;
+      const timeMinDays = 0;
+      const timeMaxDays = 300;
 
       const now = new Date();
       const timeMin = new Date(now);
@@ -377,9 +460,9 @@ export default function CalendarTestPage() {
         {/* 4-Stage Pipeline Testing */}
         <div className="bg-white border-2 border-purple-500 rounded-lg mb-6">
           <div className="p-6">
-            <h3 className="text-lg font-semibold text-black mb-4">🔄 3-Stage Pipeline Testing</h3>
+            <h3 className="text-lg font-semibold text-black mb-4">🔄 4-Stage Pipeline Testing</h3>
             <p className="text-gray-600 mb-6">
-              Test the complete data pipeline: Raw API → JSON Table (For AI) → AI Final Response
+              Test the complete data pipeline: Parameter Intelligence → Raw API Data → JSON Table (For AI) → AI Final Response
             </p>
             
             {/* User Query Input */}
@@ -392,65 +475,51 @@ export default function CalendarTestPage() {
                 value={userQuery}
                 onChange={(e) => setUserQuery(e.target.value)}
                 placeholder="e.g., What's my schedule tomorrow?, Do I have any meetings this week?"
-                className="w-full p-3 border-2 border-black rounded text-black"
+                className="w-full p-3 border-2 border-black rounded text-black mb-3"
               />
+              
+              {/* Quick Test Buttons */}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setUserQuery("What's my schedule tomorrow?")}
+                  className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-300"
+                >
+                  Tomorrow
+                </button>
+                <button
+                  onClick={() => setUserQuery("What are my plans for next week?")}
+                  className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-300"
+                >
+                  Next Week
+                </button>
+                <button
+                  onClick={() => setUserQuery("Do I have anything this weekend?")}
+                  className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-300"
+                >
+                  This Weekend
+                </button>
+                <button
+                  onClick={() => setUserQuery("Any meetings with David in the next 14 days?")}
+                  className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-300"
+                >
+                  Filtered Query
+                </button>
+                <button
+                  onClick={() => setUserQuery("Show me my plans this summer")}
+                  className="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-300"
+                >
+                  Seasonal
+                </button>
+              </div>
             </div>
 
-            {/* Parameters (shared with other tests) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Max Results:
-                </label>
-                <select
-                  value={maxResults}
-                  onChange={(e) => setMaxResults(Number(e.target.value))}
-                  className="w-full p-2 border-2 border-black rounded text-black"
-                >
-                  <option value={10}>10 events</option>
-                  <option value={25}>25 events</option>
-                  <option value={50}>50 events</option>
-                  <option value={100}>100 events</option>
-                  <option value={250}>250 events</option>
-                  <option value={500}>500 events</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  Start (days from now):
-                </label>
-                <input
-                  type="number"
-                  value={timeMinDays}
-                  onChange={(e) => setTimeMinDays(Number(e.target.value))}
-                  className="w-full p-2 border-2 border-black rounded text-black"
-                  min="-365"
-                  max="365"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-black mb-2">
-                  End (days from now):
-                </label>
-                <input
-                  type="number"
-                  value={timeMaxDays}
-                  onChange={(e) => setTimeMaxDays(Number(e.target.value))}
-                  className="w-full p-2 border-2 border-black rounded text-black"
-                  min="-365"
-                  max="365"
-                />
-              </div>
-            </div>
             
             <button
               onClick={() => runPipelineTest()}
               disabled={!user || loading}
               className="bg-purple-600 text-white px-8 py-4 rounded-lg hover:bg-purple-700 disabled:opacity-50 text-lg font-semibold"
             >
-              {loading ? '🔄 Running Pipeline...' : '🚀 Run 3-Stage Pipeline Test'}
+              {loading ? '🔄 Running Pipeline...' : '🚀 Run 4-Stage Pipeline Test'}
             </button>
           </div>
         </div>
@@ -484,8 +553,24 @@ export default function CalendarTestPage() {
         </div>
 
         {/* Pipeline Results */}
-        {(pipelineResults.stage1 || pipelineResults.stage2 || pipelineResults.stage3) && (
+        {(pipelineResults.stage0 || pipelineResults.stage1 || pipelineResults.stage2 || pipelineResults.stage3) && (
           <div className="space-y-4 mb-6">
+            {/* Stage 0: Parameter Intelligence */}
+            {pipelineResults.stage0 && (
+              <div className="bg-white border-2 border-gray-300 rounded-lg">
+                <div className="p-4 bg-gray-100 border-b-2 border-gray-300">
+                  <h4 className="font-semibold text-black">🔍 Stage 0: Parameter Intelligence</h4>
+                </div>
+                <div className="p-4">
+                  <textarea
+                    value={pipelineResults.stage0}
+                    readOnly
+                    className="w-full h-40 p-3 border border-gray-300 rounded font-mono text-xs bg-gray-50 text-black"
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Stage 1: Raw API Data */}
             {pipelineResults.stage1 && (
               <div className="bg-white border-2 border-gray-300 rounded-lg">
@@ -533,10 +618,6 @@ export default function CalendarTestPage() {
                 </div>
               </div>
             )}
-
-
-
-
           </div>
         )}
 
@@ -563,7 +644,7 @@ export default function CalendarTestPage() {
               Copy Results
             </button>
             <button
-              onClick={() => setPipelineResults({ stage1: '', stage2: '', stage3: '' })}
+              onClick={() => setPipelineResults({ stage0: '', stage1: '', stage2: '', stage3: '' })}
               className="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-600"
             >
               Clear Pipeline

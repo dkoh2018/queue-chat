@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/auth-utils';
-import { SYSTEM_PROMPTS } from '@/lib/prompts';
+
 import { BASE_SYSTEM_PROMPT } from '@/lib/base-prompts';
 import { calendarService } from '@/services/api/calendar.service';
 import { getGoogleAccessTokenFromSession } from '@/lib/token-utils';
@@ -177,9 +177,33 @@ export async function POST(request: NextRequest) {
             day: 'numeric'
           });
           
-          const calendarPromptWithData = SYSTEM_PROMPTS.CALENDAR_EXPERT
-            .replace('{currentDate}', currentDate)
-            .replace('{calendarData}', formattedCalendarData);
+          const calendarPromptWithData = `You are a calendar assistant with access to the user's calendar data.
+
+Current Date: ${currentDate}
+
+Calendar Data:
+${formattedCalendarData}
+
+Instructions:
+- Answer questions about the user's schedule and availability
+- When showing multiple events, ALWAYS format them as a markdown table
+- After the table, provide a conversational explanation answering the user's specific question
+
+**Table Format Requirements:**
+- Use proper markdown table syntax with | separators
+- Columns: Date | Time | Event | Location | Description  
+- Use "N/A" for empty/null fields
+- Keep descriptions concise (max 50 characters)
+- Sort events chronologically
+
+**Example Response Format:**
+| Date | Time | Event | Location | Description |
+|------|------|-------|----------|-------------|
+| 2025-07-07 | 5:45 PM - 9:15 PM | CSC450 - OOP | CDM 106 | N/A |
+| 2025-07-09 | 1:00 PM - 2:15 PM | HAIRCUT | N/A | N/A |
+| 2025-07-12 | 6:00 PM - 6:30 PM | Cyber truck TEST DRIVE | Tesla, Schaumburg | N/A |
+
+Based on your calendar, here are your upcoming events this week. You have your OOP class on Monday, a haircut appointment on Wednesday, and an exciting Cybertruck test drive on Saturday!`;
           
           messagesForAPI = [
             messagesForAPI[0], // Keep base system prompt
@@ -193,8 +217,13 @@ export async function POST(request: NextRequest) {
           });
         } else {
           // No session token available - add prompt explaining this
-          const noAccessPrompt = `The user is asking about calendar/scheduling but you don't have access to their calendar data.
-          This is because no session token was provided from the frontend. Politely explain that they need to refresh the page or sign in again to grant calendar permissions, and offer general scheduling advice instead.`;
+          const noAccessPrompt = `I don't have access to your calendar data right now. It looks like your calendar access has expired.
+          
+          To restore your calendar access, you'll need to:
+          1. Sign out of your account
+          2. Sign back in to refresh your Google Calendar permissions
+          
+          This is a common issue that happens when authentication tokens expire, and the sign-out/sign-in process will restore your calendar access. In the meantime, I can help you with other topics!`;
           
           messagesForAPI = [
             messagesForAPI[0], // Keep base system prompt
