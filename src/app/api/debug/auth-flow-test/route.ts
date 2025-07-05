@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+
+interface TestResponse {
+  timestamp: string;
+  tests: {
+    frontend_session: unknown;
+    backend_auth: unknown;
+    provider_token: unknown;
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,12 +15,12 @@ export async function POST(request: NextRequest) {
 
     if (testType === 'full-auth-check') {
       // This endpoint doesn't require backend auth - it's for testing frontend session
-      const response = {
+      const response: TestResponse = {
         timestamp: new Date().toISOString(),
         tests: {
-          frontend_session: null as any,
-          backend_auth: null as any,
-          provider_token: null as any
+          frontend_session: null,
+          backend_auth: null,
+          provider_token: null
         }
       };
 
