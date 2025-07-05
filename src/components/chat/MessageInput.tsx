@@ -111,7 +111,7 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
               }
             }}
             placeholder="Ask anything..."
-            className="w-full text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none font-medium"
+            className="w-full text-white placeholder-gray-400 resize-none border-none outline-none focus:outline-none font-medium"
             suppressHydrationWarning
             style={{
               padding: '20px',
@@ -120,7 +120,10 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
               wordBreak: 'break-word',
               minHeight: '55px',
               maxHeight: '240px',
-              transition: 'height 0.2s ease'
+              transition: 'height 0.2s ease',
+              background: 'rgba(31, 41, 55, 0.01)',
+              position: 'relative',
+              zIndex: 1
             }}
           />
         )}
