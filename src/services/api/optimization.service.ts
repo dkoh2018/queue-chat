@@ -26,7 +26,6 @@ class OptimizationService {
       return {
         originalInput: request.userInput,
         optimizedInput: request.userInput,
-        isDiagramRequest: false,
         error: data.error,
       };
     }
