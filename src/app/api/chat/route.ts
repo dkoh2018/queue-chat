@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest, isCalendarRequest } = await request.json();
+    const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest, isCalendarRequest, integrationMode } = await request.json();
     const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {

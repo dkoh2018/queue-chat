@@ -26,7 +26,62 @@ export async function GET(request: NextRequest) {
       }
     )
 
-    await supabase.auth.exchangeCodeForSession(code)
+    // Exchange code for session and capture provider tokens
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    
+    console.log('Auth callback - Exchange result:', {
+      hasError: !!error,
+      hasSession: !!data?.session,
+      hasProviderToken: !!data?.session?.provider_token,
+      hasUser: !!data?.session?.user
+    })
+    
+    if (!error && data.session) {
+      const { provider_token, provider_refresh_token, user } = data.session
+      
+      // Store provider tokens if they exist
+      if (provider_token && user) {
+        try {
+          // First, create the table if it doesn't exist (for development)
+          await supabase.rpc('exec', {
+            sql: `
+              CREATE TABLE IF NOT EXISTS user_oauth_tokens (
+                id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+                user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+                provider TEXT NOT NULL,
+                provider_token TEXT NOT NULL,
+                provider_refresh_token TEXT,
+                token_expires_at TIMESTAMPTZ,
+                scopes TEXT,
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                updated_at TIMESTAMPTZ DEFAULT NOW(),
+                UNIQUE(user_id, provider)
+              );
+            `
+          })
+        } catch (tableError) {
+          console.log('Table might already exist:', tableError)
+        }
+
+        // Store the tokens
+        const { error: tokenError } = await supabase
+          .from('user_oauth_tokens')
+          .upsert({
+            user_id: user.id,
+            provider: 'google',
+            provider_token,
+            provider_refresh_token,
+            scopes: 'openid email profile https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
+            updated_at: new Date().toISOString()
+          })
+
+        if (tokenError) {
+          console.error('Failed to store OAuth tokens:', tokenError)
+        } else {
+          console.log('Successfully stored OAuth tokens for user:', user.id)
+        }
+      }
+    }
   }
 
   // Redirect to home page after authentication

@@ -21,8 +21,25 @@ model User {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
   conversations Conversation[]
+  oauthTokens   UserOAuthToken[]
 
   @@map("users")
+}
+
+model UserOAuthToken {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id") @db.Uuid
+  provider          String   // 'google', 'github', etc.
+  providerToken     String   @map("provider_token") // Access token
+  providerRefreshToken String? @map("provider_refresh_token") // Refresh token
+  tokenExpiresAt    DateTime? @map("token_expires_at") // When access token expires
+  scopes            String[] // Granted scopes
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@map("user_oauth_tokens")
 }
 
 model Conversation {

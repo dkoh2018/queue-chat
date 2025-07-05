@@ -17,6 +17,7 @@ export interface ChatRequest {
   optimizedInput?: string;
   isDiagramRequest?: boolean;
   isCalendarRequest?: boolean;
+  integrationMode?: 'calendar' | 'mermaid' | null;
 }
 
 export interface ChatResponse {

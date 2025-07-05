@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { UIMessage } from '@/types';
+import { UIMessage, IntegrationType } from '@/types';
 import { chatService, optimizationService } from '@/services';
 import { UI_CONSTANTS } from '@/utils';
 
@@ -16,6 +16,9 @@ interface UseChatReturn {
   clearQueue: () => void;
   reorderQueue: (startIndex: number, endIndex: number) => void;
   clearAllData: () => void;
+  activeIntegrations: IntegrationType[];
+  setActiveIntegrations: (integrations: IntegrationType[]) => void;
+  toggleIntegration: (integration: IntegrationType) => void;
 }
 
 export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
@@ -26,6 +29,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
   const [error, setError] = useState<string | null>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [processingMessage, setProcessingMessage] = useState<string | null>(null);
+  const [activeIntegrations, setActiveIntegrations] = useState<IntegrationType[]>([]);
 
   const processQueue = useCallback(async () => {
     if (isProcessingQueue || messageQueue.length === 0) {
@@ -51,14 +55,25 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
 
       const conversationHistory = messages.slice(-UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT);
 
-      const optimizationResult = await optimizationService.optimizeInput({
-        userInput: text,
-        conversationHistory,
-      });
+      let optimizedInput = text;
+      let isDiagramRequest = false;
+      let isCalendarRequest = false;
 
-      const optimizedInput = optimizationResult.optimizedInput || text;
-      const isDiagramRequest = optimizationResult.isDiagramRequest || false;
-      const isCalendarRequest = optimizationResult.isCalendarRequest || false;
+      // Skip optimization if integration mode is set
+      if (activeIntegrations.length > 0) {
+        isDiagramRequest = activeIntegrations.includes('mermaid');
+        isCalendarRequest = activeIntegrations.includes('calendar');
+      } else {
+        // Use optimization service for intent detection
+        const optimizationResult = await optimizationService.optimizeInput({
+          userInput: text,
+          conversationHistory,
+        });
+
+        optimizedInput = optimizationResult.optimizedInput || text;
+        isDiagramRequest = optimizationResult.isDiagramRequest || false;
+        isCalendarRequest = optimizationResult.isCalendarRequest || false;
+      }
 
       const optimizedMessages: UIMessage[] = [
         ...messages,
@@ -72,6 +87,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
         optimizedInput,
         isDiagramRequest,
         isCalendarRequest,
+        integrationMode: activeIntegrations.length > 0 ? activeIntegrations[0] : null,
       });
 
       if (chatResponse.conversationId && !currentConversationId) {
@@ -149,6 +165,19 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     });
   }, []);
 
+  // Toggle integration function
+  const toggleIntegration = useCallback((integration: IntegrationType) => {
+    setActiveIntegrations(prev => {
+      if (prev.includes(integration)) {
+        // Remove if already active
+        return prev.filter(i => i !== integration);
+      } else {
+        // Add if not active
+        return [...prev, integration];
+      }
+    });
+  }, []);
+
   // Clear all chat data (for logout)
   const clearAllData = useCallback(() => {
     setMessages([]);
@@ -158,6 +187,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     setError(null);
     setCurrentConversationId(null);
     setProcessingMessage(null);
+    setActiveIntegrations([]);
   }, []);
 
   return {
@@ -173,5 +203,8 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     clearQueue,
     reorderQueue,
     clearAllData,
+    activeIntegrations,
+    setActiveIntegrations,
+    toggleIntegration,
   };
 };

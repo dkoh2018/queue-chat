@@ -6,3 +6,7 @@ export { VoiceIcon } from './VoiceIcon';
 export { UpArrowIcon } from './UpArrowIcon';
 export { XIcon } from './XIcon';
 export { MenuIcon } from './MenuIcon';
+export { CalendarIcon } from './CalendarIcon';
+export { MermaidIcon } from './MermaidIcon';
+export { IntegrationIcon } from './IntegrationIcon';
+export { CheckIcon } from './CheckIcon';

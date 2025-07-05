@@ -34,12 +34,25 @@ export const useAuth = (): UseAuthReturn => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      logger.info('Auth state changed', 'AUTH', { event, hasUser: !!session?.user });
+      logger.info('Auth state changed', 'AUTH', {
+        event,
+        hasUser: !!session?.user,
+        hasProviderToken: !!session?.provider_token,
+        hasProviderRefreshToken: !!session?.provider_refresh_token
+      });
       
       setUser(session?.user ?? null);
       setError(null);
       
       if (event === 'SIGNED_IN' && session?.user) {
+        // Check if we have provider tokens here
+        if (session.provider_token) {
+          console.log('Found provider tokens in SIGNED_IN event!', {
+            tokenLength: session.provider_token.length,
+            hasRefreshToken: !!session.provider_refresh_token
+          });
+        }
+        
         // Create or update user in our database
         await createOrUpdateUser(session.user);
       }

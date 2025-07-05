@@ -111,6 +111,8 @@ function MainChatInterface() {
     clearQueue,
     reorderQueue,
     clearAllData: clearChatData,
+    activeIntegrations,
+    toggleIntegration,
   } = useChat(user ? fetchConversations : undefined);
 
   // Auto-scroll to bottom when messages change
@@ -439,6 +441,8 @@ function MainChatInterface() {
             onSend={handleSend}
             onOptimize={handleOptimize}
             isOptimizing={isOptimizing}
+            onIntegrationSelect={toggleIntegration}
+            activeIntegrations={activeIntegrations}
           />
         </MessageInputContainer>
       </div>

@@ -4,7 +4,9 @@ import { UpArrowIcon } from '@/components/icons';
 import OptimizeButton from '@/components/features/optimization/OptimizeButton';
 import { TypingDots } from '@/components/ui/TypingDots';
 import { VoiceRecordingButton } from '@/components/features/voice/VoiceRecordingButton';
+import { IntegrationButton } from '@/components/features/integrations/IntegrationButton';
 import { useVoiceRecording } from '@/hooks';
+import { IntegrationType } from '@/types';
 
 interface MessageInputProps {
   inputText: string;
@@ -12,9 +14,11 @@ interface MessageInputProps {
   onSend: () => void;
   onOptimize?: () => void;
   isOptimizing?: boolean;
+  onIntegrationSelect?: (type: IntegrationType) => void;
+  activeIntegrations?: IntegrationType[];
 }
 
-export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false }: MessageInputProps) => {
+export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false, onIntegrationSelect, activeIntegrations }: MessageInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastTranscriptionRef = useRef<string | undefined>(undefined);
   
@@ -137,6 +141,10 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
               mediaStream={mediaStream}
               onStartRecording={startRecording}
               onStopRecording={stopRecording}
+            />
+            <IntegrationButton
+              onIntegrationSelect={onIntegrationSelect || (() => {})}
+              activeIntegrations={activeIntegrations || []}
             />
           </div>
           
