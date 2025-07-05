@@ -45,29 +45,3 @@ export async function callCalendarAPI(endpoint: string, options: RequestInit = {
   }
 }
 
-/**
- * Test calendar connection (frontend only)
- */
-export async function testCalendarConnection(userId: string): Promise<unknown> {
-  const providerToken = await getSessionProviderToken();
-  
-  if (!providerToken) {
-    throw new Error('No provider token available. Please sign in again.');
-  }
-
-  const response = await fetch('/api/test/calendar-simple', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userId,
-      query: 'Test calendar connection',
-      providerToken
-    })
-  });
-
-  if (!response.ok) {
-    throw new Error(`Calendar test failed: ${response.status}`);
-  }
-
-  return response.json();
-} 
