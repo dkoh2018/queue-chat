@@ -169,11 +169,17 @@ export async function POST(request: NextRequest) {
           const calendarContext = await calendarService.getCalendarContext(accessToken);
           const formattedCalendarData = calendarService.formatCalendarContextForAI(calendarContext);
           
-          // Replace placeholder in calendar prompt with actual data
-          const calendarPromptWithData = SYSTEM_PROMPTS.CALENDAR_EXPERT.replace(
-            '{calendarData}',
-            formattedCalendarData
-          );
+          // Replace placeholders in calendar prompt with actual data and current date
+          const currentDate = new Date().toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          });
+          
+          const calendarPromptWithData = SYSTEM_PROMPTS.CALENDAR_EXPERT
+            .replace('{currentDate}', currentDate)
+            .replace('{calendarData}', formattedCalendarData);
           
           messagesForAPI = [
             messagesForAPI[0], // Keep base system prompt
