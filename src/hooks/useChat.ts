@@ -5,14 +5,14 @@ import { UI_CONSTANTS } from '@/utils';
 import { getIntegrationsByIds, IntegrationProcessResult } from '@/integrations';
 
 // Helper function to log to server terminal
-const logToServer = async (message: string, data?: any) => {
+const logToServer = async (message: string, data?: unknown) => {
   try {
     await fetch('/api/debug-log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message, data })
     });
-  } catch (error) {
+  } catch {
     // Silently fail - don't break the app for logging
   }
 };
@@ -114,12 +114,14 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       setError(null);
 
       const userMessage: UIMessage = { role: 'user', content: text };
-      setMessages(prev => [...prev, userMessage]);
-
-      // ENHANCED CONVERSATION HISTORY: Ensure we get exactly 20 messages (user + assistant pairs)
+      
+      // ENHANCED CONVERSATION HISTORY: Use current messages state to avoid stale closure
       // This guarantees both user and assistant messages are included in context
       const allMessages = [...messages, userMessage];
       const conversationHistory = allMessages.slice(-UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT);
+      
+      // Add user message to state AFTER we've calculated conversation history
+      setMessages(prev => [...prev, userMessage]);
       
       // Log conversation history to server terminal
       logToServer('Conversation history prepared:', {
@@ -151,7 +153,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
               }))
             });
             integrationResults.push(result);
-          } catch (error) {
+          } catch {
             // Integration error handled silently
           }
         }
@@ -187,37 +189,53 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
         { role: 'user', content: optimizedInput },
       ];
 
-      const chatResponse = await chatService.sendMessage({
-        messages: optimizedMessages,
-        conversationId: currentConversationId,
-        originalInput: text,
-        optimizedInput,
-        // NEW: Send active integrations directly
-        activeIntegrations,
-        // Keep backward compatibility with existing API
-        isDiagramRequest: integrationResults.some(r => r.context?.legacyDiagramRequest || activeIntegrations.includes('mermaid')),
-        isCalendarRequest: integrationResults.some(r => r.context?.legacyCalendarRequest || activeIntegrations.includes('calendar')),
-        integrationMode: activeIntegrations.length > 0 ? activeIntegrations[0] : null,
-      });
-
-      if (chatResponse.conversationId && !currentConversationId) {
-        setCurrentConversationId(chatResponse.conversationId);
+      let chatResponse;
+      
+      try {
+        chatResponse = await chatService.sendMessage({
+          messages: optimizedMessages,
+          conversationId: currentConversationId,
+          originalInput: text,
+          optimizedInput,
+          // NEW: Send active integrations directly
+          activeIntegrations,
+          // Keep backward compatibility with existing API
+          isDiagramRequest: integrationResults.some(r => r.context?.legacyDiagramRequest || activeIntegrations.includes('mermaid')),
+          isCalendarRequest: integrationResults.some(r => r.context?.legacyCalendarRequest || activeIntegrations.includes('calendar')),
+          integrationMode: activeIntegrations.length > 0 ? activeIntegrations[0] : null,
+        });
+      } catch (apiError) {
+        // API call failed - remove user message since it wasn't processed
+        setMessages(prev => prev.slice(0, -1));
+        throw apiError;
       }
 
-      const assistantMessage: UIMessage = {
-        role: 'assistant',
-        content: chatResponse.content,
-      };
-      setMessages(prev => [...prev, assistantMessage]);
+      // API call succeeded - now process the response
+      try {
+        if (chatResponse.conversationId && !currentConversationId) {
+          setCurrentConversationId(chatResponse.conversationId);
+        }
 
-      if (onConversationUpdate) {
-        onConversationUpdate();
+        const assistantMessage: UIMessage = {
+          role: 'assistant',
+          content: chatResponse.content,
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+
+        if (onConversationUpdate) {
+          onConversationUpdate();
+        }
+        setMessageQueue(prev => prev.slice(1));
+      } catch {
+        // Response processing failed, but API succeeded - keep user message, show error
+        setError('Failed to process response, but your message was sent');
+        setMessageQueue(prev => prev.slice(1));
       }
-      setMessageQueue(prev => prev.slice(1));
     } catch (err) {
+      // This catch block now only handles API call failures (user message already removed above)
+      // or other unexpected errors - don't remove user message here as it may have been processed
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
       setError(errorMessage);
-      setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
       setIsProcessingQueue(false);
