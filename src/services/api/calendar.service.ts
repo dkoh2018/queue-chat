@@ -1,4 +1,4 @@
-import { CalendarEvent, CalendarListResponse, CalendarContext, CalendarAvailability } from '@/types/calendar.types';
+import { CalendarEvent, CalendarListResponse, CalendarContext } from '@/types/calendar.types';
 import { logger } from '@/utils';
 
 class CalendarService {
@@ -105,99 +105,7 @@ class CalendarService {
     }
   }
 
-  /**
-   * Check availability for a specific date
-   */
-  async checkAvailability(accessToken: string, date: string): Promise<CalendarAvailability> {
-    try {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-      
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
 
-      const events = await this.getEvents(
-        accessToken,
-        startOfDay.toISOString(),
-        endOfDay.toISOString()
-      );
-
-      const busySlots = events
-        .filter(event => event.start.dateTime && event.end.dateTime)
-        .map(event => ({
-          start: event.start.dateTime!,
-          end: event.end.dateTime!,
-          summary: event.summary
-        }))
-        .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-
-      // Calculate free slots (simplified - between 9 AM and 6 PM)
-      const workDayStart = new Date(startOfDay);
-      workDayStart.setHours(9, 0, 0, 0);
-      
-      const workDayEnd = new Date(startOfDay);
-      workDayEnd.setHours(18, 0, 0, 0);
-
-      const freeSlots = this.calculateFreeSlots(workDayStart, workDayEnd, busySlots);
-
-      return {
-        date,
-        isAvailable: freeSlots.length > 0,
-        busySlots,
-        freeSlots
-      };
-    } catch (error) {
-      logger.error('Failed to check availability', 'CALENDAR', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Calculate free time slots between busy periods
-   */
-  private calculateFreeSlots(
-    workStart: Date,
-    workEnd: Date,
-    busySlots: Array<{ start: string; end: string; summary: string }>
-  ): Array<{ start: string; end: string }> {
-    const freeSlots: Array<{ start: string; end: string }> = [];
-    
-    if (busySlots.length === 0) {
-      return [{
-        start: workStart.toISOString(),
-        end: workEnd.toISOString()
-      }];
-    }
-
-    let currentTime = workStart;
-
-    for (const busySlot of busySlots) {
-      const busyStart = new Date(busySlot.start);
-      
-      // If there's a gap before this busy slot
-      if (currentTime < busyStart) {
-        freeSlots.push({
-          start: currentTime.toISOString(),
-          end: busyStart.toISOString()
-        });
-      }
-      
-      currentTime = new Date(Math.max(currentTime.getTime(), new Date(busySlot.end).getTime()));
-    }
-
-    // If there's time left after the last busy slot
-    if (currentTime < workEnd) {
-      freeSlots.push({
-        start: currentTime.toISOString(),
-        end: workEnd.toISOString()
-      });
-    }
-
-    return freeSlots.filter(slot => {
-      const duration = new Date(slot.end).getTime() - new Date(slot.start).getTime();
-      return duration >= 30 * 60 * 1000; // At least 30 minutes
-    });
-  }
 
   /**
    * Format calendar context for AI consumption

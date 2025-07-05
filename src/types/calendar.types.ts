@@ -40,17 +40,3 @@ export interface CalendarContext {
   timeZone: string;
   lastUpdated: string;
 }
-
-export interface CalendarAvailability {
-  date: string;
-  isAvailable: boolean;
-  busySlots: Array<{
-    start: string;
-    end: string;
-    summary: string;
-  }>;
-  freeSlots: Array<{
-    start: string;
-    end: string;
-  }>;
-}
