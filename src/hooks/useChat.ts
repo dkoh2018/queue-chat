@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { UIMessage, IntegrationType } from '@/types';
-import { chatService, optimizationService } from '@/services';
+import { chatService } from '@/services';
 import { UI_CONSTANTS } from '@/utils';
 import { getIntegrationsByIds, IntegrationProcessResult } from '@/integrations';
 
@@ -133,10 +133,9 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       });
       
 
-      let optimizedInput = text;
       const integrationResults: IntegrationProcessResult[] = [];
 
-      // Process with active integrations (NEW OPTIMIZED APPROACH)
+      // Process with active integrations
       if (activeIntegrations.length > 0) {
         // Get active integrations and process the message
         const activeIntegrationInstances = getIntegrationsByIds(activeIntegrations);
@@ -157,36 +156,11 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
             // Integration error handled silently
           }
         }
-        
-        // Use original input when integrations are active (no optimization needed)
-        optimizedInput = text;
-      } else {
-        // Fallback to optimization service when no integrations are active
-        const optimizationResult = await optimizationService.optimizeInput({
-          userInput: text,
-          conversationHistory,
-        });
-
-        optimizedInput = optimizationResult.optimizedInput || text;
-        
-        // Convert old boolean flags to integration results for backward compatibility
-        if (optimizationResult.isDiagramRequest) {
-          integrationResults.push({
-            systemPrompt: '', // Will be handled by API
-            context: { legacyDiagramRequest: true }
-          });
-        }
-        if (optimizationResult.isCalendarRequest) {
-          integrationResults.push({
-            systemPrompt: '', // Will be handled by API
-            context: { legacyCalendarRequest: true }
-          });
-        }
       }
 
       const optimizedMessages: UIMessage[] = [
         ...conversationHistory,
-        { role: 'user', content: optimizedInput },
+        { role: 'user', content: text },
       ];
 
       let chatResponse;
@@ -195,13 +169,11 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
         chatResponse = await chatService.sendMessage({
           messages: optimizedMessages,
           conversationId: currentConversationId,
-          originalInput: text,
-          optimizedInput,
           // NEW: Send active integrations directly
           activeIntegrations,
           // Keep backward compatibility with existing API
-          isDiagramRequest: integrationResults.some(r => r.context?.legacyDiagramRequest || activeIntegrations.includes('mermaid')),
-          isCalendarRequest: integrationResults.some(r => r.context?.legacyCalendarRequest || activeIntegrations.includes('calendar')),
+          isDiagramRequest: activeIntegrations.includes('mermaid'),
+          isCalendarRequest: activeIntegrations.includes('calendar'),
           integrationMode: activeIntegrations.length > 0 ? activeIntegrations[0] : null,
         });
       } catch (apiError) {
