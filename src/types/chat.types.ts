@@ -34,7 +34,5 @@ export interface OptimizationRequest {
 export interface OptimizationResponse {
   originalInput: string;
   optimizedInput: string;
-  isDiagramRequest?: boolean;
-  isCalendarRequest?: boolean;
   error?: string;
 }
