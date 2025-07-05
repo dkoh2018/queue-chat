@@ -45,9 +45,8 @@ export class MermaidIntegration extends BaseIntegration {
   }
 
   // Override prepare for any Mermaid-specific setup
-  async prepare(context: IntegrationContext): Promise<void> {
+  async prepare(): Promise<void> {
     // No special preparation needed for Mermaid
     // Could add validation logic here if needed
-    // Mermaid integration prepared for user: ${context.userId}
   }
 }

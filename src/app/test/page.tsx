@@ -77,7 +77,7 @@ export default function CalendarTestPage() {
               </div>
               <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
                 <p className="text-sm text-black">
-                  <strong>⚠️ Calendar Permission Issue:</strong> You're signed in but don't have calendar access tokens.
+                  <strong>⚠️ Calendar Permission Issue:</strong> You&apos;re signed in but don&apos;t have calendar access tokens.
                   This happens when you signed in before calendar permissions were configured.
                 </p>
                 <p className="text-sm text-black mt-2">
@@ -97,7 +97,7 @@ export default function CalendarTestPage() {
             <div className="space-y-3">
               <div className="bg-blue-50 border border-blue-200 p-3 rounded">
                 <p className="text-sm text-black">
-                  <strong>📅 Calendar Permissions:</strong> When you sign in, you'll be asked to grant calendar access.
+                  <strong>📅 Calendar Permissions:</strong> When you sign in, you&apos;ll be asked to grant calendar access.
                   Make sure to allow calendar permissions for this test to work.
                 </p>
               </div>

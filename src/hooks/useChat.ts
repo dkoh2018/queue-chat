@@ -242,7 +242,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       setProcessingMessage(null);
       setActiveRequests(prev => Math.max(0, prev - 1)); // Decrement active requests
     }
-  }, [isProcessingQueue, messageQueue, messages, onConversationUpdate, currentConversationId, processingMessage, activeIntegrations]);
+  }, [isProcessingQueue, messageQueue, messages, onConversationUpdate, currentConversationId, processingMessage, activeIntegrations, activeRequests, lastRequestTime, requestHistory]);
 
   useEffect(() => {
     if (messageQueue.length > 0 && !isProcessingQueue) {

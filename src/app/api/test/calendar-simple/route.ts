@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     
     if (!accessToken) {
       // Fallback: Try to get from user identities
-      const googleIdentity = user.identities?.find((identity: any) => identity.provider === 'google');
+      const googleIdentity = user.identities?.find((identity: { provider: string; identity_data?: { provider_token?: string } }) => identity.provider === 'google');
       accessToken = googleIdentity?.identity_data?.provider_token;
       
       if (!accessToken) {

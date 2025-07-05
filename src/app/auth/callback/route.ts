@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
               );
             `
           })
-        } catch (tableError) {
+        } catch {
           // Table might already exist - this is expected in some cases
         }
 

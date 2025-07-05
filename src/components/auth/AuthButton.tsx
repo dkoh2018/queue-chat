@@ -43,7 +43,7 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
     try {
       await signOut(onClearAppData);
       setIsDropdownOpen(false);
-    } catch (error) {
+    } catch {
       // Error handled by auth system
     }
   };

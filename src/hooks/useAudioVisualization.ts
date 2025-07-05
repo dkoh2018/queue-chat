@@ -65,7 +65,7 @@ export const useAudioVisualization = (mediaStream: MediaStream | null): AudioVis
 
         updateLevels();
 
-      } catch (error) {
+      } catch {
         setIsAnalyzing(false);
       }
     };
