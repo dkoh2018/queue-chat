@@ -25,7 +25,7 @@ export const useAuth = (): UseAuthReturn => {
         setError(error.message);
       } else {
         setUser(session?.user ?? null);
-        logger.info('Initial session loaded', 'AUTH', { hasUser: !!session?.user });
+        logger.debug('Session initialized', 'AUTH', { hasUser: !!session?.user });
       }
       setLoading(false);
     });
@@ -34,12 +34,13 @@ export const useAuth = (): UseAuthReturn => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      logger.info('Auth state changed', 'AUTH', {
-        event,
-        hasUser: !!session?.user,
-        hasProviderToken: !!session?.provider_token,
-        hasProviderRefreshToken: !!session?.provider_refresh_token
-      });
+      // Only log important auth events
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        logger.info(`User ${event.toLowerCase().replace('_', ' ')}`, 'AUTH', {
+          event,
+          hasUser: !!session?.user
+        });
+      }
       
       setUser(session?.user ?? null);
       setError(null);
@@ -47,7 +48,7 @@ export const useAuth = (): UseAuthReturn => {
       if (event === 'SIGNED_IN' && session?.user) {
         // Check if we have provider tokens here
         if (session.provider_token) {
-          console.log('Found provider tokens in SIGNED_IN event!', {
+          logger.debug('OAuth tokens received', 'AUTH', {
             tokenLength: session.provider_token.length,
             hasRefreshToken: !!session.provider_refresh_token
           });
@@ -78,12 +79,26 @@ export const useAuth = (): UseAuthReturn => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create/update user');
+        const errorText = await response.text();
+        logger.error('API response error', 'AUTH', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        throw new Error(`Failed to create/update user: ${response.status} ${response.statusText}`);
       }
 
-      logger.info('User created/updated in database', 'AUTH', { userId: authUser.id });
+      const result = await response.json();
+      logger.info('User created/updated in database', 'AUTH', { userId: authUser.id, result });
     } catch (err) {
-      logger.error('Failed to create/update user in database', 'AUTH', err);
+      logger.error('Failed to create/update user in database', 'AUTH', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        userId: authUser.id,
+        userEmail: authUser.email
+      });
+      
+      // Don't throw the error - allow the user to continue even if DB sync fails
+      // This prevents the auth flow from breaking completely
     }
   };
 

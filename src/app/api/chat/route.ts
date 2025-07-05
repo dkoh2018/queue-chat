@@ -3,8 +3,17 @@ import { prisma } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/auth-utils';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { SYSTEM_PROMPTS } from '@/lib/prompts';
+import { BASE_SYSTEM_PROMPT } from '@/lib/base-prompts';
 import { calendarService } from '@/services/api/calendar.service';
-import { logger } from '@/utils';
+import { logger, UI_CONSTANTS } from '@/utils';
+import { getIntegration } from '@/integrations';
+import { IntegrationType } from '@/types';
+
+// Define message type for API
+interface APIMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +23,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest, isCalendarRequest, integrationMode } = await request.json();
+    const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest, isCalendarRequest, activeIntegrations } = await request.json();
     const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
@@ -83,20 +92,73 @@ export async function POST(request: NextRequest) {
         }
       }
 
-    // Use optimized messages for OpenAI API call (with optimized input)
-    let messagesForAPI = optimizedInput ? 
-      [...messages.slice(0, -1), { role: 'user', content: optimizedInput }] : 
-      messages;
+    // OPTIMIZATION: Apply conversation history limit to reduce token costs and prevent context window issues
+    // Use the same limit as integrations for consistency
+    const limitedMessages = messages.slice(-UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT);
+    
+    // Use optimized messages for OpenAI API call (with optimized input and history limit)
+    let messagesForAPI = optimizedInput ?
+      [...limitedMessages.slice(0, -1), { role: 'user', content: optimizedInput }] :
+      limitedMessages;
 
-    // If this is a diagram request, prepend the Mermaid expert system prompt
-    if (isDiagramRequest) {
-      messagesForAPI = [
-        { role: 'system', content: SYSTEM_PROMPTS.MERMAID_EXPERT },
-        ...messagesForAPI
-      ];
+    // SAFEGUARD: Remove any existing system prompts to prevent duplicates
+    messagesForAPI = messagesForAPI.filter((msg: APIMessage) => msg.role !== 'system');
+    
+    // ALWAYS apply base system prompt first - GUARANTEED SINGLE APPLICATION
+    messagesForAPI = [
+      { role: 'system', content: BASE_SYSTEM_PROMPT },
+      ...messagesForAPI
+    ];
+    
+    logger.info('Base system prompt applied', 'CHAT', {
+      userId: user.id,
+      messageCount: messagesForAPI.length,
+      hasBasePrompt: messagesForAPI[0]?.role === 'system' && messagesForAPI[0]?.content === BASE_SYSTEM_PROMPT,
+      conversationHistoryLength: limitedMessages.length
+    });
+
+    // NEW INTEGRATION SYSTEM: Add integration-specific prompts on top of base prompt
+    if (activeIntegrations && Array.isArray(activeIntegrations) && activeIntegrations.length > 0) {
+      // Process each active integration
+      for (const integrationType of activeIntegrations) {
+        const integration = getIntegration(integrationType as IntegrationType);
+        if (integration) {
+          // Add the integration's system prompt AFTER the base prompt
+          messagesForAPI = [
+            messagesForAPI[0], // Keep base system prompt
+            { role: 'system', content: integration.systemPrompt },
+            ...messagesForAPI.slice(1) // Keep user messages
+          ];
+          
+          logger.info('Integration system prompt applied', 'INTEGRATION', {
+            userId: user.id,
+            integration: integrationType
+          });
+        } else {
+          logger.error('Integration not found', 'INTEGRATION', {
+            userId: user.id,
+            integration: integrationType
+          });
+        }
+      }
+    } else if (isDiagramRequest) {
+      // FALLBACK: Support legacy isDiagramRequest for backward compatibility
+      const mermaidIntegration = getIntegration('mermaid' as IntegrationType);
+      if (mermaidIntegration) {
+        messagesForAPI = [
+          messagesForAPI[0], // Keep base system prompt
+          { role: 'system', content: mermaidIntegration.systemPrompt },
+          ...messagesForAPI.slice(1) // Keep user messages
+        ];
+        
+        logger.info('Legacy Mermaid integration applied', 'INTEGRATION', {
+          userId: user.id,
+          integration: 'mermaid'
+        });
+      }
     }
 
-    // If this is a calendar request, get calendar context and prepend calendar expert prompt
+    // Calendar integration handling (keeping existing logic for now)
     if (isCalendarRequest) {
       try {
         // Get user's Google access token (placeholder implementation)
@@ -114,8 +176,9 @@ export async function POST(request: NextRequest) {
           );
           
           messagesForAPI = [
+            messagesForAPI[0], // Keep base system prompt
             { role: 'system', content: calendarPromptWithData },
-            ...messagesForAPI
+            ...messagesForAPI.slice(1) // Keep user messages
           ];
           
           logger.info('Calendar context added to chat', 'CALENDAR', {
@@ -128,8 +191,9 @@ export async function POST(request: NextRequest) {
           Politely explain that they need to sign in again to grant calendar permissions, and offer general scheduling advice instead.`;
           
           messagesForAPI = [
+            messagesForAPI[0], // Keep base system prompt
             { role: 'system', content: noAccessPrompt },
-            ...messagesForAPI
+            ...messagesForAPI.slice(1) // Keep user messages
           ];
           
           logger.warn('Calendar request without access token', 'CALENDAR', { userId: user.id });
@@ -142,8 +206,9 @@ export async function POST(request: NextRequest) {
         Apologize for the technical issue and offer general scheduling advice instead.`;
         
         messagesForAPI = [
+          messagesForAPI[0], // Keep base system prompt
           { role: 'system', content: errorPrompt },
-          ...messagesForAPI
+          ...messagesForAPI.slice(1) // Keep user messages
         ];
       }
     }
@@ -188,7 +253,14 @@ export async function POST(request: NextRequest) {
       responseLength: content.length,
       wasOptimized: !!optimizedInput,
       isDiagramRequest: !!isDiagramRequest,
-      isCalendarRequest: !!isCalendarRequest
+      isCalendarRequest: !!isCalendarRequest,
+      usedNewIntegrationSystem: !!(isDiagramRequest && getIntegration('mermaid' as IntegrationType)),
+      messagesInContext: messagesForAPI.length,
+      systemPrompts: messagesForAPI.filter((m: APIMessage) => m.role === 'system').length,
+      userMessages: messagesForAPI.filter((m: APIMessage) => m.role === 'user').length,
+      assistantMessages: messagesForAPI.filter((m: APIMessage) => m.role === 'assistant').length,
+      historyLimitApplied: messages.length > UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT,
+      basePromptConfirmed: messagesForAPI[0]?.role === 'system' && messagesForAPI[0]?.content.includes('helpful, knowledgeable, and friendly')
     });
 
     return NextResponse.json({

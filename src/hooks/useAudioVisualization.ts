@@ -66,7 +66,6 @@ export const useAudioVisualization = (mediaStream: MediaStream | null): AudioVis
         updateLevels();
 
       } catch (error) {
-        console.error('Failed to setup audio analysis:', error);
         setIsAnalyzing(false);
       }
     };

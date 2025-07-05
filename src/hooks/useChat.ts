@@ -2,6 +2,20 @@ import { useState, useCallback, useEffect } from 'react';
 import { UIMessage, IntegrationType } from '@/types';
 import { chatService, optimizationService } from '@/services';
 import { UI_CONSTANTS } from '@/utils';
+import { getIntegrationsByIds, IntegrationProcessResult } from '@/integrations';
+
+// Helper function to log to server terminal
+const logToServer = async (message: string, data?: any) => {
+  try {
+    await fetch('/api/debug-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, data })
+    });
+  } catch (error) {
+    // Silently fail - don't break the app for logging
+  }
+};
 
 interface UseChatReturn {
   messages: UIMessage[];
@@ -29,7 +43,30 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
   const [error, setError] = useState<string | null>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [processingMessage, setProcessingMessage] = useState<string | null>(null);
-  const [activeIntegrations, setActiveIntegrations] = useState<IntegrationType[]>([]);
+  
+  // REQUEST LIMITING SAFEGUARDS
+  const [activeRequests, setActiveRequests] = useState<number>(0);
+  const [lastRequestTime, setLastRequestTime] = useState<number>(0);
+  const [requestHistory, setRequestHistory] = useState<string[]>([]);
+  
+  const MAX_CONCURRENT_REQUESTS = 5;
+  const MIN_REQUEST_INTERVAL = 1000; // 1 second between requests
+  const MAX_DUPLICATE_REQUESTS = 3; // Max same request in history
+  const [activeIntegrations, setActiveIntegrations] = useState<IntegrationType[]>(() => {
+    // Load saved integrations from localStorage on initialization
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('activeIntegrations');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+
+  // Save active integrations to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('activeIntegrations', JSON.stringify(activeIntegrations));
+    }
+  }, [activeIntegrations]);
 
   const processQueue = useCallback(async () => {
     if (isProcessingQueue || messageQueue.length === 0) {
@@ -38,13 +75,39 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
 
     const text = messageQueue[0];
     
-    // Prevent duplicate processing
+    // ENHANCED SAFEGUARDS
+    // 1. Prevent duplicate processing
     if (processingMessage === text) {
+      return;
+    }
+
+    // 2. Check concurrent request limit
+    if (activeRequests >= MAX_CONCURRENT_REQUESTS) {
+      return;
+    }
+
+    // 3. Rate limiting - prevent rapid fire requests
+    const now = Date.now();
+    if (now - lastRequestTime < MIN_REQUEST_INTERVAL) {
+      setTimeout(() => processQueue(), MIN_REQUEST_INTERVAL - (now - lastRequestTime));
+      return;
+    }
+
+    // 4. Check for excessive duplicate requests
+    const duplicateCount = requestHistory.filter(req => req === text).length;
+    if (duplicateCount >= MAX_DUPLICATE_REQUESTS) {
+      setMessageQueue(prev => prev.slice(1));
+      setError(`Request blocked: Too many identical requests for "${text.slice(0, 50)}..."`);
       return;
     }
 
     setIsProcessingQueue(true);
     setProcessingMessage(text);
+    setActiveRequests(prev => prev + 1);
+    setLastRequestTime(now);
+    
+    // Add to request history (keep last 10)
+    setRequestHistory(prev => [...prev.slice(-9), text]);
 
     try {
       setIsLoading(true);
@@ -53,30 +116,74 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       const userMessage: UIMessage = { role: 'user', content: text };
       setMessages(prev => [...prev, userMessage]);
 
-      const conversationHistory = messages.slice(-UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT);
+      // ENHANCED CONVERSATION HISTORY: Ensure we get exactly 20 messages (user + assistant pairs)
+      // This guarantees both user and assistant messages are included in context
+      const allMessages = [...messages, userMessage];
+      const conversationHistory = allMessages.slice(-UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT);
+      
+      // Log conversation history to server terminal
+      logToServer('Conversation history prepared:', {
+        totalMessages: allMessages.length,
+        historyLength: conversationHistory.length,
+        historyLimit: UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT,
+        userMessages: conversationHistory.filter(m => m.role === 'user').length,
+        assistantMessages: conversationHistory.filter(m => m.role === 'assistant').length
+      });
+      
 
       let optimizedInput = text;
-      let isDiagramRequest = false;
-      let isCalendarRequest = false;
+      const integrationResults: IntegrationProcessResult[] = [];
 
-      // Skip optimization if integration mode is set
+      // Process with active integrations (NEW OPTIMIZED APPROACH)
       if (activeIntegrations.length > 0) {
-        isDiagramRequest = activeIntegrations.includes('mermaid');
-        isCalendarRequest = activeIntegrations.includes('calendar');
+        // Get active integrations and process the message
+        const activeIntegrationInstances = getIntegrationsByIds(activeIntegrations);
+        
+        // Process message with each active integration
+        for (const integration of activeIntegrationInstances) {
+          try {
+            const result = await integration.processMessage(text, {
+              userId: 'current-user', // TODO: Get actual user ID
+              conversationId: currentConversationId || undefined,
+              messageHistory: conversationHistory.map(msg => ({
+                role: msg.role,
+                content: msg.content
+              }))
+            });
+            integrationResults.push(result);
+          } catch (error) {
+            // Integration error handled silently
+          }
+        }
+        
+        // Use original input when integrations are active (no optimization needed)
+        optimizedInput = text;
       } else {
-        // Use optimization service for intent detection
+        // Fallback to optimization service when no integrations are active
         const optimizationResult = await optimizationService.optimizeInput({
           userInput: text,
           conversationHistory,
         });
 
         optimizedInput = optimizationResult.optimizedInput || text;
-        isDiagramRequest = optimizationResult.isDiagramRequest || false;
-        isCalendarRequest = optimizationResult.isCalendarRequest || false;
+        
+        // Convert old boolean flags to integration results for backward compatibility
+        if (optimizationResult.isDiagramRequest) {
+          integrationResults.push({
+            systemPrompt: '', // Will be handled by API
+            context: { legacyDiagramRequest: true }
+          });
+        }
+        if (optimizationResult.isCalendarRequest) {
+          integrationResults.push({
+            systemPrompt: '', // Will be handled by API
+            context: { legacyCalendarRequest: true }
+          });
+        }
       }
 
       const optimizedMessages: UIMessage[] = [
-        ...messages,
+        ...conversationHistory,
         { role: 'user', content: optimizedInput },
       ];
 
@@ -85,8 +192,11 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
         conversationId: currentConversationId,
         originalInput: text,
         optimizedInput,
-        isDiagramRequest,
-        isCalendarRequest,
+        // NEW: Send active integrations directly
+        activeIntegrations,
+        // Keep backward compatibility with existing API
+        isDiagramRequest: integrationResults.some(r => r.context?.legacyDiagramRequest || activeIntegrations.includes('mermaid')),
+        isCalendarRequest: integrationResults.some(r => r.context?.legacyCalendarRequest || activeIntegrations.includes('calendar')),
         integrationMode: activeIntegrations.length > 0 ? activeIntegrations[0] : null,
       });
 
@@ -112,8 +222,9 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       setIsLoading(false);
       setIsProcessingQueue(false);
       setProcessingMessage(null);
+      setActiveRequests(prev => Math.max(0, prev - 1)); // Decrement active requests
     }
-  }, [isProcessingQueue, messageQueue, messages, onConversationUpdate, currentConversationId, processingMessage]);
+  }, [isProcessingQueue, messageQueue, messages, onConversationUpdate, currentConversationId, processingMessage, activeIntegrations]);
 
   useEffect(() => {
     if (messageQueue.length > 0 && !isProcessingQueue) {
@@ -125,18 +236,44 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     text: string,
     conversationId?: string | null
   ): Promise<void> => {
-    if (!text.trim()) return;
-    
-    // Prevent duplicate messages
-    if (messageQueue.includes(text) || processingMessage === text) {
+    if (!text.trim()) {
       return;
+    }
+    
+    // ENHANCED DUPLICATE PREVENTION
+    const trimmedText = text.trim();
+    
+    // Check if message is already in queue or being processed
+    if (messageQueue.includes(trimmedText) || processingMessage === trimmedText) {
+      return;
+    }
+    
+    // Check recent message history to prevent rapid duplicates
+    const recentDuplicates = requestHistory.filter(req => req === trimmedText).length;
+    if (recentDuplicates >= 2) {
+      setError(`Message blocked: Too many recent identical requests`);
+      return;
+    }
+    
+    // Check queue size limit
+    if (messageQueue.length >= 10) {
+      setMessageQueue(prev => prev.slice(1));
     }
     
     if (conversationId && !currentConversationId) {
       setCurrentConversationId(conversationId);
     }
-    setMessageQueue(prev => [...prev, text]);
-  }, [currentConversationId, messageQueue, processingMessage]);
+    
+    
+    setMessageQueue(prev => [...prev, trimmedText]);
+    
+    // Log message added to queue to server terminal
+    logToServer('Message added to queue:', {
+      message: trimmedText.slice(0, 50) + (trimmedText.length > 50 ? '...' : ''),
+      queueLength: messageQueue.length + 1,
+      activeRequests
+    });
+  }, [currentConversationId, messageQueue, processingMessage, requestHistory, activeRequests]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
@@ -188,6 +325,12 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     setCurrentConversationId(null);
     setProcessingMessage(null);
     setActiveIntegrations([]);
+    
+    // Clear request limiting state
+    setActiveRequests(0);
+    setLastRequestTime(0);
+    setRequestHistory([]);
+    
   }, []);
 
   return {

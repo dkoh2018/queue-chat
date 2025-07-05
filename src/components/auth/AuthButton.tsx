@@ -44,7 +44,7 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
       await signOut(onClearAppData);
       setIsDropdownOpen(false);
     } catch (error) {
-      console.error('Error signing out:', error);
+      // Error handled by auth system
     }
   };
 

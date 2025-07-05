@@ -29,12 +29,7 @@ export async function GET(request: NextRequest) {
     // Exchange code for session and capture provider tokens
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
-    console.log('Auth callback - Exchange result:', {
-      hasError: !!error,
-      hasSession: !!data?.session,
-      hasProviderToken: !!data?.session?.provider_token,
-      hasUser: !!data?.session?.user
-    })
+    // Auth callback - Exchange result logged
     
     if (!error && data.session) {
       const { provider_token, provider_refresh_token, user } = data.session
@@ -60,7 +55,7 @@ export async function GET(request: NextRequest) {
             `
           })
         } catch (tableError) {
-          console.log('Table might already exist:', tableError)
+          // Table might already exist - this is expected in some cases
         }
 
         // Store the tokens
@@ -76,9 +71,9 @@ export async function GET(request: NextRequest) {
           })
 
         if (tokenError) {
-          console.error('Failed to store OAuth tokens:', tokenError)
+          // Failed to store OAuth tokens - this may affect calendar functionality
         } else {
-          console.log('Successfully stored OAuth tokens for user:', user.id)
+          // Successfully stored OAuth tokens for user
         }
       }
     }
