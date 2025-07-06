@@ -103,6 +103,16 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
     };
   }, [resizeTextarea]);
 
+  // Initial height setup on mount
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      // Set initial height immediately on mount
+      textarea.style.height = '60px';
+      textarea.style.overflowY = 'hidden';
+    }
+  }, []); // Empty dependency array - only run on mount
+
   // Handle textarea focus to ensure proper height
   const handleTextareaFocus = useCallback(() => {
     // Trigger a resize check when focused to ensure proper height
