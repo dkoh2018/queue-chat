@@ -115,7 +115,7 @@
   gap: 8px;
 }
 
-.attachButton.no-padding {
+.attachButton.noPadding {
   padding: 0;
 }
 
@@ -338,24 +338,6 @@
 }
 
 /* Mobile text selection fix - ensure proper layering for MessageInput */
-.messageInputContainer {
-  position: relative;
-  isolation: isolate;
-  /* Allow popups to extend beyond */
-  overflow: visible;
-}
-
-.messageInputBackground {
-  pointer-events: none;
-  z-index: 1;
-}
-
-.messageInputContent {
-  z-index: 2;
-  position: relative;
-  /* Critical for mobile popups */
-  overflow: visible;
-}
 
 /* Special mobile popup support */
 @media (max-width: 768px) {
@@ -366,10 +348,6 @@
   }
   
      /* Create a high z-index context for mobile interactions */
-   .container:focus-within {
-     /* Removed z-index to prevent stacking context issues with popups */
-     /* z-index: 100; */
-   }
 }
 
 /* RESPONSIVE WIDTH MATCHING - Match ChatView content widths */

@@ -18,14 +18,9 @@
   margin: 0 auto;
   padding-top: 3rem;
   padding-bottom: 15rem;
-  /* Add responsive max-width that considers available space */
-  container-type: inline-size;
 }
 
-/* Message spacing */
-.messageSpacing {
-  margin-bottom: 16px;
-}
+
 
 /* User message container */
 .userMessageContainer {
@@ -54,7 +49,6 @@
   max-width: min(85%, 600px); /* FIXED: Responsive with reasonable max */
   min-width: 0; /* Allow shrinking */
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  word-wrap: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
 }
@@ -65,7 +59,6 @@
   width: 100%;
   max-width: min(95%, 800px); /* FIXED: Responsive with reasonable max */
   min-width: 0; /* Allow shrinking */
-  word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
@@ -83,7 +76,6 @@
 /* Assistant message prose styling */
 .assistantMessageProse {
   max-width: none;
-  word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
@@ -166,9 +158,7 @@
     margin: 0 auto;
   }
   
-  .messageSpacing {
-    margin-bottom: 24px;
-  }
+
   
   .userMessageContainer,
   .assistantMessageContainer,
