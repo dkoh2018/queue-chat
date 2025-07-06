@@ -57,21 +57,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
   const MAX_CONCURRENT_REQUESTS = 5;
   const MIN_REQUEST_INTERVAL = 1000; // 1 second between requests
   const MAX_DUPLICATE_REQUESTS = 3; // Max same request in history
-  const [activeIntegrations, setActiveIntegrations] = useState<IntegrationType[]>(() => {
-    // Load saved integrations from localStorage on initialization
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('activeIntegrations');
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
-
-  // Save active integrations to localStorage whenever they change
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('activeIntegrations', JSON.stringify(activeIntegrations));
-    }
-  }, [activeIntegrations]);
+  const [activeIntegrations, setActiveIntegrations] = useState<IntegrationType[]>([]);
 
   const processQueue = useCallback(async () => {
     if (isProcessingQueue || messageQueue.length === 0) {
