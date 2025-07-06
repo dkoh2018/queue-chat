@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { IntegrationType, Integration } from '@/types';
 import { CalendarIcon, MermaidIcon, IntegrationIcon, CheckIcon } from '@/components/icons';
 import styles from './IntegrationButton.module.css';
@@ -74,57 +74,7 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
     }
   }, [isOpen]);
 
-  // iOS Safari specific positioning fix
-  const handleIOSPositioning = useCallback(() => {
-    if (!popupRef.current || !buttonRef.current) return;
-    
-    // Detect iOS Safari
-    const isIOSSafari = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    if (!isIOSSafari) return;
 
-    const popup = popupRef.current;
-    const button = buttonRef.current;
-    const buttonRect = button.getBoundingClientRect();
-    
-    // Calculate if popup would be clipped
-    const popupHeight = popup.offsetHeight;
-    const spaceAbove = buttonRect.top;
-    
-    if (spaceAbove < popupHeight + 16) {
-      // Not enough space above, position below instead
-      popup.style.position = 'fixed';
-      popup.style.top = `${buttonRect.bottom + 8}px`;
-      popup.style.bottom = 'auto';
-      popup.style.transform = 'none';
-    } else {
-      // Enough space above, use normal positioning
-      popup.style.position = 'absolute';
-      popup.style.top = 'auto';
-      popup.style.bottom = '100%';
-      popup.style.transform = 'translateY(-8px)';
-    }
-  }, []);
-
-  // Handle iOS Safari viewport changes
-  useEffect(() => {
-    if (!isOpen) return;
-    
-    const handleResize = () => {
-      setTimeout(handleIOSPositioning, 100); // Delay for iOS Safari viewport settling
-    };
-    
-    // Initial positioning
-    handleIOSPositioning();
-    
-    // Listen for viewport changes (iOS Safari keyboard)
-    window.addEventListener('resize', handleResize);
-    window.visualViewport?.addEventListener('resize', handleResize);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.visualViewport?.removeEventListener('resize', handleResize);
-    };
-  }, [isOpen, handleIOSPositioning]);
 
   // Handle popup state changes with animation
   useEffect(() => {
@@ -187,7 +137,7 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
           // Prevent mouse event propagation
           e.stopPropagation();
         }}
-        className={`${styles.button} rounded-full transition-colors p-1.5 ${
+        className={`${styles.button} rounded-full transition-colors flex items-center justify-center ${
           activeIntegrations.length > 0
             ? 'bg-emerald-500/20 text-emerald-400 opacity-100'
             : isTouching

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({ 
-        model: 'gpt-4o-mini', 
+        model: 'gpt-4.1-mini', 
         messages: messages,
         temperature: 0.1  // Lower temperature for more consistent JSON output
       }),

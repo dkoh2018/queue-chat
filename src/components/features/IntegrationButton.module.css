@@ -49,23 +49,21 @@
   transform: scale(0.95) translateZ(0);
 }
 
-/* Integration Popup */
+/* Integration Popup - Modern centered positioning */
 .popup {
   position: absolute;
-  bottom: 100%;
-  left: 0;
-  margin-bottom: 8px;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(31, 41, 55, 0.95);
   border: 1px solid rgba(107, 114, 128, 0.6);
-  border-radius: 6px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), 0 4px 10px rgba(0, 0, 0, 0.15);
-  padding: 10px 0;
+  border-radius: 8px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  padding: 8px 0;
   min-width: 160px;
   z-index: 70;
   
   /* Performance optimizations */
-  transform: translateZ(0);
-  -webkit-transform: translate3d(0, 0, 1px);
   will-change: transform, opacity, visibility;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
@@ -74,9 +72,8 @@
   /* Event handling */
   pointer-events: auto;
   
-  /* Transitions */
-  transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Smooth transitions */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Popup visibility states */
@@ -84,23 +81,25 @@
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
+  transform: translateX(-50%) translateY(8px) scale(0.95);
 }
 
 .popupVisible {
   opacity: 1;
   pointer-events: auto;
   visibility: visible;
+  transform: translateX(-50%) translateY(0) scale(1);
 }
 
 /* Popup animation states */
 .popupAnimating {
   opacity: 0;
-  transform: scale(0.95) translateZ(0);
+  transform: translateX(-50%) translateY(8px) scale(0.95);
 }
 
 .popupNormal {
   opacity: 1;
-  transform: scale(1) translateZ(0);
+  transform: translateX(-50%) translateY(0) scale(1);
 }
 
 /* Integration Option Buttons */

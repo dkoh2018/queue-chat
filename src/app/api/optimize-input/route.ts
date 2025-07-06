@@ -55,7 +55,7 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({ 
-        model: 'gpt-4o-mini', 
+        model: 'gpt-4.1-mini', 
         messages: optimizationMessages,
         temperature: 0.7,
         max_tokens: 1500, // Increased for longer context-aware optimizations
