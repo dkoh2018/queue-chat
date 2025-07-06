@@ -1,4 +1,4 @@
-// Calendar 4-Stage Pipeline - Extracted from working test page
+// Calendar 4-Stage Pipeline
 import { logger } from '@/utils';
 
 interface CalendarEvent {
@@ -66,7 +66,7 @@ export class CalendarPipeline {
     try {
       logger.info(`🧠 Stage 0: Parameter Intelligence for: ${userInput}`);
       
-      // Create time context exactly like test page
+      // Create time context for parameter intelligence
       const timeContext = {
         currentDate: new Date().toLocaleDateString('en-US', {
           weekday: 'long',
@@ -85,7 +85,7 @@ export class CalendarPipeline {
           'Authorization': `Bearer ${sessionToken}`,  // Use session token for API auth
         },
         body: JSON.stringify({
-          messages: [  // Match test page format exactly
+          messages: [
             {
               role: 'system',
               content: `You are a calendar time range selector. Analyze the user query and pick the best time range.
@@ -151,7 +151,7 @@ RULES:
       const paramData = await response.json();
       const paramContent = paramData.content || "{}";
       
-      // Parse the response exactly like test page
+      // Parse the parameter intelligence response
       let intelligentParams = {
         timeMin: new Date().toISOString(),
         timeMax: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -187,13 +187,13 @@ RULES:
   }
 
   /**
-   * Stage 1: Raw Google Calendar API - Get calendar data (matches test page exactly)
+   * Stage 1: Raw Google Calendar API - Get calendar data
    */
   async getRawCalendarData(timeRange: ParameterIntelligenceResult, providerToken: string): Promise<RawCalendarData> {
     try {
       logger.info(`📅 Stage 1: Raw Calendar API for range: ${timeRange.timeMin} to ${timeRange.timeMax}`);
       
-      // Call Google Calendar API directly like test page
+      // Call Google Calendar API directly
       const params = new URLSearchParams({
         orderBy: 'startTime',
         singleEvents: 'true',
@@ -282,7 +282,7 @@ RULES:
   }
 
   /**
-   * Stage 3: AI Final Response - Generate optimized response (matches test page exactly)
+   * Stage 3: AI Final Response - Generate optimized response
    */
   async generateFinalResponse(calendarData: CalendarResponse, userInput: string, sessionToken: string): Promise<string> {
     try {
@@ -295,8 +295,8 @@ RULES:
           'Authorization': `Bearer ${sessionToken}`,  // Use session token for API auth
         },
         body: JSON.stringify({
-          userQuery: userInput,  // Match test page parameter name
-          jsonTableData: calendarData,  // Match test page parameter name
+          userQuery: userInput,
+          jsonTableData: calendarData,
         }),
       });
 
@@ -306,7 +306,7 @@ RULES:
 
       const result = await response.json();
       logger.info('✅ Stage 3 Complete');
-      return result.content || 'No response generated';  // Match test page response field
+      return result.content || 'No response generated';
     } catch (error) {
       logger.error(`❌ Stage 3 Failed: ${error}`);
       throw error;

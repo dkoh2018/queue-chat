@@ -76,7 +76,6 @@ export class CalendarIntegration extends BaseIntegration {
 
   // Override prepare for calendar-specific setup
   async prepare(context: IntegrationContext): Promise<void> {
-    // Could add token validation logic here if needed
     const providerToken = context.providerToken as string;
     const sessionToken = context.sessionToken as string;
     if (!providerToken || !sessionToken) {
