@@ -66,13 +66,13 @@ textarea::-webkit-scrollbar-thumb {
 
 /* Fix text selection visibility in transparent textareas */
 textarea::selection {
-  background: rgba(59, 130, 246, 0.4);
-  color: white;
+  background: rgba(59, 130, 246, 0.6) !important;
+  color: white !important;
 }
 
 textarea::-moz-selection {
-  background: rgba(59, 130, 246, 0.4);
-  color: white;
+  background: rgba(59, 130, 246, 0.6) !important;
+  color: white !important;
 }
 
 /* Enhanced text selection for mobile devices */
@@ -85,20 +85,62 @@ textarea, input {
 
 /* Ensure text selection is visible on mobile */
 textarea::selection, input::selection {
-  background: rgba(59, 130, 246, 0.5) !important;
+  background: rgba(59, 130, 246, 0.7) !important;
   color: white !important;
 }
 
 textarea::-moz-selection, input::-moz-selection {
-  background: rgba(59, 130, 246, 0.5) !important;
+  background: rgba(59, 130, 246, 0.7) !important;
   color: white !important;
 }
 
-/* Fix mobile text selection layering */
+/* Fix mobile text selection layering - Critical for iOS Safari */
 @media (max-width: 768px) {
   textarea, input {
     position: relative;
-    z-index: 10;
+    z-index: 100 !important;
+    /* Force hardware acceleration for better mobile performance */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    /* Optimize for text selection on mobile */
+    will-change: contents;
+    /* Ensure proper stacking context isolation */
+    isolation: isolate;
+  }
+  
+  /* Mobile Safari specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    textarea {
+      /* Force text selection to render above backdrop filters */
+      -webkit-transform: translate3d(0, 0, 1px);
+      transform: translate3d(0, 0, 1px);
+      /* Ensure selection highlight is visible */
+      -webkit-user-select: text !important;
+      /* Prevent backdrop filter interference */
+      contain: layout style;
+    }
+    
+    textarea::selection {
+      background: rgba(59, 130, 246, 0.8) !important;
+      color: white !important;
+      /* Force selection to render on top */
+      position: relative;
+      z-index: 999;
+    }
+  }
+}
+
+/* Additional mobile text selection fixes */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch devices */
+  textarea {
+    /* Prevent backdrop filter from interfering with selection */
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    /* Ensure proper layering */
+    z-index: 200 !important;
+    /* Force compositing layer for better performance */
+    will-change: transform, contents;
   }
 }
 
@@ -279,3 +321,40 @@ textarea::-moz-selection, input::-moz-selection {
 }
 
 
+
+/* Mobile text selection fix - ensure proper layering for MessageInput */
+.message-input-container {
+  position: relative;
+  isolation: isolate;
+}
+
+.message-input-background {
+  pointer-events: none;
+  z-index: 1;
+}
+
+.message-input-content {
+  z-index: 2;
+  position: relative;
+}
+
+/* Focus state management for separated layers */
+.message-input-container:focus-within .message-input-background {
+  border-color: rgba(52, 211, 153, 0.6);
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.2);
+}
+
+/* Ensure text selection works properly on all mobile browsers */
+@media (max-width: 768px) {
+  .message-input-content textarea {
+    /* Force text selection to work properly */
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    /* Prevent any backdrop filter interference */
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    /* Ensure proper stacking */
+    z-index: 999 !important;
+    position: relative !important;
+  }
+}

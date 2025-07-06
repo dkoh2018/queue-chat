@@ -79,103 +79,116 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
 
   return (
     <>
-      {/* Single unified input component with curved edges */}
-      <div className="flex flex-col bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 shadow-lg transition-all duration-200 hover:border-gray-500/60 focus-within:border-emerald-400/60 focus-within:shadow-emerald-500/20"
-           style={{ borderRadius: '12px' }}>
+      {/* Container with backdrop filter - separated from text input */}
+      <div className="message-input-container relative" style={{ borderRadius: '12px' }}>
+        {/* Background layer with glass effect */}
+        <div
+          className="message-input-background absolute inset-0 bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 shadow-lg transition-all duration-200 hover:border-gray-500/60"
+          style={{
+            borderRadius: '12px'
+          }}
+        />
         
-        {/* Textarea or Loading State */}
-        {isOptimizing ? (
-          <div 
-            className="w-full text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none font-medium flex items-center"
-            style={{
-              padding: '20px',
-              fontSize: '16px',
-              lineHeight: '1.5',
-              minHeight: '55px',
-            }}
-          >
-            <TypingDots />
-          </div>
-        ) : (
-          <textarea
-            ref={textareaRef}
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                onSend();
-              } else if (e.key === 'e' && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault();
-                onOptimize?.();
-              }
-            }}
-            placeholder="Ask anything..."
-            className="w-full text-white placeholder-gray-400 resize-none border-none outline-none focus:outline-none font-medium"
-            suppressHydrationWarning
-            style={{
-              padding: '20px',
-              fontSize: '16px',
-              lineHeight: '1.5',
-              wordBreak: 'break-word',
-              minHeight: '55px',
-              maxHeight: '240px',
-              transition: 'height 0.2s ease',
-              background: 'rgba(31, 41, 55, 0.01)',
-              position: 'relative',
-              zIndex: 10
-            }}
-          />
-        )}
-        
-        {/* Buttons Container */}
-        <div className="flex justify-between items-center p-2">
-          {/* Tool Buttons */}
-          <div className="flex items-center space-x-1">
-            <button
-              className="hover:bg-gray-600/50 rounded-full transition-colors opacity-70 hover:opacity-100 p-1.5"
-              title="Attach file">
-              <AttachIcon />
-            </button>
-            <VoiceRecordingButton
-              isRecording={voiceState.isRecording}
-              isTranscribing={voiceState.isTranscribing}
-              timeRemaining={voiceState.timeRemaining}
-              mediaStream={mediaStream}
-              onStartRecording={startRecording}
-              onStopRecording={stopRecording}
-            />
-            <IntegrationButton
-              onIntegrationSelect={onIntegrationSelect || (() => {})}
-              activeIntegrations={activeIntegrations || []}
-            />
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="flex items-center space-x-2">
-            {/* Optimize Button */}
-            <OptimizeButton 
-              onClick={onOptimize}
-              disabled={!inputText.trim() || isOptimizing}
-            />
-            
-            {/* Send Button */}
-            <button
-              onClick={onSend}
-              disabled={!inputText.trim() || isOptimizing}
-              className={`rounded-full transition-all duration-200 w-8 h-8 flex items-center justify-center ${
-                inputText.trim() && !isOptimizing
-                  ? 'bg-white hover:bg-gray-200 shadow-md'
-                  : 'bg-transparent'
-              }`}
-              title={inputText.trim() ? 'Send message' : 'Type a message to send'}
+        {/* Content layer - isolated from backdrop filter */}
+        <div className="message-input-content relative flex flex-col">
+          {/* Textarea or Loading State */}
+          {isOptimizing ? (
+            <div
+              className="w-full text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none font-medium flex items-center"
+              style={{
+                padding: '20px',
+                fontSize: '16px',
+                lineHeight: '1.5',
+                minHeight: '55px',
+              }}
             >
-              <UpArrowIcon
-                className={
-                  inputText.trim() && !isOptimizing ? 'text-black' : 'text-gray-400'
+              <TypingDots />
+            </div>
+          ) : (
+            <textarea
+              ref={textareaRef}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  onSend();
+                } else if (e.key === 'e' && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault();
+                  onOptimize?.();
                 }
+              }}
+              placeholder="Ask anything..."
+              className="w-full text-white placeholder-gray-400 resize-none border-none outline-none focus:outline-none font-medium"
+              suppressHydrationWarning
+              style={{
+                padding: '20px',
+                fontSize: '16px',
+                lineHeight: '1.5',
+                wordBreak: 'break-word',
+                minHeight: '55px',
+                maxHeight: '240px',
+                transition: 'height 0.2s ease',
+                background: 'transparent',
+                position: 'relative',
+                zIndex: 100, // High z-index for mobile text selection
+                // Mobile optimization
+                WebkitTransform: 'translateZ(0)',
+                transform: 'translateZ(0)',
+                isolation: 'isolate'
+              }}
+            />
+          )}
+          
+          {/* Buttons Container */}
+          <div className="flex justify-between items-center p-2" style={{ zIndex: 50 }}>
+            {/* Tool Buttons */}
+            <div className="flex items-center space-x-1">
+              <button
+                className="hover:bg-gray-600/50 rounded-full transition-colors opacity-70 hover:opacity-100 p-1.5"
+                title="Attach file">
+                <AttachIcon />
+              </button>
+              <VoiceRecordingButton
+                isRecording={voiceState.isRecording}
+                isTranscribing={voiceState.isTranscribing}
+                timeRemaining={voiceState.timeRemaining}
+                mediaStream={mediaStream}
+                onStartRecording={startRecording}
+                onStopRecording={stopRecording}
               />
-            </button>
+              <IntegrationButton
+                onIntegrationSelect={onIntegrationSelect || (() => {})}
+                activeIntegrations={activeIntegrations || []}
+              />
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-2">
+              {/* Optimize Button */}
+              <OptimizeButton
+                onClick={onOptimize}
+                disabled={!inputText.trim() || isOptimizing}
+              />
+              
+              {/* Send Button */}
+              <button
+                onClick={onSend}
+                disabled={!inputText.trim() || isOptimizing}
+                className={`rounded-full transition-all duration-200 w-8 h-8 flex items-center justify-center ${
+                  inputText.trim() && !isOptimizing
+                    ? 'bg-white hover:bg-gray-200 shadow-md'
+                    : 'bg-transparent'
+                }`}
+                title={inputText.trim() ? 'Send message' : 'Type a message to send'}
+              >
+                <UpArrowIcon
+                  className={
+                    inputText.trim() && !isOptimizing ? 'text-black' : 'text-gray-400'
+                  }
+                />
+              </button>
+            </div>
           </div>
         </div>
       </div>
