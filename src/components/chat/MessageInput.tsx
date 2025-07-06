@@ -7,6 +7,7 @@ import { VoiceRecordingButton } from '@/components/features/VoiceRecordingButton
 import { IntegrationButton } from '@/components/features/IntegrationButton';
 import { useVoiceRecording } from '@/hooks';
 import { IntegrationType } from '@/types';
+import styles from './MessageInput.module.css';
 
 interface MessageInputProps {
   inputText: string;
@@ -74,28 +75,15 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
   return (
     <>
       {/* Container with backdrop filter - separated from text input */}
-      <div className="message-input-container relative" style={{ borderRadius: '12px' }}>
+      <div className={styles.container}>
         {/* Background layer with glass effect */}
-        <div
-          className="message-input-background absolute inset-0 bg-gray-800/60 backdrop-blur-sm border border-gray-600/50 shadow-lg transition-all duration-200 hover:border-gray-500/60"
-          style={{
-            borderRadius: '12px'
-          }}
-        />
+        <div className={styles.background} />
         
         {/* Content layer - isolated from backdrop filter */}
-        <div className="message-input-content relative flex flex-col">
+        <div className={styles.content}>
           {/* Textarea or Loading State */}
           {isOptimizing ? (
-            <div
-              className="w-full text-white placeholder-gray-400 bg-transparent resize-none border-none outline-none focus:outline-none font-medium flex items-center"
-              style={{
-                padding: '20px',
-                fontSize: '16px',
-                lineHeight: '1.5',
-                height: '60px',
-              }}
-            >
+            <div className={styles.loadingContainer}>
               <TypingDots />
             </div>
           ) : (
@@ -113,27 +101,17 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
                 }
               }}
               placeholder="Ask anything..."
-              className="w-full text-white placeholder-gray-400 resize-none border-none outline-none focus:outline-none font-medium"
+              className={`${styles.textarea} textareaScroll`}
               suppressHydrationWarning
-              style={{
-                padding: '20px',
-                fontSize: '16px',
-                lineHeight: '1.5',
-                wordBreak: 'break-word',
-                height: '60px', // Base height
-                background: 'transparent',
-                position: 'relative',
-                transition: 'height 0.15s ease', // Smoother transition
-              }}
             />
           )}
           
           {/* Buttons Container */}
-          <div className="flex justify-between items-center p-2">
+          <div className={styles.buttonsContainer}>
             {/* Tool Buttons */}
-            <div className="flex items-center space-x-1">
+            <div className={styles.toolButtons}>
               <button
-                className="hover:bg-gray-600/50 rounded-full transition-colors opacity-70 hover:opacity-100 p-1.5"
+                className={styles.attachButton}
                 title="Attach file">
                 <AttachIcon />
               </button>
@@ -152,7 +130,7 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
             </div>
             
             {/* Action Buttons */}
-            <div className="flex items-center space-x-2">
+            <div className={styles.actionButtons}>
               {/* Optimize Button */}
               <OptimizeButton
                 onClick={onOptimize}
@@ -163,16 +141,16 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
               <button
                 onClick={onSend}
                 disabled={!inputText.trim() || isOptimizing}
-                className={`rounded-full transition-all duration-200 w-8 h-8 flex items-center justify-center ${
+                className={`${styles.sendButton} ${
                   inputText.trim() && !isOptimizing
-                    ? 'bg-white hover:bg-gray-200 shadow-md'
-                    : 'bg-transparent'
+                    ? styles.sendButtonActive
+                    : styles.sendButtonInactive
                 }`}
                 title={inputText.trim() ? 'Send message' : 'Type a message to send'}
               >
                 <UpArrowIcon
                   className={
-                    inputText.trim() && !isOptimizing ? 'text-black' : 'text-gray-400'
+                    inputText.trim() && !isOptimizing ? styles.sendIconActive : styles.sendIconInactive
                   }
                 />
               </button>
@@ -183,16 +161,16 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
 
       {/* Voice Recording Error */}
       {voiceState.error && (
-        <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
-          <p className="text-xs text-red-400 text-center">
+        <div className={styles.errorContainer}>
+          <p className={styles.errorText}>
             {voiceState.error}
           </p>
         </div>
       )}
 
       {/* Disclaimer */}
-      <div className="text-center mt-2">
-        <p className="text-xs text-gray-500">
+      <div className={styles.disclaimer}>
+        <p className={styles.disclaimerText}>
           Jarvis can make mistakes.
         </p>
       </div>

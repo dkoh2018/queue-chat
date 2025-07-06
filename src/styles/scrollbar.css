@@ -1,0 +1,289 @@
+/* Global Scrollbar Utility Module */
+/* Extracted from globals.css to provide consistent scrollbar styling across components */
+
+/* Chat scrollbar: seamless overlay for chat containers */
+.chatScroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.chatScroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.chatScroll::-webkit-scrollbar-thumb {
+  background-color: rgba(107, 114, 128, 0.5);
+  border-radius: 4px;
+  border: none;
+}
+
+.chatScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chatScroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.7);
+}
+
+/* Textarea scrollbar: clean scrolling for text inputs */
+.textareaScroll {
+  scrollbar-width: thin;
+}
+
+.textareaScroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.textareaScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.textareaScroll::-webkit-scrollbar-thumb {
+  background-color: rgba(107, 114, 128, 0.5);
+  border-radius: 4px;
+  border: none;
+}
+
+.textareaScroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.7);
+}
+
+/* Custom sidebar scrollbar: subtle gray styling */
+.customScroll {
+  scrollbar-width: thin;
+}
+
+.customScroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.customScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.customScroll::-webkit-scrollbar-thumb {
+  background-color: rgba(107, 114, 128, 0.5);
+  border-radius: 3px;
+  border: none;
+}
+
+.customScroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.7);
+}
+
+/* Mobile touch scrolling optimization */
+.touchScroll {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior: contain;
+}
+
+/* Horizontal scroll for tables and wide content */
+.horizontalScroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  scrollbar-width: thin;
+}
+
+.horizontalScroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.horizontalScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.horizontalScroll::-webkit-scrollbar-thumb {
+  background-color: rgba(107, 114, 128, 0.5);
+  border-radius: 3px;
+}
+
+.horizontalScroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.7);
+}
+
+/* Thin scrollbar variant for compact spaces */
+.thinScroll {
+  scrollbar-width: thin;
+}
+
+.thinScroll::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.thinScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.thinScroll::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.4);
+  border-radius: 2px;
+}
+
+.thinScroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(156, 163, 175, 0.6);
+}
+
+/* No scrollbar variant (content still scrollable) */
+.hiddenScroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hiddenScroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* iOS Safari specific optimizations */
+@supports (-webkit-touch-callout: none) {
+  .chatScroll,
+  .textareaScroll,
+  .customScroll {
+    /* Prevent iOS scroll bounce interference */
+    -webkit-overflow-scrolling: auto;
+    /* Ensure proper touch event handling */
+    touch-action: manipulation;
+    /* Prevent scroll conflicts */
+    overscroll-behavior: contain;
+  }
+  
+  .touchScroll,
+  .horizontalScroll {
+    /* iOS Safari smooth scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent body scroll when scrolling */
+    overscroll-behavior: contain;
+    /* Smooth scrolling behavior */
+    scroll-behavior: smooth;
+  }
+}
+
+/* High DPI and mobile performance optimizations */
+@media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
+  .chatScroll,
+  .customScroll,
+  .textareaScroll {
+    /* Optimize scrolling performance on mobile */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent scroll jank */
+    overscroll-behavior: contain;
+    /* Reduce GPU load */
+    will-change: scroll-position;
+  }
+  
+  .chatScroll::-webkit-scrollbar,
+  .customScroll::-webkit-scrollbar,
+  .textareaScroll::-webkit-scrollbar {
+    /* Slightly larger touch targets on mobile */
+    width: 10px;
+    height: 10px;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .chatScroll,
+  .customScroll,
+  .textareaScroll,
+  .touchScroll,
+  .horizontalScroll {
+    scroll-behavior: auto;
+  }
+}
+
+/* Dark mode scrollbar adjustments */
+@media (prefers-color-scheme: dark) {
+  .chatScroll::-webkit-scrollbar-thumb,
+  .textareaScroll::-webkit-scrollbar-thumb {
+    background-color: rgba(107, 114, 128, 0.5);
+  }
+  
+  .chatScroll::-webkit-scrollbar-thumb:hover,
+  .textareaScroll::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(107, 114, 128, 0.7);
+  }
+}
+
+/* Utility classes for common scroll combinations */
+.chatContainer {
+  composes: chatScroll;
+  max-height: 100%;
+}
+
+.sidebarContainer {
+  composes: customScroll;
+  max-height: 100vh;
+}
+
+.textareaContainer {
+  composes: textareaScroll;
+  resize: vertical;
+}
+
+.tableContainer {
+  composes: horizontalScroll;
+  max-width: 100%;
+}
+
+/* Popup and modal scroll optimization */
+.popupScroll {
+  composes: thinScroll;
+  max-height: 50vh;
+  overflow-y: auto;
+  /* Prevent iOS scroll bounce interference */
+  -webkit-overflow-scrolling: auto;
+  /* Ensure proper touch event handling */
+  touch-action: manipulation;
+  /* Prevent scroll conflicts */
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 768px) {
+  .popupScroll {
+    max-height: 40vh;
+    /* Ensure scrolling if needed */
+    overflow-y: auto;
+    /* iOS Safari smooth scrolling */
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  .popupScroll {
+    max-height: 30vh;
+    /* Ensure content is scrollable */
+    overflow-y: auto;
+  }
+}
+
+/* Scrollbar Utility Module */
+
+/* Custom sidebar scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(107, 114, 128, 0.5);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.7);
+}
+
+/* Mobile touch scrolling for tables */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+}

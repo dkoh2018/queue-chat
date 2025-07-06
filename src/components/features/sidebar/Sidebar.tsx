@@ -1,7 +1,8 @@
-import { forwardRef, useState, useMemo, memo } from 'react';
+import { forwardRef, memo, useState, useMemo } from 'react';
 import { Conversation } from '@/types';
 import { PlusIcon, SearchIcon, MenuIcon, XIcon } from '@/components/icons';
 import AuthButton from '@/components/auth/AuthButton';
+import styles from './Sidebar.module.css';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -98,7 +99,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   return (
     <div
       ref={ref}
-      className={`glass-panel border-r border-gray-600/50 flex flex-col flex-shrink-0 ${isResizing ? '' : 'transition-all duration-300'} overflow-hidden relative h-full`}
+      className={`glass-panel ${styles.container} ${isResizing ? '' : styles.containerTransition}`}
       style={{
         width: sidebarOpen ? width : 0
       }}
@@ -157,7 +158,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
         </div>
 
         {/* Chat History */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar py-2">
+        <div className={`${styles.chatHistory} customScroll`}>
           {error && (
             <div className="text-xs text-orange-400 px-3 sm:px-4 mb-3 bg-orange-500/10 py-2 mx-2 rounded border border-orange-500/20">
               {error}

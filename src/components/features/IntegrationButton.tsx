@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { IntegrationType, Integration } from '@/types';
 import { CalendarIcon, MermaidIcon, IntegrationIcon, CheckIcon } from '@/components/icons';
+import styles from './IntegrationButton.module.css';
 
 interface IntegrationButtonProps {
   onIntegrationSelect: (type: IntegrationType) => void;
@@ -9,7 +10,11 @@ interface IntegrationButtonProps {
 
 export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: IntegrationButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isTouching, setIsTouching] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [touchingOption, setTouchingOption] = useState<string | null>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
 
   const integrations: Integration[] = [
     {
@@ -26,30 +31,169 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
     }
   ];
 
-  // Close popup when clicking outside
+  // Step 9: Event Propagation - Enhanced outside click handling with proper propagation control
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      // Prevent event propagation issues
+      if (!buttonRef.current || !popupRef.current) return;
+      
+      const target = event.target as Node;
+      
+      // Check if click/touch is outside both button and popup
+      if (!buttonRef.current.contains(target) && !popupRef.current.contains(target)) {
+        // Stop propagation to prevent interference with other components
+        event.stopPropagation();
         setIsOpen(false);
+        setIsTouching(false);
+        setTouchingOption(null);
+      }
+    };
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      // Handle escape key for accessibility
+      if (event.key === 'Escape' && isOpen) {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsOpen(false);
+        setIsTouching(false);
+        setTouchingOption(null);
       }
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      // Add event listeners with proper options for mobile
+      document.addEventListener('mousedown', handleClickOutside, { capture: true });
+      document.addEventListener('touchstart', handleClickOutside, { passive: false, capture: true });
+      document.addEventListener('keydown', handleEscapeKey, { capture: true });
+      
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside, { capture: true });
+        document.removeEventListener('touchstart', handleClickOutside, { capture: true });
+        document.removeEventListener('keydown', handleEscapeKey, { capture: true });
+      };
+    }
+  }, [isOpen]);
+
+  // iOS Safari specific positioning fix
+  const handleIOSPositioning = useCallback(() => {
+    if (!popupRef.current || !buttonRef.current) return;
+    
+    // Detect iOS Safari
+    const isIOSSafari = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (!isIOSSafari) return;
+
+    const popup = popupRef.current;
+    const button = buttonRef.current;
+    const buttonRect = button.getBoundingClientRect();
+    
+    // Calculate if popup would be clipped
+    const popupHeight = popup.offsetHeight;
+    const spaceAbove = buttonRect.top;
+    
+    if (spaceAbove < popupHeight + 16) {
+      // Not enough space above, position below instead
+      popup.style.position = 'fixed';
+      popup.style.top = `${buttonRect.bottom + 8}px`;
+      popup.style.bottom = 'auto';
+      popup.style.transform = 'none';
+    } else {
+      // Enough space above, use normal positioning
+      popup.style.position = 'absolute';
+      popup.style.top = 'auto';
+      popup.style.bottom = '100%';
+      popup.style.transform = 'translateY(-8px)';
+    }
+  }, []);
+
+  // Handle iOS Safari viewport changes
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleResize = () => {
+      setTimeout(handleIOSPositioning, 100); // Delay for iOS Safari viewport settling
+    };
+    
+    // Initial positioning
+    handleIOSPositioning();
+    
+    // Listen for viewport changes (iOS Safari keyboard)
+    window.addEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('resize', handleResize);
+    };
+  }, [isOpen, handleIOSPositioning]);
+
+  // Handle popup state changes with animation
+  useEffect(() => {
+    if (isOpen) {
+      setIsAnimating(true);
+      // Allow popup to render, then trigger animation
+      setTimeout(() => setIsAnimating(false), 150);
+    }
+  }, [isOpen]);
+
+  // Cleanup states when popup closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIsTouching(false);
+      setIsAnimating(false);
+      setTouchingOption(null);
     }
   }, [isOpen]);
 
   return (
-    <div className="relative" ref={buttonRef}>
+    <div
+      className={styles.container}
+      ref={buttonRef}
+    >
       {/* Main Integration Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`rounded-full transition-colors p-1.5 ${
+        onClick={(e) => {
+          // Step 9: Event Propagation - Prevent event bubbling
+          e.preventDefault();
+          e.stopPropagation();
+          
+          if (!isAnimating) {
+            setIsAnimating(true);
+            setIsOpen(!isOpen);
+            setTimeout(() => setIsAnimating(false), 200);
+          }
+        }}
+        onTouchStart={(e) => {
+          // Prevent propagation for touch events
+          e.stopPropagation();
+          setIsTouching(true);
+        }}
+        onTouchEnd={(e) => {
+          // Step 9: Comprehensive event propagation control
+          e.preventDefault();
+          e.stopPropagation();
+          setIsTouching(false);
+          
+          if (!isAnimating) {
+            setIsAnimating(true);
+            setIsOpen(!isOpen);
+            setTimeout(() => setIsAnimating(false), 200);
+          }
+        }}
+        onTouchCancel={(e) => {
+          e.stopPropagation();
+          setIsTouching(false);
+        }}
+        onMouseDown={(e) => {
+          // Prevent mouse event propagation
+          e.stopPropagation();
+        }}
+        className={`${styles.button} rounded-full transition-colors p-1.5 ${
           activeIntegrations.length > 0
             ? 'bg-emerald-500/20 text-emerald-400 opacity-100'
+            : isTouching
+            ? 'bg-gray-600/70 opacity-100'
             : 'hover:bg-gray-600/50 opacity-70 hover:opacity-100'
-        }`}
+        } ${isAnimating ? styles.buttonAnimating : ''}`}
         title="Integrations"
       >
         <IntegrationIcon />
@@ -57,7 +201,28 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
 
       {/* Integration Options Popup */}
       {isOpen && (
-        <div className="absolute bottom-full left-0 mb-2 bg-gray-800/95 backdrop-blur-sm border border-gray-600/50 rounded-md shadow-lg py-2.5 min-w-[160px] z-50">
+        <div
+          ref={popupRef}
+          className={`${styles.popup} ${
+            isAnimating ? styles.popupAnimating : styles.popupNormal
+          } ${isOpen ? styles.popupVisible : styles.popupHidden} bg-gray-800/95 backdrop-blur-sm border border-gray-600/50 rounded-md shadow-lg py-2.5 min-w-[160px]`}
+          onClick={(e) => {
+            // Step 9: Prevent popup clicks from propagating
+            e.stopPropagation();
+          }}
+          onTouchStart={(e) => {
+            // Prevent touch events on popup from propagating
+            e.stopPropagation();
+          }}
+          onTouchEnd={(e) => {
+            // Prevent touch end events from propagating
+            e.stopPropagation();
+          }}
+          onMouseDown={(e) => {
+            // Prevent mouse events from propagating
+            e.stopPropagation();
+          }}
+        >
           {/* Integration Options */}
           {integrations.map((integration) => {
             const IconComponent = integration.icon;
@@ -66,14 +231,43 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
             return (
               <button
                 key={integration.id}
-                onClick={() => {
+                onClick={(e) => {
+                  // Step 9: Event Propagation - Prevent bubbling for option buttons
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
                   // Toggle the integration using the toggle function
                   onIntegrationSelect(integration.id);
                   // Don't close the dropdown - keep it open for multiple selections
                 }}
-                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center space-x-3 ${
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                  setTouchingOption(integration.id);
+                }}
+                onTouchEnd={(e) => {
+                  // Step 9: Comprehensive touch event propagation control
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setTouchingOption(null);
+                  onIntegrationSelect(integration.id);
+                }}
+                onTouchCancel={(e) => {
+                  e.stopPropagation();
+                  setTouchingOption(null);
+                }}
+                onMouseDown={(e) => {
+                  // Prevent mouse event propagation for option buttons
+                  e.stopPropagation();
+                }}
+                onMouseUp={(e) => {
+                  // Prevent mouse up propagation
+                  e.stopPropagation();
+                }}
+                className={`${styles.optionButton} w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center space-x-3 ${
                   isActive
                     ? 'bg-emerald-500/20 text-emerald-400'
+                    : touchingOption === integration.id
+                    ? 'bg-gray-600/70 text-gray-200'
                     : 'text-gray-300 hover:bg-gray-700/50'
                 }`}
               >

@@ -1,0 +1,310 @@
+/* MessageInput Component CSS Module */
+/* Extracted from globals.css to eliminate conflicts and improve maintainability */
+
+/* Base container styling */
+.container {
+  position: relative;
+  border-radius: 12px;
+}
+
+/* Background layer with glass effect */
+.background {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(31, 41, 55, 0.6); /* bg-gray-800/60 */
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(75, 85, 99, 0.5); /* border-gray-600/50 */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.background:hover {
+  border-color: rgba(107, 114, 128, 0.6); /* hover:border-gray-500/60 */
+}
+
+/* Content layer - isolated from backdrop filter */
+.content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+}
+
+/* Focus state management for separated layers */
+.container:focus-within .background {
+  border-color: rgba(52, 211, 153, 0.6);
+}
+
+/* Textarea styling */
+.textarea {
+  width: 100%;
+  color: white;
+  resize: none;
+  border: none;
+  outline: none;
+  font-weight: 500;
+  padding: 20px;
+  font-size: 16px;
+  line-height: 1.5;
+  word-break: break-word;
+  height: 60px; /* Base height */
+  background: transparent;
+  position: relative;
+  transition: height 0.15s ease;
+}
+
+.textarea::placeholder {
+  color: rgba(156, 163, 175, 1); /* placeholder-gray-400 */
+}
+
+.textarea:focus {
+  outline: none;
+}
+
+/* Loading state container */
+.loadingContainer {
+  width: 100%;
+  color: white;
+  background: transparent;
+  resize: none;
+  border: none;
+  outline: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  font-size: 16px;
+  line-height: 1.5;
+  height: 60px;
+}
+
+/* Buttons container */
+.buttonsContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+}
+
+/* Tool buttons section */
+.toolButtons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Action buttons section */
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Attach button */
+.attachButton {
+  padding: 6px;
+  border-radius: 9999px;
+  transition: background-color 0.15s ease;
+  opacity: 0.7;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.attachButton:hover {
+  background-color: rgba(75, 85, 99, 0.5); /* hover:bg-gray-600/50 */
+  opacity: 1;
+}
+
+/* Send button */
+.sendButton {
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.sendButtonActive {
+  background-color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.sendButtonActive:hover {
+  background-color: rgba(229, 231, 235, 1); /* hover:bg-gray-200 */
+}
+
+.sendButtonInactive {
+  background-color: transparent;
+}
+
+/* Send button icon */
+.sendIconActive {
+  color: black;
+}
+
+.sendIconInactive {
+  color: rgba(156, 163, 175, 1); /* text-gray-400 */
+}
+
+/* Error message */
+.errorContainer {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: rgba(239, 68, 68, 0.1); /* bg-red-500/10 */
+  border: 1px solid rgba(239, 68, 68, 0.2); /* border-red-500/20 */
+  border-radius: 8px;
+}
+
+.errorText {
+  font-size: 12px;
+  color: rgba(248, 113, 113, 1); /* text-red-400 */
+  text-align: center;
+}
+
+/* Disclaimer */
+.disclaimer {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.disclaimerText {
+  font-size: 12px;
+  color: rgba(107, 114, 128, 1); /* text-gray-500 */
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .content textarea {
+    /* Force text selection to work properly */
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    /* Prevent zoom on focus in iOS Safari */
+    font-size: 16px !important;
+    /* Improve touch responsiveness */
+    touch-action: manipulation;
+  }
+  
+  .container {
+    /* Ensure container doesn't clip popup */
+    overflow: visible !important;
+    /* Prevent container from interfering with touch events */
+    touch-action: manipulation;
+  }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Prevent iOS Safari viewport jumping */
+  .container {
+    /* Use env() for iOS Safari safe areas */
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    /* Prevent viewport shifts */
+    position: relative;
+    /* Ensure proper stacking */
+    z-index: 1;
+  }
+  
+  .content textarea {
+    /* Prevent iOS Safari zoom on focus */
+    font-size: 16px !important;
+    /* Improve text selection on iOS */
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    /* Prevent callouts */
+    -webkit-touch-callout: none;
+    /* Optimize touch interactions */
+    touch-action: manipulation;
+  }
+}
+
+/* High DPI and mobile performance optimizations */
+@media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
+  .background {
+    /* Optimize backdrop filter for mobile */
+    backdrop-filter: blur(6px);
+    /* Reduce GPU load */
+    will-change: auto;
+  }
+  
+  .textarea {
+    /* Optimize text rendering on mobile */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    /* Reduce repaints during typing */
+    will-change: height;
+  }
+}
+
+/* Focus and interaction states */
+.container:focus-within {
+  /* Enhanced focus state */
+  outline: none;
+}
+
+.container:focus-within .background {
+  /* Focus border color already defined above */
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.3);
+}
+
+/* Animation and transition optimizations */
+.background {
+  /* Hardware acceleration */
+  transform: translateZ(0);
+  will-change: border-color, box-shadow;
+}
+
+.textarea {
+  /* Smooth height transitions */
+  will-change: height;
+}
+
+.sendButton {
+  /* Smooth button transitions */
+  will-change: background-color, box-shadow;
+}
+
+/* Accessibility improvements */
+.attachButton:focus,
+.sendButton:focus {
+  outline: 2px solid rgba(52, 211, 153, 0.5);
+  outline-offset: 2px;
+}
+
+/* Prevent text selection on buttons */
+.attachButton,
+.sendButton {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Ensure proper layering */
+.container {
+  /* Ensure message input is properly layered */
+  z-index: 10;
+  /* Isolation context */
+  isolation: isolate;
+}
+
+/* Mobile text selection fix - ensure proper layering for MessageInput */
+.messageInputContainer {
+  position: relative;
+  isolation: isolate;
+}
+
+.messageInputBackground {
+  pointer-events: none;
+  z-index: 1;
+}
+
+.messageInputContent {
+  z-index: 2;
+  position: relative;
+}

@@ -1,0 +1,304 @@
+/* Sidebar Component CSS Module */
+/* Extracted scrollbar styling to use global scrollbar utilities */
+
+/* Main sidebar container */
+.container {
+  border-right: 1px solid rgba(75, 85, 99, 0.5); /* border-gray-600/50 */
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+}
+
+.containerTransition {
+  transition: all 0.3s ease;
+}
+
+/* Sidebar header */
+.header {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.5); /* border-gray-600/50 */
+}
+
+/* Search container */
+.searchContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+/* Search input */
+.searchInput {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  color: white;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.searchInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.5);
+}
+
+.searchInput::placeholder {
+  color: rgba(156, 163, 175, 0.8);
+}
+
+/* Header buttons */
+.headerButton {
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.headerButton:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.searchCancelButton {
+  composes: headerButton;
+  margin-left: 8px;
+}
+
+/* Header title */
+.headerTitle {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  letter-spacing: -0.025em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Loading spinner */
+.loadingSpinner {
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(52, 211, 153, 1);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Offline indicator */
+.offlineIndicator {
+  width: 8px;
+  height: 8px;
+  background-color: rgba(239, 68, 68, 1);
+  border-radius: 50%;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* New chat button */
+.newChatButton {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+
+.newChatButtonActive {
+  background-color: rgba(5, 150, 105, 1); /* bg-emerald-600 */
+}
+
+.newChatButtonDefault {
+  background-color: rgba(31, 41, 55, 1); /* bg-gray-800 */
+}
+
+.newChatButtonDefault:hover {
+  background-color: rgba(55, 65, 81, 1); /* hover:bg-gray-700 */
+}
+
+.newChatButtonActive:hover {
+  background-color: rgba(4, 120, 87, 1); /* hover:bg-emerald-700 */
+}
+
+.newChatButtonContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.newChatButtonText {
+  margin-left: 8px;
+}
+
+/* Chat history container */
+.chatHistory {
+  flex: 1;
+  padding: 8px 0;
+}
+
+/* Error message */
+.errorMessage {
+  font-size: 12px;
+  color: rgba(251, 146, 60, 1); /* text-orange-400 */
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  background-color: rgba(249, 115, 22, 0.1); /* bg-orange-500/10 */
+  padding: 8px;
+  margin: 0 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(249, 115, 22, 0.2); /* border-orange-500/20 */
+}
+
+/* Loading text */
+.loadingText {
+  font-size: 12px;
+  color: rgba(156, 163, 175, 1); /* text-gray-400 */
+  padding: 0 12px 0 16px;
+}
+
+/* Section header */
+.sectionHeader {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(156, 163, 175, 1); /* text-gray-400 */
+  padding: 0 12px 12px 16px;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Empty state */
+.emptyState {
+  font-size: 12px;
+  color: rgba(156, 163, 175, 1); /* text-gray-400 */
+  padding: 0 12px 0 16px;
+}
+
+/* Conversation item */
+.conversationItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  margin: 0 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  group: true;
+}
+
+.conversationItemActive {
+  /* Glass card effect will be handled by global classes */
+}
+
+.conversationItemInactive:hover {
+  /* Glass card effect will be handled by global classes */
+}
+
+.conversationTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(243, 244, 246, 1); /* text-gray-100 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.6;
+  padding-right: 8px;
+}
+
+.deleteButton {
+  opacity: 0;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  color: rgba(156, 163, 175, 1); /* text-gray-400 */
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.conversationItem:hover .deleteButton {
+  opacity: 1;
+}
+
+.deleteButton:hover {
+  color: white;
+  border-color: rgba(239, 68, 68, 0.6); /* hover:border-red-500/60 */
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2); /* hover:shadow-red-500/20 */
+}
+
+/* Auth button container */
+.authContainer {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+}
+
+/* Responsive adjustments */
+@media (min-width: 640px) {
+  .header {
+    padding: 16px;
+  }
+  
+  .loadingText,
+  .sectionHeader,
+  .emptyState {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .conversationItem {
+    padding: 8px 12px;
+    margin: 0 12px;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .chatHistory {
+    /* Optimize scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .container,
+  .conversationItem,
+  .headerButton,
+  .newChatButton,
+  .deleteButton {
+    transition: none;
+  }
+  
+  .loadingSpinner,
+  .offlineIndicator {
+    animation: none;
+  }
+}

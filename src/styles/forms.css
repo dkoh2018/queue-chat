@@ -1,0 +1,82 @@
+/* Forms Utility Module */
+/* Scrollbar styling moved to src/styles/scrollbar.css */
+
+/* Fix text selection visibility in transparent textareas */
+textarea::selection {
+  background: rgba(59, 130, 246, 0.6) !important;
+  color: white !important;
+}
+
+textarea::-moz-selection {
+  background: rgba(59, 130, 246, 0.6) !important;
+  color: white !important;
+}
+
+/* Enhanced text selection for mobile devices */
+textarea, input {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Ensure text selection is visible on mobile */
+textarea::selection, input::selection {
+  background: rgba(59, 130, 246, 0.7) !important;
+  color: white !important;
+}
+
+textarea::-moz-selection, input::-moz-selection {
+  background: rgba(59, 130, 246, 0.7) !important;
+  color: white !important;
+}
+
+/* Fix mobile text selection layering - Critical for iOS Safari */
+@media (max-width: 768px) {
+  textarea, input {
+    position: relative;
+    z-index: 100 !important;
+    /* Force hardware acceleration for better mobile performance */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    /* Optimize for text selection on mobile */
+    will-change: contents;
+    /* Ensure proper stacking context isolation */
+    isolation: isolate;
+  }
+  
+  /* Mobile Safari specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    textarea {
+      /* Force text selection to render above backdrop filters */
+      -webkit-transform: translate3d(0, 0, 1px);
+      transform: translate3d(0, 0, 1px);
+      /* Ensure selection highlight is visible */
+      -webkit-user-select: text !important;
+      /* Prevent backdrop filter interference */
+      contain: layout style;
+    }
+    
+    textarea::selection {
+      background: rgba(59, 130, 246, 0.8) !important;
+      color: white !important;
+      /* Force selection to render on top */
+      position: relative;
+      z-index: 999;
+    }
+  }
+}
+
+/* Additional mobile text selection fixes */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch devices */
+  textarea {
+    /* Prevent backdrop filter from interfering with selection */
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    /* Ensure proper layering */
+    z-index: 200 !important;
+    /* Force compositing layer for better performance */
+    will-change: transform, contents;
+  }
+} 

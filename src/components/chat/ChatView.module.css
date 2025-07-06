@@ -1,0 +1,148 @@
+/* ChatView Component CSS Module */
+/* Extracted scrollbar styling to use global scrollbar utilities */
+
+/* Main chat container with scrolling */
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px;
+  min-height: 0;
+}
+
+/* Content wrapper */
+.content {
+  max-width: 896px; /* max-w-4xl */
+  width: 100%;
+  margin: 0 auto;
+  padding-top: 3rem;
+  padding-bottom: 15rem;
+}
+
+/* Message spacing */
+.messageSpacing {
+  margin-bottom: 16px;
+}
+
+/* User message container */
+.userMessageContainer {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+/* Assistant message container */
+.assistantMessageContainer {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 16px;
+}
+
+/* User message bubble */
+.userMessage {
+  background-color: rgba(31, 41, 55, 1); /* bg-gray-800 */
+  color: white;
+  border-radius: 16px;
+  border-bottom-right-radius: 6px;
+  padding: 8px 12px;
+  border: 1px solid rgba(55, 65, 81, 0.5); /* border-gray-700/50 */
+  max-width: 85%;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Assistant message content */
+.assistantMessage {
+  color: rgba(243, 244, 246, 1); /* text-gray-100 */
+  width: 100%;
+  max-width: 95%;
+}
+
+/* User message text */
+.userMessageText {
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 500;
+  white-space: pre-wrap;
+  word-break: break-words;
+}
+
+/* Assistant message prose styling */
+.assistantMessageProse {
+  /* Prose styling will be handled by the prose classes */
+  max-width: none;
+}
+
+/* Loading container */
+.loadingContainer {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 16px;
+}
+
+.loadingContent {
+  color: rgba(243, 244, 246, 1); /* text-gray-100 */
+  width: 100%;
+  max-width: 95%;
+}
+
+.loadingProse {
+  max-width: none;
+}
+
+/* Responsive adjustments */
+@media (min-width: 640px) {
+  .container {
+    padding: 16px 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 32px 32px;
+  }
+  
+  .content {
+    /* Larger spacing on desktop */
+    gap: 96px; /* space-y-24 equivalent */
+  }
+  
+  .messageSpacing {
+    margin-bottom: 32px;
+  }
+  
+  .userMessageContainer,
+  .assistantMessageContainer,
+  .loadingContainer {
+    margin-bottom: 32px;
+  }
+  
+  .userMessage {
+    padding: 12px 20px;
+    max-width: 80%;
+  }
+  
+  .assistantMessage,
+  .loadingContent {
+    max-width: 100%;
+  }
+  
+  .userMessageText {
+    font-size: 15px;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .container {
+    /* Optimize scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .container {
+    scroll-behavior: auto;
+  }
+}
