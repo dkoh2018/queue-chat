@@ -1,6 +1,6 @@
 import { BaseIntegration } from '../base';
 import { IntegrationConfig, IntegrationContext, IntegrationProcessResult } from '../types';
-import { MermaidIcon } from '@/components/icons';
+import { MermaidIcon } from './MermaidIcon';
 import { MERMAID_EXPERT_PROMPT } from '@/lib/prompts/mermaid';
 
 export class MermaidIntegration extends BaseIntegration {

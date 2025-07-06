@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks';
 
 export const LoginPage = () => {
   const { signInWithGoogle, loading, error } = useAuth();

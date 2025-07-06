@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useConversations, useChat, useAuth } from '@/hooks';
 import { Conversation } from '@/types';
-import { optimizationService } from '@/services/api/optimization.service';
+import { optimizationService } from '@/services';
 import { AuthGate } from '@/components/auth/AuthGate';
 import Sidebar from '@/components/features/sidebar/Sidebar';
 import { ChatView } from '@/components/chat/ChatView';

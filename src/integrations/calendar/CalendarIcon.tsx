@@ -26,4 +26,4 @@ export const CalendarIcon = () => (
     <circle cx="8.5" cy="12" r="0.8" fill="#34a853"/>
     <circle cx="11" cy="12" r="0.8" fill="#1a73e8"/>
   </svg>
-);
+); 

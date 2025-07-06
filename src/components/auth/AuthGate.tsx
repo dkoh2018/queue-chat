@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { LoginPage } from './LoginPage';
 

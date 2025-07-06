@@ -1,6 +1,6 @@
 import { BaseIntegration } from '../base';
 import { IntegrationConfig, IntegrationContext, IntegrationProcessResult } from '../types';
-import { CalendarIcon } from '@/components/icons';
+import { CalendarIcon } from './CalendarIcon';
 import { calendarPipeline } from './pipeline';
 
 export class CalendarIntegration extends BaseIntegration {

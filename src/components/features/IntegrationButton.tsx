@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { IntegrationType, Integration } from '@/types';
-import { CalendarIcon, MermaidIcon, IntegrationIcon, CheckIcon } from '@/components/icons';
+import { IntegrationIcon, CheckIcon } from '@/components/icons';
+import { CalendarIcon } from '@/integrations/calendar/CalendarIcon';
+import { MermaidIcon } from '@/integrations/mermaid/MermaidIcon';
 import styles from './IntegrationButton.module.css';
 
 interface IntegrationButtonProps {
