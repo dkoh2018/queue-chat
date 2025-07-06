@@ -84,7 +84,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isEnlarged, setIsEnlarged] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(1.2); // Default 120%
+  const [zoomLevel, setZoomLevel] = useState(1.5); // Default 150%
   const id = useId();
   const graphId = `mermaid-graph-${id}`;
 
@@ -94,7 +94,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
 
   const handleCloseEnlarged = () => {
     setIsEnlarged(false);
-    setZoomLevel(1.2); // Reset zoom when closing
+    setZoomLevel(1.5); // Reset zoom when closing
   };
 
   const handleZoomIn = () => {
@@ -106,7 +106,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
   };
 
   const handleResetZoom = () => {
-    setZoomLevel(1.2); // Reset to default 120%
+    setZoomLevel(1.5); // Reset to default 150%
   };
 
   // Handle ESC key to close enlarged view
@@ -242,7 +242,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
               {/* Zoom In */}
               <button
                 onClick={handleZoomIn}
-                disabled={zoomLevel >= 1.5}
+                disabled={zoomLevel >= 2.5}
                 className="w-10 h-10 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 title="Zoom in"
               >
@@ -267,7 +267,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
               <button
                 onClick={handleResetZoom}
                 className="w-10 h-10 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
-                title="Reset zoom (120%)"
+                title="Reset zoom (150%)"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -282,7 +282,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
             
             {/* Enlarged diagram container */}
             <div className="w-full h-full p-8 sm:p-10 lg:p-12 overflow-auto chat-scroll">
-              <div className="flex items-start justify-start min-h-full">
+              <div className="flex items-center justify-start min-h-full">
                 <div
                   dangerouslySetInnerHTML={{
                     __html: containerRef.current?.innerHTML || ''
@@ -290,7 +290,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
                   className="w-full max-w-none"
                   style={{
                     transform: `scale(${zoomLevel})`,
-                    transformOrigin: 'top left'
+                    transformOrigin: 'center left'
                   }}
                 />
               </div>
