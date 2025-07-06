@@ -57,7 +57,7 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
 
       {/* Integration Options Popup */}
       {isOpen && (
-        <div className="absolute bottom-full left-0 mb-2 bg-gray-800/95 backdrop-blur-sm border border-gray-600/50 rounded-md shadow-lg py-2 min-w-[140px] z-50">
+        <div className="absolute bottom-full left-0 mb-2 bg-gray-800/95 backdrop-blur-sm border border-gray-600/50 rounded-md shadow-lg py-2.5 min-w-[160px] z-50">
           {/* Integration Options */}
           {integrations.map((integration) => {
             const IconComponent = integration.icon;
@@ -71,19 +71,19 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
                   onIntegrationSelect(integration.id);
                   // Don't close the dropdown - keep it open for multiple selections
                 }}
-                className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center space-x-2.5 ${
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center space-x-3 ${
                   isActive
                     ? 'bg-emerald-500/20 text-emerald-400'
                     : 'text-gray-300 hover:bg-gray-700/50'
                 }`}
               >
-                <div className="w-3.5 h-3.5 flex-shrink-0 flex items-center justify-center">
+                <div className="w-4 h-4 flex-shrink-0 flex items-center justify-center">
                   <IconComponent />
                 </div>
                 <span className="font-medium">{integration.name}</span>
                 {isActive && (
                   <div className="ml-auto text-emerald-400">
-                    <CheckIcon className="w-3 h-3" />
+                    <CheckIcon className="w-3.5 h-3.5" />
                   </div>
                 )}
               </button>

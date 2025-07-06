@@ -40,38 +40,32 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
     }
   }, [voiceState.rawTranscription, inputText, setInputText]);
 
-  // Auto-resize textarea with line-by-line expansion
+  // Simplified auto-resize - less jumpy, more stable
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      // Reset height to minimum to get accurate scrollHeight
+      // Start with a comfortable base height
+      const baseHeight = 60; // Fixed base height
+      const maxHeight = 160;  // Max height before scrolling
+      
+      // Calculate if content would naturally overflow the base height
       textarea.style.height = 'auto';
-      
-      // Calculate line height more precisely
-      const computedStyle = window.getComputedStyle(textarea);
-      const lineHeight = parseInt(computedStyle.lineHeight);
-      
-      // Define compact heights (ChatGPT-style)
-      const minHeight = lineHeight * 1.5; // Start very compact (~1.5 lines)
-      const maxHeight = lineHeight * 8; // Max 8 lines before scroll
-      
-      // If no content, use minimum height
-      if (!inputText.trim()) {
-        textarea.style.height = `${minHeight}px`;
-        textarea.style.overflowY = 'hidden';
-        return;
-      }
-      
-      // Calculate needed height based on content
       const scrollHeight = textarea.scrollHeight;
-      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
       
-      textarea.style.height = `${newHeight}px`;
-      
-      // Enable scrolling only when max height is reached
-      if (newHeight >= maxHeight) {
-        textarea.style.overflowY = 'auto';
+      // Only grow if content naturally exceeds base height + some buffer
+      const buffer = 10; // Small buffer to prevent premature growth
+      if (scrollHeight > baseHeight + buffer) {
+        const newHeight = Math.min(scrollHeight, maxHeight);
+        textarea.style.height = `${newHeight}px`;
+        
+        if (newHeight >= maxHeight) {
+          textarea.style.overflowY = 'auto';
+        } else {
+          textarea.style.overflowY = 'hidden';
+        }
       } else {
+        // Keep base height for content that fits comfortably
+        textarea.style.height = `${baseHeight}px`;
         textarea.style.overflowY = 'hidden';
       }
     }
@@ -99,7 +93,7 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
                 padding: '20px',
                 fontSize: '16px',
                 lineHeight: '1.5',
-                minHeight: '55px',
+                height: '60px',
               }}
             >
               <TypingDots />
@@ -126,22 +120,16 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
                 fontSize: '16px',
                 lineHeight: '1.5',
                 wordBreak: 'break-word',
-                minHeight: '55px',
-                maxHeight: '240px',
-                transition: 'height 0.2s ease',
+                height: '60px', // Base height
                 background: 'transparent',
                 position: 'relative',
-                zIndex: 100, // High z-index for mobile text selection
-                // Mobile optimization
-                WebkitTransform: 'translateZ(0)',
-                transform: 'translateZ(0)',
-                isolation: 'isolate'
+                transition: 'height 0.15s ease', // Smoother transition
               }}
             />
           )}
           
           {/* Buttons Container */}
-          <div className="flex justify-between items-center p-2" style={{ zIndex: 50 }}>
+          <div className="flex justify-between items-center p-2">
             {/* Tool Buttons */}
             <div className="flex items-center space-x-1">
               <button

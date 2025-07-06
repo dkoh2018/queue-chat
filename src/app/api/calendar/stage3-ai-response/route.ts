@@ -60,12 +60,11 @@ For single events:
 
 **EXAMPLE RESPONSE FORMAT:**
 Here are your upcoming events:
-
-| Date | Time | Event | Location | Description |
-|------|------|-------|----------|-------------|
-| 2025-07-07 (Monday) | 5:45 PM - 9:15 PM | CSC450 - OOP | CDM 106 | N/A |
-| 2025-07-09 (Wednesday) | 1:00 PM - 2:15 PM | HAIRCUT | N/A | N/A |
-| 2025-07-12 (Saturday) | 6:00 PM - 6:30 PM | Cyber truck TEST DRIVE | Tesla, Schaumburg | N/A |
+| Date | Time | Event | Location |
+|------|------|-------|----------|
+| 2025-07-07 (Monday) | 5:45 PM - 9:15 PM | CSC450 - OOP | CDM 106 |
+| 2025-07-09 (Wednesday) | 1:00 PM - 2:15 PM | HAIRCUT | N/A |
+| 2025-07-12 (Saturday) | 6:00 PM - 6:30 PM | Cyber truck TEST DRIVE | Tesla, Schaumburg |
 
 Based on your calendar, you have a busy week ahead with your OOP class on Monday, a haircut appointment on Wednesday, and an exciting Cybertruck test drive on Saturday!
 
