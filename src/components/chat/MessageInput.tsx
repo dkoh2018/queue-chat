@@ -123,7 +123,7 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
               transition: 'height 0.2s ease',
               background: 'rgba(31, 41, 55, 0.01)',
               position: 'relative',
-              zIndex: 1
+              zIndex: 10
             }}
           />
         )}
