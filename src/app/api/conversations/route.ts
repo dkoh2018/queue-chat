@@ -35,6 +35,18 @@ export async function GET(request: NextRequest) {
         ) || []
       })) || [];
 
+      // **DEBUG**: Log conversation ordering from database
+      console.log('📊 API: Conversations ordered by updatedAt DESC', {
+        count: conversationsWithSortedMessages.length,
+        timestamp: new Date().toISOString(),
+        conversations: conversationsWithSortedMessages.slice(0, 5).map(c => ({
+          id: c.id.slice(0, 8),
+          title: c.title?.slice(0, 30) || 'Untitled',
+          updatedAt: c.updated_at,
+          messageCount: c.messages?.length || 0
+        }))
+      });
+
       logger.info('User conversations fetched successfully', 'DATABASE', {
         userId: user.id,
         count: conversationsWithSortedMessages.length

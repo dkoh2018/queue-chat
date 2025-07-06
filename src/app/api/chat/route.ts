@@ -196,6 +196,14 @@ export async function POST(request: NextRequest) {
               data: { updatedAt: new Date() },
             });
 
+            // **DEBUG**: Log conversation timestamp update
+            console.log('🕐 API: Conversation updatedAt timestamp updated', {
+              conversationId: conversation.id.slice(0, 8),
+              userId: user.id,
+              timestamp: new Date().toISOString(),
+              newUpdatedAt: new Date().toISOString()
+            });
+
             logger.info('Calendar integration returned final response directly', 'CALENDAR', {
               userId: user.id,
               calendarProcessed: result.context?.calendarProcessed || false,
@@ -275,6 +283,14 @@ export async function POST(request: NextRequest) {
     await prisma.conversation.update({
       where: { id: conversation.id },
       data: { updatedAt: new Date() },
+    });
+
+    // **DEBUG**: Log conversation timestamp update
+    console.log('🕐 API: Conversation updatedAt timestamp updated', {
+      conversationId: conversation.id.slice(0, 8),
+      userId: user.id,
+      timestamp: new Date().toISOString(),
+      newUpdatedAt: new Date().toISOString()
     });
 
     // Log chat completion for authenticated user

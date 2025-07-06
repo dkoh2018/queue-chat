@@ -97,7 +97,16 @@ function MainChatInterface() {
     deleteConversation,
     setCurrentConversationId,
     clearAllData: clearConversationData,
+    handleMessageSent,
+    handleConversationSelected,
+    handleConversationDeleted,
   } = useConversations();
+
+  // **CLEAN EVENT-DRIVEN SYSTEM**: Simple event handler for message sending
+  const handleChatMessageSent = useCallback((conversationId: string) => {
+    // Trigger the conversation update event
+    handleMessageSent(conversationId);
+  }, [handleMessageSent]);
 
   const {
     messages,
@@ -115,7 +124,7 @@ function MainChatInterface() {
     toggleIntegration,
     error,
     clearError,
-  } = useChat(user ? fetchConversations : undefined);
+  } = useChat(handleChatMessageSent); // **CONNECTED**: Event-driven system
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -147,7 +156,7 @@ function MainChatInterface() {
     }
   }, [currentConversationId]);
 
-  // Load conversations from database on mount
+  // **SIMPLIFIED**: Load conversations from database on mount - no complex effects
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
@@ -157,15 +166,19 @@ function MainChatInterface() {
     if (currentConversationId && conversations.length > 0) {
       const conversation = conversations.find(c => c.id === currentConversationId);
       if (conversation) {
-        // Restore messages for the current conversation
-        const uiMessages = conversation.messages.map(msg => ({
-          role: msg.role.toLowerCase() as 'user' | 'assistant',
-          content: msg.content
-        }));
-        setMessages(uiMessages);
+        // **FIX**: Don't override messages during active chat processing
+        // Only restore messages if we're not currently processing or loading
+        // AND if there are no messages in the chat state (prevent overriding live chat)
+        if (!isLoading && !isProcessingQueue && messages.length === 0) {
+          const uiMessages = conversation.messages.map(msg => ({
+            role: msg.role.toLowerCase() as 'user' | 'assistant',
+            content: msg.content
+          }));
+          setMessages(uiMessages);
+        }
       }
     }
-  }, [currentConversationId, conversations, setMessages]);
+  }, [currentConversationId, conversations, setMessages, isLoading, isProcessingQueue, messages.length]);
 
   // Load sidebar state from localStorage after mount (client-side only)
   useEffect(() => {
@@ -306,17 +319,22 @@ function MainChatInterface() {
     }
   };
 
-  const handleSelectConversation = (conversation: Conversation) => {
+  const handleSelectConversation = async (conversation: Conversation) => {
+    // **EVENT**: Trigger conversation selected event
+    handleConversationSelected(conversation.id);
+    
     // Set current conversation in conversations hook FIRST
     selectConversation(conversation);
     
-    // Convert database messages to UI format and load them
+    // **SIMPLIFIED**: No complex stale data checking - just load the conversation
     const uiMessages = conversation.messages.map(msg => ({
       role: msg.role.toLowerCase() as 'user' | 'assistant',
       content: msg.content
     }));
     
-    // Set messages in chat hook
+    // **FIX**: Clear any pending messages and set conversation messages
+    // This is safe because user intentionally switched conversations
+    clearMessages(); // Clear the chat hook state first
     setMessages(uiMessages);
     
     // Restore saved scroll position for this conversation
@@ -338,6 +356,9 @@ function MainChatInterface() {
     if (!conversationToDelete) return;
     
     try {
+      // **EVENT**: Trigger conversation deleted event
+      handleConversationDeleted(conversationToDelete.id);
+      
       await deleteConversation(conversationToDelete.id);
       
       // If we're deleting the current conversation, start a new one

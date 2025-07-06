@@ -6,18 +6,6 @@ import { getIntegrationsByIds, IntegrationProcessResult } from '@/integrations';
 import { useTokenRefresh } from './useTokenRefresh';
 import { supabase } from '@/lib/supabase';
 
-// Helper function to log to server terminal
-const logToServer = async (message: string, data?: unknown) => {
-  try {
-    await fetch('/api/debug-log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, data })
-    });
-  } catch {
-    // Silently fail - don't break the app for logging
-  }
-};
 
 interface UseChatReturn {
   messages: UIMessage[];
@@ -38,7 +26,7 @@ interface UseChatReturn {
   clearError: () => void;
 }
 
-export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
+export const useChat = (onMessageSent?: (conversationId: string) => void): UseChatReturn => {
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [messageQueue, setMessageQueue] = useState<string[]>([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
@@ -50,6 +38,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
   // Use refs to avoid stale closures
   const messagesRef = useRef<UIMessage[]>([]);
   const processingRef = useRef<boolean>(false);
+  const messageSentRef = useRef<((conversationId: string) => void) | undefined>(onMessageSent);
   
   // Keep token refresh hook for backward compatibility
   useTokenRefresh();
@@ -63,8 +52,12 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     processingRef.current = isProcessingQueue;
   }, [isProcessingQueue]);
 
+  useEffect(() => {
+    messageSentRef.current = onMessageSent;
+  }, [onMessageSent]);
+
   const processQueue = useCallback(async () => {
-    // Simple guard - only one process at a time
+    // Enhanced guard - prevent multiple simultaneous processing
     if (processingRef.current || messageQueue.length === 0) {
       return;
     }
@@ -79,6 +72,11 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     setError(null);
 
     try {
+      // **IMMEDIATE**: Update conversation order FIRST for instant feedback
+      if (messageSentRef.current && currentConversationId) {
+        messageSentRef.current(currentConversationId);
+      }
+      
       // Add user message immediately for instant feedback
       const userMessage: UIMessage = { role: 'user', content: text };
       setMessages(prev => [...prev, userMessage]);
@@ -90,12 +88,6 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       const currentMessages = [...messagesRef.current, userMessage];
       const conversationHistory = currentMessages.slice(-UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT);
       
-      // Log to server
-      logToServer('Processing message:', {
-        message: text.slice(0, 50) + (text.length > 50 ? '...' : ''),
-        historyLength: conversationHistory.length,
-        activeIntegrations: activeIntegrations.length
-      });
 
       // Process integrations if needed
       const integrationResults: IntegrationProcessResult[] = [];
@@ -163,24 +155,18 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
         
         setMessages(prev => [...prev, assistantMessage]);
 
-        // Update conversations
-        if (onConversationUpdate) {
-          onConversationUpdate();
+        // Update conversations again after assistant response
+        if (messageSentRef.current && chatResponse.conversationId) {
+          messageSentRef.current(chatResponse.conversationId);
         }
 
         // Remove processed message from queue
         setMessageQueue(prev => prev.slice(1));
-        
-        logToServer('Message processed successfully:', {
-          responseLength: chatResponse.content.length,
-          conversationId: chatResponse.conversationId
-        });
       } else {
         throw new Error('Invalid response from API');
       }
 
     } catch (err) {
-      console.error('Chat processing error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
       setError(errorMessage);
       
@@ -188,15 +174,11 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       setMessageQueue(prev => prev.slice(1));
       
       // Don't remove the user message from UI - let user see what failed
-      logToServer('Message processing failed:', {
-        error: errorMessage,
-        message: text.slice(0, 50)
-      });
     } finally {
       setIsLoading(false);
       setIsProcessingQueue(false);
     }
-  }, [messageQueue, currentConversationId, activeIntegrations, onConversationUpdate]);
+  }, [messageQueue, currentConversationId, activeIntegrations, onMessageSent]);
 
   // Process queue when new messages arrive
   useEffect(() => {
@@ -219,8 +201,14 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       return;
     }
     
-    // Simple duplicate check - only prevent identical messages in queue
-    if (messageQueue.includes(trimmedText)) {
+    // Enhanced duplicate prevention - check both queue and recent messages
+    const recentMessages = messagesRef.current.slice(-3); // Check last 3 messages
+    const isDuplicateInQueue = messageQueue.includes(trimmedText);
+    const isDuplicateInRecent = recentMessages.some(msg => 
+      msg.role === 'user' && msg.content === trimmedText
+    );
+    
+    if (isDuplicateInQueue || isDuplicateInRecent) {
       return;
     }
     
@@ -231,11 +219,6 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     
     // Add to queue
     setMessageQueue(prev => [...prev, trimmedText]);
-    
-    logToServer('Message added to queue:', {
-      message: trimmedText.slice(0, 50) + (trimmedText.length > 50 ? '...' : ''),
-      queueLength: messageQueue.length + 1
-    });
   }, [messageQueue, currentConversationId]);
 
   const clearMessages = useCallback(() => {

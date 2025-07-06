@@ -95,6 +95,11 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
   const handleCloseEnlarged = () => {
     setIsEnlarged(false);
     setZoomLevel(1.5); // Reset zoom when closing
+    
+    // Force a layout recalculation to ensure proper cleanup
+    requestAnimationFrame(() => {
+      document.body.offsetHeight;
+    });
   };
 
   const handleZoomIn = () => {
@@ -119,14 +124,22 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
 
     if (isEnlarged) {
       document.addEventListener('keydown', handleKeyDown);
-      // Prevent body scroll when modal is open - save original value
-      const originalOverflow = document.body.style.overflow;
+      // Store original overflow values more safely
+      const originalBodyOverflow = document.body.style.overflow;
+      const originalHtmlOverflow = document.documentElement.style.overflow;
+      
+      // Apply overflow hidden to prevent background scrolling
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
       
       return () => {
         document.removeEventListener('keydown', handleKeyDown);
-        // Restore original overflow value instead of forcing 'unset'
-        document.body.style.overflow = originalOverflow;
+        // Restore original overflow values safely
+        document.body.style.overflow = originalBodyOverflow;
+        document.documentElement.style.overflow = originalHtmlOverflow;
+        
+        // Force a layout recalculation to prevent any lingering scaling issues
+        document.body.offsetHeight;
       };
     }
   }, [isEnlarged]);
@@ -224,7 +237,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
 
       {/* Enlarged Modal */}
       {isEnlarged && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[9999] flex items-center justify-center p-6 sm:p-8 lg:p-12">
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-6 sm:p-8 lg:p-12">
           <div className="relative w-full max-w-[92vw] lg:max-w-[88vw] xl:max-w-[85vw] h-full max-h-[90vh] lg:max-h-[88vh] bg-slate-900/95 backdrop-blur-sm rounded-xl border border-slate-600/60 shadow-2xl overflow-hidden">
             {/* Close button */}
             <button
@@ -290,7 +303,10 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
                   className="w-full max-w-none"
                   style={{
                     transform: `scale(${zoomLevel})`,
-                    transformOrigin: 'center left'
+                    transformOrigin: 'center left',
+                    // Prevent transform from affecting parent layout
+                    containIntrinsicSize: 'none',
+                    contain: 'layout style'
                   }}
                 />
               </div>

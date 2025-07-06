@@ -14,11 +14,10 @@ export const ChatView = memo(forwardRef<HTMLDivElement, ChatViewProps>(({ messag
   
   return (
     <div ref={ref} className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 sm:px-6 lg:px-8 py-4 lg:py-8 min-h-0">
-      <div className="max-w-4xl w-full mx-auto space-y-8 md:space-y-24" style={{ paddingBottom: '15rem' }}>
+      <div className="max-w-4xl w-full mx-auto space-y-8 md:space-y-24" style={{ paddingTop: '3rem', paddingBottom: '15rem' }}>
         {safeMessages.map((msg, index) => {
           // Ensure each message has required properties
           if (!msg || typeof msg !== 'object' || !msg.role || !msg.content) {
-            console.warn('Invalid message at index', index, msg);
             return null;
           }
           
