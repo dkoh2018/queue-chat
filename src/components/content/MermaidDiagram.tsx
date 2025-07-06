@@ -106,7 +106,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
   };
 
   const handleResetZoom = () => {
-    setZoomLevel(1.5); // Reset to default 125%
+    setZoomLevel(1.2); // Reset to default 120%
   };
 
   // Handle ESC key to close enlarged view
@@ -229,7 +229,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
             {/* Close button */}
             <button
               onClick={handleCloseEnlarged}
-              className="absolute top-4 right-4 p-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 z-20 shadow-lg hover:shadow-xl"
+              className="absolute top-4 right-4 w-10 h-10 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 z-20 shadow-lg hover:shadow-xl flex items-center justify-center"
               title="Close enlarged view (ESC)"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,13 +237,13 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
               </svg>
             </button>
             
-            {/* Zoom controls */}
+            {/* Zoom controls - Inside modal but outside scrollable area */}
             <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-20">
               {/* Zoom In */}
               <button
                 onClick={handleZoomIn}
                 disabled={zoomLevel >= 1.5}
-                className="p-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-10 h-10 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 title="Zoom in"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,7 +255,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
               <button
                 onClick={handleZoomOut}
                 disabled={zoomLevel <= 0.5}
-                className="p-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-10 h-10 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 title="Zoom out"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -266,7 +266,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
               {/* Reset Zoom */}
               <button
                 onClick={handleResetZoom}
-                className="p-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="w-10 h-10 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
                 title="Reset zoom (120%)"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,7 +275,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
               </button>
               
               {/* Zoom percentage indicator */}
-              <div className="px-2 py-1 bg-slate-800/90 text-slate-300 text-xs rounded border border-slate-600/50 text-center font-mono">
+              <div className="w-10 h-6 bg-slate-800/90 text-slate-300 text-xs rounded border border-slate-600/50 text-center font-mono flex items-center justify-center">
                 {Math.round(zoomLevel * 100)}%
               </div>
             </div>
