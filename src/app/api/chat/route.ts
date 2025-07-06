@@ -321,4 +321,3 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Token retrieval is now handled by the unified token-utils module imported above
