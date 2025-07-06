@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { logger } from '@/utils/logger';
 
 export async function POST(request: Request) {
   const { userInput, conversationHistory = [] } = await request.json();
@@ -73,10 +74,11 @@ export async function POST(request: Request) {
     const optimizedInput = data.choices?.[0]?.message?.content ?? userInput;
 
     // Log optimization comparison
-    console.log('🔧 INPUT OPTIMIZATION:');
-    console.log(`   Original: "${userInput.slice(0, 80)}${userInput.length > 80 ? '...' : ''}"`);
-    console.log(`   Optimized: "${optimizedInput.slice(0, 80)}${optimizedInput.length > 80 ? '...' : ''}"`);
-    console.log(`   Improvement: ${optimizedInput.length - userInput.length > 0 ? '+' : ''}${optimizedInput.length - userInput.length} chars`);
+    logger.api('INPUT OPTIMIZATION', {
+      original: `${userInput.slice(0, 80)}${userInput.length > 80 ? '...' : ''}`,
+      optimized: `${optimizedInput.slice(0, 80)}${optimizedInput.length > 80 ? '...' : ''}`,
+      improvement: `${optimizedInput.length - userInput.length > 0 ? '+' : ''}${optimizedInput.length - userInput.length} chars`
+    });
 
     return NextResponse.json({
       originalInput: userInput,

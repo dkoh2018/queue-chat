@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { logger } from '@/utils/logger';
 
 // Security constants
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB (30 seconds of audio should be ~1-2MB)
@@ -85,7 +86,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Empty audio file' }, { status: 400 });
     }
 
-    console.log('🎤 Processing audio file:', {
+    logger.api('Processing audio file', {
       name: audioFile.name,
       type: audioFile.type,
       size: `${(audioFile.size / 1024).toFixed(1)}KB`,
@@ -106,7 +107,7 @@ export async function POST(request: Request) {
     });
 
     // Call OpenAI Whisper API
-    console.log('🔊 Calling OpenAI Whisper API...');
+    logger.api('Calling OpenAI Whisper API');
     const transcriptionStart = Date.now();
     
     const transcription = await openai.audio.transcriptions.create({
@@ -120,7 +121,7 @@ export async function POST(request: Request) {
     const transcriptionTime = Date.now() - transcriptionStart;
     const totalTime = Date.now() - startTime;
 
-    console.log('✅ Transcription completed:', {
+    logger.api('Transcription completed', {
       transcriptionTime: `${transcriptionTime}ms`,
       totalTime: `${totalTime}ms`,
       textLength: transcription.length,

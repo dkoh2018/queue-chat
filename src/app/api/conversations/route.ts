@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       })) || [];
 
       // **DEBUG**: Log conversation ordering from database
-      console.log('📊 API: Conversations ordered by updatedAt DESC', {
+      logger.api('Conversations ordered by updatedAt DESC', {
         count: conversationsWithSortedMessages.length,
         timestamp: new Date().toISOString(),
         conversations: conversationsWithSortedMessages.slice(0, 5).map(c => ({

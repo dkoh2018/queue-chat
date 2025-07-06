@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
             });
 
             // **DEBUG**: Log conversation timestamp update
-            console.log('🕐 API: Conversation updatedAt timestamp updated', {
+            logger.api('Conversation updatedAt timestamp updated', {
               conversationId: conversation.id.slice(0, 8),
               userId: user.id,
               timestamp: new Date().toISOString(),
@@ -286,7 +286,7 @@ export async function POST(request: NextRequest) {
     });
 
     // **DEBUG**: Log conversation timestamp update
-    console.log('🕐 API: Conversation updatedAt timestamp updated', {
+    logger.api('Conversation updatedAt timestamp updated', {
       conversationId: conversation.id.slice(0, 8),
       userId: user.id,
       timestamp: new Date().toISOString(),
