@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { UIMessage, IntegrationType } from '@/types';
 import { chatService } from '@/services';
 import { UI_CONSTANTS } from '@/utils';
@@ -35,6 +35,7 @@ interface UseChatReturn {
   activeIntegrations: IntegrationType[];
   setActiveIntegrations: (integrations: IntegrationType[]) => void;
   toggleIntegration: (integration: IntegrationType) => void;
+  clearError: () => void;
 }
 
 export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
@@ -44,102 +45,67 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [processingMessage, setProcessingMessage] = useState<string | null>(null);
-  
-  // Keep token refresh hook for backward compatibility (but we use simple approach now)
-  useTokenRefresh();
-  
-  // REQUEST LIMITING SAFEGUARDS
-  const [activeRequests, setActiveRequests] = useState<number>(0);
-  const [lastRequestTime, setLastRequestTime] = useState<number>(0);
-  const [requestHistory, setRequestHistory] = useState<string[]>([]);
-  
-  const MAX_CONCURRENT_REQUESTS = 5;
-  const MIN_REQUEST_INTERVAL = 1000; // 1 second between requests
-  const MAX_DUPLICATE_REQUESTS = 3; // Max same request in history
   const [activeIntegrations, setActiveIntegrations] = useState<IntegrationType[]>([]);
+  
+  // Use refs to avoid stale closures
+  const messagesRef = useRef<UIMessage[]>([]);
+  const processingRef = useRef<boolean>(false);
+  
+  // Keep token refresh hook for backward compatibility
+  useTokenRefresh();
+
+  // Update refs when state changes
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    processingRef.current = isProcessingQueue;
+  }, [isProcessingQueue]);
 
   const processQueue = useCallback(async () => {
-    if (isProcessingQueue || messageQueue.length === 0) {
+    // Simple guard - only one process at a time
+    if (processingRef.current || messageQueue.length === 0) {
       return;
     }
 
     const text = messageQueue[0];
-    
-    // ENHANCED SAFEGUARDS
-    // 1. Prevent duplicate processing
-    if (processingMessage === text) {
-      return;
-    }
-
-    // 2. Check concurrent request limit
-    if (activeRequests >= MAX_CONCURRENT_REQUESTS) {
-      return;
-    }
-
-    // 3. Rate limiting - prevent rapid fire requests
-    const now = Date.now();
-    if (now - lastRequestTime < MIN_REQUEST_INTERVAL) {
-      setTimeout(() => processQueue(), MIN_REQUEST_INTERVAL - (now - lastRequestTime));
-      return;
-    }
-
-    // 4. Check for excessive duplicate requests
-    const duplicateCount = requestHistory.filter(req => req === text).length;
-    if (duplicateCount >= MAX_DUPLICATE_REQUESTS) {
+    if (!text?.trim()) {
       setMessageQueue(prev => prev.slice(1));
-      setError(`Request blocked: Too many identical requests for "${text.slice(0, 50)}..."`);
       return;
     }
 
     setIsProcessingQueue(true);
-    setProcessingMessage(text);
-    setActiveRequests(prev => prev + 1);
-    setLastRequestTime(now);
-    
-    // Add to request history (keep last 10)
-    setRequestHistory(prev => [...prev.slice(-9), text]);
+    setError(null);
 
     try {
-      // FIXED: Clear error first
-      setError(null);
-
-      // FIXED: Create user message and add to UI IMMEDIATELY for instant feedback
+      // Add user message immediately for instant feedback
       const userMessage: UIMessage = { role: 'user', content: text };
-      
-      // ENHANCED CONVERSATION HISTORY: Use current messages state to avoid stale closure
-      // This guarantees both user and assistant messages are included in context
-      const allMessages = [...messages, userMessage];
-      const conversationHistory = allMessages.slice(-UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT);
-      
-      // FIXED: Add user message to UI FIRST (instant feedback)
       setMessages(prev => [...prev, userMessage]);
       
-      // FIXED: Start loading AFTER user message is visible
+      // Start loading indicator
       setIsLoading(true);
       
-      // Log conversation history to server terminal
-      logToServer('Conversation history prepared:', {
-        totalMessages: allMessages.length,
-        historyLength: conversationHistory.length,
-        historyLimit: UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT,
-        userMessages: conversationHistory.filter(m => m.role === 'user').length,
-        assistantMessages: conversationHistory.filter(m => m.role === 'assistant').length
-      });
+      // Prepare conversation history using current state
+      const currentMessages = [...messagesRef.current, userMessage];
+      const conversationHistory = currentMessages.slice(-UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT);
       
+      // Log to server
+      logToServer('Processing message:', {
+        message: text.slice(0, 50) + (text.length > 50 ? '...' : ''),
+        historyLength: conversationHistory.length,
+        activeIntegrations: activeIntegrations.length
+      });
 
+      // Process integrations if needed
       const integrationResults: IntegrationProcessResult[] = [];
-
-      // Process with active integrations
       if (activeIntegrations.length > 0) {
-        // Get active integrations and process the message
         const activeIntegrationInstances = getIntegrationsByIds(activeIntegrations);
         
-        // Process message with each active integration
         for (const integration of activeIntegrationInstances) {
           try {
             const result = await integration.processMessage(text, {
-              userId: 'current-user', // TODO: Get actual user ID
+              userId: 'current-user',
               conversationId: currentConversationId || undefined,
               messageHistory: conversationHistory.map(msg => ({
                 role: msg.role,
@@ -147,101 +113,100 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
               }))
             });
             integrationResults.push(result);
-          } catch {
-            // Integration error handled silently
+          } catch (error) {
+            console.warn('Integration processing failed:', error);
           }
         }
       }
 
+      // Prepare messages for API
       const optimizedMessages: UIMessage[] = [
         ...conversationHistory,
         { role: 'user', content: text },
       ];
 
-      let chatResponse;
-      
-      try {
-        // Get session token for calendar integration (simple approach like test page)
-        let providerToken: string | undefined;
-        if (activeIntegrations.includes('calendar')) {
-          try {
-            // Simple token retrieval like test page - no complex validation
-            const { data: { session } } = await supabase.auth.getSession();
-            providerToken = session?.provider_token || undefined;
-          } catch (error) {
-            console.warn('Failed to get session token:', error);
-          }
+      // Get provider token if needed
+      let providerToken: string | undefined;
+      if (activeIntegrations.includes('calendar')) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          providerToken = session?.provider_token || undefined;
+        } catch (error) {
+          console.warn('Failed to get session token:', error);
         }
-
-        chatResponse = await chatService.sendMessage({
-          messages: optimizedMessages,
-          conversationId: currentConversationId,
-          // FIXED: Pass original user input for conversation titles and database saving
-          originalInput: text,
-          // NEW: Send active integrations directly
-          activeIntegrations,
-          // Keep backward compatibility with existing API
-          isDiagramRequest: activeIntegrations.includes('mermaid'),
-          isCalendarRequest: activeIntegrations.includes('calendar'),
-          integrationMode: activeIntegrations.length > 0 ? activeIntegrations[0] : null,
-          // NEW: Pass session token for calendar access
-          providerToken,
-        });
-      } catch (apiError) {
-        // FIXED: Better error handling - only remove message if it's a client-side error
-        // Don't remove message for server errors as it might have been processed
-        const errorMessage = apiError instanceof Error ? apiError.message : 'Failed to send message';
-        
-        // Only remove message for specific client-side errors
-        if (errorMessage.includes('Authentication required') || 
-            errorMessage.includes('Invalid request') ||
-            errorMessage.includes('400')) {
-          setMessages(prev => prev.slice(0, -1));
-        }
-        
-        throw apiError;
       }
 
-      // API call succeeded - now process the response
-      try {
+      // Make API call
+      const chatResponse = await chatService.sendMessage({
+        messages: optimizedMessages,
+        conversationId: currentConversationId,
+        originalInput: text,
+        activeIntegrations,
+        isDiagramRequest: activeIntegrations.includes('mermaid'),
+        isCalendarRequest: activeIntegrations.includes('calendar'),
+        integrationMode: activeIntegrations.length > 0 ? activeIntegrations[0] : null,
+        providerToken,
+      });
+
+      // Handle successful response
+      if (chatResponse && chatResponse.content) {
+        // Update conversation ID if needed
         if (chatResponse.conversationId && !currentConversationId) {
           setCurrentConversationId(chatResponse.conversationId);
         }
 
+        // Add assistant message
         const assistantMessage: UIMessage = {
           role: 'assistant',
           content: chatResponse.content,
         };
+        
         setMessages(prev => [...prev, assistantMessage]);
 
+        // Update conversations
         if (onConversationUpdate) {
           onConversationUpdate();
         }
+
+        // Remove processed message from queue
         setMessageQueue(prev => prev.slice(1));
-      } catch {
-        // Response processing failed, but API succeeded - keep user message, show error
-        setError('Failed to process response, but your message was sent');
-        setMessageQueue(prev => prev.slice(1));
+        
+        logToServer('Message processed successfully:', {
+          responseLength: chatResponse.content.length,
+          conversationId: chatResponse.conversationId
+        });
+      } else {
+        throw new Error('Invalid response from API');
       }
+
     } catch (err) {
-      // FIXED: Better error handling for unexpected errors
+      console.error('Chat processing error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
       setError(errorMessage);
       
-      // Don't remove message here - it may have been processed successfully
-      // Only remove from queue to prevent retry loops
+      // Remove failed message from queue to prevent infinite retry
       setMessageQueue(prev => prev.slice(1));
+      
+      // Don't remove the user message from UI - let user see what failed
+      logToServer('Message processing failed:', {
+        error: errorMessage,
+        message: text.slice(0, 50)
+      });
     } finally {
       setIsLoading(false);
       setIsProcessingQueue(false);
-      setProcessingMessage(null);
-      setActiveRequests(prev => Math.max(0, prev - 1)); // Decrement active requests
     }
-  }, [isProcessingQueue, messageQueue, messages, onConversationUpdate, currentConversationId, processingMessage, activeIntegrations, activeRequests, lastRequestTime, requestHistory]);
+  }, [messageQueue, currentConversationId, activeIntegrations, onConversationUpdate]);
 
+  // Process queue when new messages arrive
   useEffect(() => {
     if (messageQueue.length > 0 && !isProcessingQueue) {
-      processQueue();
+      // Small delay to ensure state is stable
+      const timeoutId = setTimeout(() => {
+        processQueue();
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [messageQueue, isProcessingQueue, processQueue]);
 
@@ -249,44 +214,29 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     text: string,
     conversationId?: string | null
   ): Promise<void> => {
-    if (!text.trim()) {
-      return;
-    }
-    
-    // ENHANCED DUPLICATE PREVENTION
     const trimmedText = text.trim();
-    
-    // Check if message is already in queue or being processed
-    if (messageQueue.includes(trimmedText) || processingMessage === trimmedText) {
+    if (!trimmedText) {
       return;
     }
     
-    // Check recent message history to prevent rapid duplicates
-    const recentDuplicates = requestHistory.filter(req => req === trimmedText).length;
-    if (recentDuplicates >= 2) {
-      setError(`Message blocked: Too many recent identical requests`);
+    // Simple duplicate check - only prevent identical messages in queue
+    if (messageQueue.includes(trimmedText)) {
       return;
     }
     
-    // Check queue size limit
-    if (messageQueue.length >= 10) {
-      setMessageQueue(prev => prev.slice(1));
-    }
-    
+    // Set conversation ID if provided
     if (conversationId && !currentConversationId) {
       setCurrentConversationId(conversationId);
     }
     
-    
+    // Add to queue
     setMessageQueue(prev => [...prev, trimmedText]);
     
-    // Log message added to queue to server terminal
     logToServer('Message added to queue:', {
       message: trimmedText.slice(0, 50) + (trimmedText.length > 50 ? '...' : ''),
-      queueLength: messageQueue.length + 1,
-      activeRequests
+      queueLength: messageQueue.length + 1
     });
-  }, [currentConversationId, messageQueue, processingMessage, requestHistory, activeRequests]);
+  }, [messageQueue, currentConversationId]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
@@ -296,10 +246,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
   }, []);
 
   const removeMessageFromQueue = useCallback((index: number) => {
-    setMessageQueue(prev => {
-      const newQueue = prev.filter((_, i) => i !== index);
-      return newQueue;
-    });
+    setMessageQueue(prev => prev.filter((_, i) => i !== index));
   }, []);
 
   const clearQueue = useCallback(() => {
@@ -315,20 +262,20 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     });
   }, []);
 
-  // Toggle integration function
   const toggleIntegration = useCallback((integration: IntegrationType) => {
     setActiveIntegrations(prev => {
       if (prev.includes(integration)) {
-        // Remove if already active
         return prev.filter(i => i !== integration);
       } else {
-        // Add if not active
         return [...prev, integration];
       }
     });
   }, []);
 
-  // Clear all chat data (for logout)
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   const clearAllData = useCallback(() => {
     setMessages([]);
     setMessageQueue([]);
@@ -336,14 +283,7 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     setIsProcessingQueue(false);
     setError(null);
     setCurrentConversationId(null);
-    setProcessingMessage(null);
     setActiveIntegrations([]);
-    
-    // Clear request limiting state
-    setActiveRequests(0);
-    setLastRequestTime(0);
-    setRequestHistory([]);
-    
   }, []);
 
   return {
@@ -362,5 +302,6 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     activeIntegrations,
     setActiveIntegrations,
     toggleIntegration,
+    clearError,
   };
 };

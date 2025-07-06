@@ -82,6 +82,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const [isEnlarged, setIsEnlarged] = useState(false);
   const id = useId();
   const graphId = `mermaid-graph-${id}`;
@@ -104,14 +105,16 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
 
     if (isEnlarged) {
       document.addEventListener('keydown', handleKeyDown);
-      // Prevent body scroll when modal is open
+      // Prevent body scroll when modal is open - save original value
+      const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
+      
+      return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+        // Restore original overflow value instead of forcing 'unset'
+        document.body.style.overflow = originalOverflow;
+      };
     }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
-    };
   }, [isEnlarged]);
 
   useEffect(() => {
@@ -140,6 +143,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
 
       try {
         setHasError(false);
+        setErrorMessage(''); // Clear any previous error message
         setIsLoading(true);
         // Ensure the chart definition is a string and valid
         const validChart = typeof chart === 'string' ? chart.trim() : '';
@@ -154,8 +158,11 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
         if (containerRef.current) {
           containerRef.current.innerHTML = svg;
         }
-      } catch {
+      } catch (err) {
+        console.error('Mermaid rendering error:', err);
+        console.error('Chart content:', chart);
         setHasError(true);
+        setErrorMessage(err instanceof Error ? err.message : 'An unknown error occurred.');
       } finally {
         setIsLoading(false);
       }
@@ -173,7 +180,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
         <div className="flex items-start justify-between mb-3">
           <div>
             <p className="font-bold mb-1">Mermaid Diagram Error</p>
-            <p className="text-sm text-red-200">There was an error rendering this diagram. Please check the syntax.</p>
+            <p className="text-sm text-red-200">{errorMessage}</p>
           </div>
           <CopyButton text={chart} />
         </div>
@@ -203,7 +210,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
 
       {/* Enlarged Modal */}
       {isEnlarged && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-6 sm:p-8 lg:p-12">
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[9999] flex items-center justify-center p-6 sm:p-8 lg:p-12">
           <div className="relative w-full max-w-[92vw] lg:max-w-[88vw] xl:max-w-[85vw] h-full max-h-[90vh] lg:max-h-[88vh] bg-slate-900/95 backdrop-blur-sm rounded-xl border border-slate-600/60 shadow-2xl overflow-hidden">
             {/* Close button */}
             <button

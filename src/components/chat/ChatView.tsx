@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, memo } from 'react';
 import { UIMessage } from '@/types';
 import MarkdownMessage from '@/components/content/MarkdownMessage';
 import { TypingDots } from '@/components/ui/TypingDots';
@@ -8,13 +8,23 @@ interface ChatViewProps {
   isLoading?: boolean;
 }
 
-export const ChatView = forwardRef<HTMLDivElement, ChatViewProps>(({ messages, isLoading = false }, ref) => {
+export const ChatView = memo(forwardRef<HTMLDivElement, ChatViewProps>(({ messages, isLoading = false }, ref) => {
+  // Ensure messages is always an array
+  const safeMessages = Array.isArray(messages) ? messages : [];
+  
   return (
     <div ref={ref} className="flex-1 flex flex-col overflow-y-auto chat-scroll px-4 sm:px-6 lg:px-8 py-4 lg:py-8 min-h-0">
       <div className="max-w-4xl w-full mx-auto space-y-8 md:space-y-24" style={{ paddingBottom: '15rem' }}>
-        {messages?.map((msg, index) => (
+        {safeMessages.map((msg, index) => {
+          // Ensure each message has required properties
+          if (!msg || typeof msg !== 'object' || !msg.role || !msg.content) {
+            console.warn('Invalid message at index', index, msg);
+            return null;
+          }
+          
+          return (
             <div
-              key={index}
+              key={`${msg.role}-${index}-${msg.content.slice(0, 20)}`}
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-4 lg:mb-8`}
             >
               <div className={`${
@@ -33,7 +43,8 @@ export const ChatView = forwardRef<HTMLDivElement, ChatViewProps>(({ messages, i
                 )}
               </div>
             </div>
-        ))}
+          );
+        })}
         
         {/* Loading indicator for AI response */}
         {isLoading && (
@@ -48,6 +59,6 @@ export const ChatView = forwardRef<HTMLDivElement, ChatViewProps>(({ messages, i
       </div>
     </div>
   );
-});
+}));
 
 ChatView.displayName = 'ChatView';
