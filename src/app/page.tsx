@@ -80,6 +80,7 @@ function MainChatInterface() {
   const [newChatClicked, setNewChatClicked] = useState(false);
   const [queueVisible, setQueueVisible] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
+  const [isIntegrationPopupOpen, setIsIntegrationPopupOpen] = useState(false);
   
   // Refs for better performance
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -496,6 +497,8 @@ function MainChatInterface() {
             isOptimizing={isOptimizing}
             onIntegrationSelect={toggleIntegration}
             activeIntegrations={activeIntegrations}
+            isIntegrationPopupOpen={isIntegrationPopupOpen}
+            onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
             onFocus={() => {
               // Auto-close sidebar on mobile when user focuses on input
               if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {

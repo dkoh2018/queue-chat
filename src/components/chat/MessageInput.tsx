@@ -18,9 +18,11 @@ interface MessageInputProps {
   onIntegrationSelect?: (type: IntegrationType) => void;
   activeIntegrations?: IntegrationType[];
   onFocus?: () => void;
+  isIntegrationPopupOpen?: boolean;
+  onIntegrationPopupStateChange?: (isOpen: boolean) => void;
 }
 
-export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false, onIntegrationSelect, activeIntegrations, onFocus }: MessageInputProps) => {
+export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false, onIntegrationSelect, activeIntegrations, onFocus, isIntegrationPopupOpen = false, onIntegrationPopupStateChange }: MessageInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastTranscriptionRef = useRef<string | undefined>(undefined);
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -168,6 +170,9 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
               }}
               placeholder="Ask anything..."
               className={`${styles.textarea} textareaScroll`}
+              style={{
+                pointerEvents: isIntegrationPopupOpen ? 'none' : 'auto'
+              }}
               suppressHydrationWarning
             />
           )}
@@ -198,6 +203,7 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
                 onIntegrationSelect={onIntegrationSelect || (() => {})}
                 activeIntegrations={activeIntegrations || []}
                 onBlur={blurTextInput}
+                onPopupStateChange={onIntegrationPopupStateChange}
               />
             </div>
             

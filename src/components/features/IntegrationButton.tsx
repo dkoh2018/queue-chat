@@ -7,9 +7,10 @@ interface IntegrationButtonProps {
   onIntegrationSelect: (type: IntegrationType) => void;
   activeIntegrations: IntegrationType[];
   onBlur?: () => void;
+  onPopupStateChange?: (isOpen: boolean) => void;
 }
 
-export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations, onBlur }: IntegrationButtonProps) => {
+export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations, onBlur, onPopupStateChange }: IntegrationButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isTouching, setIsTouching] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -96,6 +97,11 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations, onB
       setTouchingOption(null);
     }
   }, [isOpen]);
+
+  // Notify parent component when popup state changes
+  useEffect(() => {
+    onPopupStateChange?.(isOpen);
+  }, [isOpen, onPopupStateChange]);
 
   return (
     <div
