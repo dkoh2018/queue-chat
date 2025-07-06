@@ -142,7 +142,7 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
           ),
           // Add table styling
           table: ({ children }) => (
-            <div className="overflow-x-auto my-6 border border-gray-800 rounded-lg shadow-md">
+            <div className="overflow-x-auto chat-scroll my-6 border border-gray-800 rounded-lg shadow-md">
               <table className="w-full text-sm text-left text-gray-300">{children}</table>
             </div>
           ),

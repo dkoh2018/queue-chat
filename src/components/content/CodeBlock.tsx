@@ -50,7 +50,7 @@ const CodeBlock = ({ children, className }: CodeBlockProps) => {
       >
         {({ className, style, tokens, getLineProps, getTokenProps }) => (
           <pre
-            className={`${className} overflow-x-auto p-4 rounded-lg bg-gray-800 border border-gray-700`}
+            className={`${className} overflow-x-auto chat-scroll p-4 rounded-lg bg-gray-800 border border-gray-700`}
             style={style}
           >
             {tokens.map((line, i) => (

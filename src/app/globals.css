@@ -272,4 +272,10 @@ textarea::-moz-selection, input::-moz-selection {
   background-color: rgba(107, 114, 128, 0.7);
 }
 
+/* Mobile touch scrolling for tables */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+}
+
 

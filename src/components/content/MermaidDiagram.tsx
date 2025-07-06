@@ -181,7 +181,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
           <summary className="text-sm text-red-300 cursor-pointer hover:text-red-100 transition-colors">
             Show raw code
           </summary>
-          <pre className="mt-2 p-3 bg-red-950/30 border border-red-500/30 rounded text-xs text-red-100 overflow-x-auto">
+          <pre className="mt-2 p-3 bg-red-950/30 border border-red-500/30 rounded text-xs text-red-100 overflow-x-auto chat-scroll">
             <code>{chart}</code>
           </pre>
         </details>
