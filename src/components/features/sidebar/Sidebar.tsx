@@ -1,7 +1,6 @@
 import { forwardRef, useState, useMemo, memo } from 'react';
 import { Conversation } from '@/types';
 import { PlusIcon, SearchIcon, MenuIcon, XIcon } from '@/components/icons';
-import Button from '@/components/ui/Button';
 import AuthButton from '@/components/auth/AuthButton';
 
 interface SidebarProps {
@@ -140,9 +139,9 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
             </div>
           )}
           
-          <Button
+          <button
             onClick={onNewChat}
-            className={`w-full mb-4 ${
+            className={`w-full mb-4 px-4 py-2 rounded-md transition-colors ${
               newChatClicked
                 ? 'bg-emerald-600'
                 : !currentConversationId
@@ -154,7 +153,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
               <PlusIcon />
               <span className="ml-2">New chat</span>
             </div>
-          </Button>
+          </button>
         </div>
 
         {/* Chat History */}

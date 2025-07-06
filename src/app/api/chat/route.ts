@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/auth-utils';
 
-import { BASE_SYSTEM_PROMPT } from '@/lib/base-prompts';
+import { BASE_SYSTEM_PROMPT } from '@/lib/prompts/base';
 import { logger, UI_CONSTANTS } from '@/utils';
 import { getIntegration } from '@/integrations';
 import { IntegrationType } from '@/types';

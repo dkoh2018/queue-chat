@@ -1,10 +1,10 @@
 import { useRef, useEffect } from 'react';
 import { AttachIcon } from '@/components/icons';
 import { UpArrowIcon } from '@/components/icons';
-import OptimizeButton from '@/components/features/optimization/OptimizeButton';
+import OptimizeButton from '@/components/features/OptimizeButton';
 import { TypingDots } from '@/components/ui/TypingDots';
-import { VoiceRecordingButton } from '@/components/features/voice/VoiceRecordingButton';
-import { IntegrationButton } from '@/components/features/integrations/IntegrationButton';
+import { VoiceRecordingButton } from '@/components/features/VoiceRecordingButton';
+import { IntegrationButton } from '@/components/features/IntegrationButton';
 import { useVoiceRecording } from '@/hooks';
 import { IntegrationType } from '@/types';
 

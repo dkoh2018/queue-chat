@@ -1,5 +1,3 @@
-import Button from '@/components/ui/Button';
-
 interface ConfirmationModalProps {
   isOpen: boolean;
   onConfirm: () => void;
@@ -18,19 +16,18 @@ export const ConfirmationModal = ({ isOpen, onConfirm, onCancel, conversationTit
           This will delete &quot;{conversationTitle.length > 50 ? conversationTitle.slice(0, 50) + '...' : conversationTitle}&quot;
         </p>
         <div className="flex gap-3 justify-end">
-          <Button
+          <button
             onClick={onCancel}
-            variant="secondary"
-            className="text-gray-300 hover:text-white"
+            className="px-4 py-2 rounded-md bg-gray-600 text-gray-300 hover:text-white hover:bg-gray-500 transition-colors"
           >
             Cancel
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={onConfirm}
-            variant="danger"
+            className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
           >
             Delete
-          </Button>
+          </button>
         </div>
       </div>
     </div>
