@@ -84,6 +84,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isEnlarged, setIsEnlarged] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1.2); // Default 120%
   const id = useId();
   const graphId = `mermaid-graph-${id}`;
 
@@ -93,6 +94,19 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
 
   const handleCloseEnlarged = () => {
     setIsEnlarged(false);
+    setZoomLevel(1.2); // Reset zoom when closing
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.25, 2.5)); // Max 250%, 25% increments
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.25, 0.5)); // Min 50%, 25% increments
+  };
+
+  const handleResetZoom = () => {
+    setZoomLevel(1.5); // Reset to default 125%
   };
 
   // Handle ESC key to close enlarged view
@@ -223,17 +237,60 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
               </svg>
             </button>
             
+            {/* Zoom controls */}
+            <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-20">
+              {/* Zoom In */}
+              <button
+                onClick={handleZoomIn}
+                disabled={zoomLevel >= 1.5}
+                className="p-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Zoom in"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </button>
+              
+              {/* Zoom Out */}
+              <button
+                onClick={handleZoomOut}
+                disabled={zoomLevel <= 0.5}
+                className="p-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Zoom out"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
+                </svg>
+              </button>
+              
+              {/* Reset Zoom */}
+              <button
+                onClick={handleResetZoom}
+                className="p-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl"
+                title="Reset zoom (120%)"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+              
+              {/* Zoom percentage indicator */}
+              <div className="px-2 py-1 bg-slate-800/90 text-slate-300 text-xs rounded border border-slate-600/50 text-center font-mono">
+                {Math.round(zoomLevel * 100)}%
+              </div>
+            </div>
+            
             {/* Enlarged diagram container */}
-            <div className="w-full h-full p-8 sm:p-10 lg:p-12 overflow-auto">
-              <div className="flex items-center justify-center min-h-full">
+            <div className="w-full h-full p-8 sm:p-10 lg:p-12 overflow-auto chat-scroll">
+              <div className="flex items-start justify-start min-h-full">
                 <div
                   dangerouslySetInnerHTML={{
                     __html: containerRef.current?.innerHTML || ''
                   }}
                   className="w-full max-w-none"
                   style={{
-                    transform: 'scale(1.2)',
-                    transformOrigin: 'center center'
+                    transform: `scale(${zoomLevel})`,
+                    transformOrigin: 'top left'
                   }}
                 />
               </div>
