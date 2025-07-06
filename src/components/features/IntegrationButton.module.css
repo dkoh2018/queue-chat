@@ -5,7 +5,7 @@
   position: relative;
   z-index: 60;
   isolation: isolate;
-  margin-left: -8px; /* Move button left by 4 pixels */
+  margin-left: -12px;
 }
 
 /* Main Integration Button */
