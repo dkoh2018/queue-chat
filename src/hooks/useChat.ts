@@ -115,9 +115,10 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
     setRequestHistory(prev => [...prev.slice(-9), text]);
 
     try {
-      setIsLoading(true);
+      // FIXED: Clear error first
       setError(null);
 
+      // FIXED: Create user message and add to UI IMMEDIATELY for instant feedback
       const userMessage: UIMessage = { role: 'user', content: text };
       
       // ENHANCED CONVERSATION HISTORY: Use current messages state to avoid stale closure
@@ -125,8 +126,11 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
       const allMessages = [...messages, userMessage];
       const conversationHistory = allMessages.slice(-UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT);
       
-      // Add user message to state AFTER we've calculated conversation history
+      // FIXED: Add user message to UI FIRST (instant feedback)
       setMessages(prev => [...prev, userMessage]);
+      
+      // FIXED: Start loading AFTER user message is visible
+      setIsLoading(true);
       
       // Log conversation history to server terminal
       logToServer('Conversation history prepared:', {
@@ -186,6 +190,8 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
         chatResponse = await chatService.sendMessage({
           messages: optimizedMessages,
           conversationId: currentConversationId,
+          // FIXED: Pass original user input for conversation titles and database saving
+          originalInput: text,
           // NEW: Send active integrations directly
           activeIntegrations,
           // Keep backward compatibility with existing API
@@ -196,8 +202,17 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
           providerToken,
         });
       } catch (apiError) {
-        // API call failed - remove user message since it wasn't processed
-        setMessages(prev => prev.slice(0, -1));
+        // FIXED: Better error handling - only remove message if it's a client-side error
+        // Don't remove message for server errors as it might have been processed
+        const errorMessage = apiError instanceof Error ? apiError.message : 'Failed to send message';
+        
+        // Only remove message for specific client-side errors
+        if (errorMessage.includes('Authentication required') || 
+            errorMessage.includes('Invalid request') ||
+            errorMessage.includes('400')) {
+          setMessages(prev => prev.slice(0, -1));
+        }
+        
         throw apiError;
       }
 
@@ -223,10 +238,13 @@ export const useChat = (onConversationUpdate?: () => void): UseChatReturn => {
         setMessageQueue(prev => prev.slice(1));
       }
     } catch (err) {
-      // This catch block now only handles API call failures (user message already removed above)
-      // or other unexpected errors - don't remove user message here as it may have been processed
+      // FIXED: Better error handling for unexpected errors
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
       setError(errorMessage);
+      
+      // Don't remove message here - it may have been processed successfully
+      // Only remove from queue to prevent retry loops
+      setMessageQueue(prev => prev.slice(1));
     } finally {
       setIsLoading(false);
       setIsProcessingQueue(false);
