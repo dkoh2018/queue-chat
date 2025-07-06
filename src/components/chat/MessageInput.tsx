@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { AttachIcon } from '@/components/icons';
 import { UpArrowIcon } from '@/components/icons';
 import OptimizeButton from '@/components/features/OptimizeButton';
@@ -22,6 +22,7 @@ interface MessageInputProps {
 export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false, onIntegrationSelect, activeIntegrations }: MessageInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastTranscriptionRef = useRef<string | undefined>(undefined);
+  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Voice recording functionality
   const {
@@ -41,16 +42,34 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
     }
   }, [voiceState.rawTranscription, inputText, setInputText]);
 
-  // Simplified auto-resize - less jumpy, more stable
-  useEffect(() => {
+  // Debounced auto-resize function
+  const resizeTextarea = useCallback(() => {
     const textarea = textareaRef.current;
-    if (textarea) {
-      // Start with a comfortable base height
+    if (!textarea) return;
+
+    // Clear any pending resize operations
+    if (resizeTimeoutRef.current) {
+      clearTimeout(resizeTimeoutRef.current);
+    }
+
+    // Debounce the resize operation
+    resizeTimeoutRef.current = setTimeout(() => {
       const baseHeight = 60; // Fixed base height
       const maxHeight = 160;  // Max height before scrolling
       
-      // Calculate if content would naturally overflow the base height
-      textarea.style.height = 'auto';
+      // If input is empty or only whitespace, always reset to base height
+      if (!inputText.trim()) {
+        textarea.style.height = `${baseHeight}px`;
+        textarea.style.overflowY = 'hidden';
+        return;
+      }
+      
+      // Reset height to get accurate scrollHeight measurement
+      textarea.style.height = `${baseHeight}px`;
+      
+      // Force a reflow to ensure accurate measurement
+      void textarea.offsetHeight;
+      
       const scrollHeight = textarea.scrollHeight;
       
       // Only grow if content naturally exceeds base height + some buffer
@@ -69,8 +88,33 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
         textarea.style.height = `${baseHeight}px`;
         textarea.style.overflowY = 'hidden';
       }
-    }
+    }, 10); // Small delay to debounce rapid changes
   }, [inputText]);
+
+  // Auto-resize effect
+  useEffect(() => {
+    resizeTextarea();
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+    };
+  }, [resizeTextarea]);
+
+  // Handle textarea focus to ensure proper height
+  const handleTextareaFocus = useCallback(() => {
+    // Trigger a resize check when focused to ensure proper height
+    setTimeout(() => resizeTextarea(), 0);
+  }, [resizeTextarea]);
+
+  // Handle input change with immediate resize
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputText(e.target.value);
+    // Immediate resize for better responsiveness
+    resizeTextarea();
+  }, [setInputText, resizeTextarea]);
 
   return (
     <>
@@ -90,7 +134,8 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
             <textarea
               ref={textareaRef}
               value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
+              onChange={handleInputChange}
+              onFocus={handleTextareaFocus}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -111,7 +156,7 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
             {/* Tool Buttons */}
             <div className={styles.toolButtons}>
               <button
-                className={styles.attachButton}
+                className={`${styles.attachButton} ${styles.noPadding}`}
                 title="Attach file">
                 <AttachIcon />
               </button>

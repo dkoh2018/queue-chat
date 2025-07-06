@@ -205,7 +205,7 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
                   // Prevent mouse up propagation
                   e.stopPropagation();
                 }}
-                className={`${styles.optionButton} w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center space-x-3 ${
+                className={`${styles.option} w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center space-x-3 ${
                   isActive
                     ? 'bg-emerald-500/20 text-emerald-400'
                     : touchingOption === integration.id

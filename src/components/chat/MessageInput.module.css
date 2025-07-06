@@ -5,6 +5,10 @@
 .container {
   position: relative;
   border-radius: 12px;
+  /* Allow popups to extend beyond container bounds */
+  overflow: visible;
+  /* Ensure proper stacking context */
+  z-index: 10;
 }
 
 /* Background layer with glass effect */
@@ -18,6 +22,7 @@
   transition: all 0.2s ease;
   border-radius: 12px;
   pointer-events: none;
+  z-index: 1;
 }
 
 .background:hover {
@@ -49,10 +54,13 @@
   font-size: 16px;
   line-height: 1.5;
   word-break: break-word;
+  min-height: 60px; /* Use min-height instead of fixed height */
   height: 60px; /* Base height */
   background: transparent;
   position: relative;
   transition: height 0.15s ease;
+  /* Ensure textarea is above everything in its container */
+  z-index: 3;
 }
 
 .textarea::placeholder {
@@ -78,6 +86,7 @@
   font-size: 16px;
   line-height: 1.5;
   height: 60px;
+  z-index: 3;
 }
 
 /* Buttons container */
@@ -86,13 +95,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px;
+  z-index: 3;
 }
 
 /* Tool buttons section */
 .toolButtons {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 }
 
 /* Action buttons section */
@@ -100,6 +110,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.attachButton.no-padding {
+  padding: 0;
 }
 
 /* Attach button */
@@ -112,6 +126,8 @@
   border: none;
   color: inherit;
   cursor: pointer;
+  position: relative;
+  z-index: 4;
 }
 
 .attachButton:hover {
@@ -130,6 +146,8 @@
   justify-content: center;
   border: none;
   cursor: pointer;
+  position: relative;
+  z-index: 4;
 }
 
 .sendButtonActive {
@@ -190,13 +208,35 @@
     font-size: 16px !important;
     /* Improve touch responsiveness */
     touch-action: manipulation;
+          /* Ensure textarea stays on top */
+      z-index: 5;
   }
   
   .container {
-    /* Ensure container doesn't clip popup */
+    /* Critical: Allow popups to extend beyond container */
     overflow: visible !important;
     /* Prevent container from interfering with touch events */
     touch-action: manipulation;
+    /* Ensure proper stacking but allow overflow */
+    position: relative;
+    z-index: 10;
+    /* Create new stacking context for mobile */
+  }
+
+  /* Mobile-specific popup container support */
+  .content {
+    /* Allow content to overflow for popups */
+    overflow: visible;
+    /* Ensure content layer allows popup overflow */
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Ensure buttons can trigger popups above everything */
+  .attachButton,
+  .sendButton {
+    z-index: 50 !important;
+    position: relative;
   }
 }
 
@@ -208,8 +248,9 @@
     padding-bottom: env(safe-area-inset-bottom, 0);
     /* Prevent viewport shifts */
     position: relative;
-    /* Ensure proper stacking */
-    z-index: 1;
+    /* Ensure proper stacking but allow overflow */
+    z-index: 10;
+    overflow: visible;
   }
   
   .content textarea {
@@ -222,6 +263,8 @@
     -webkit-touch-callout: none;
     /* Optimize touch interactions */
     touch-action: manipulation;
+    /* Ensure textarea is accessible */
+    z-index: 5;
   }
 }
 
@@ -289,14 +332,14 @@
 .container {
   /* Ensure message input is properly layered */
   z-index: 10;
-  /* Isolation context */
-  isolation: isolate;
 }
 
 /* Mobile text selection fix - ensure proper layering for MessageInput */
 .messageInputContainer {
   position: relative;
   isolation: isolate;
+  /* Allow popups to extend beyond */
+  overflow: visible;
 }
 
 .messageInputBackground {
@@ -307,4 +350,21 @@
 .messageInputContent {
   z-index: 2;
   position: relative;
+  /* Critical for mobile popups */
+  overflow: visible;
+}
+
+/* Special mobile popup support */
+@media (max-width: 768px) {
+  /* Ensure any popup containers can extend above the input */
+  .container * {
+    /* Allow all child elements to potentially show popups */
+    overflow: visible;
+  }
+  
+     /* Create a high z-index context for mobile interactions */
+   .container:focus-within {
+     /* Removed z-index to prevent stacking context issues with popups */
+     /* z-index: 100; */
+   }
 }

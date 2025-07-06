@@ -62,11 +62,12 @@ export const VoiceRecordingButton = ({
     <button
       onClick={onStartRecording}
       disabled={isTranscribing}
-      className={`rounded-full transition-colors p-1.5 ${
+      className={`rounded-full transition-colors ${
         isTranscribing
           ? 'opacity-50 cursor-not-allowed'
           : 'hover:bg-gray-600/50 opacity-70 hover:opacity-100'
       }`}
+      style={{ padding: '6px' }}
       title={isTranscribing ? 'Transcribing...' : 'Voice input'}
     >
       {isTranscribing ? (
