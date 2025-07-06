@@ -1,17 +1,17 @@
 /* ChatView Component CSS Module */
-/* Fixed responsive design for proper message wrapping */
+/* Optimized - removed conflicts, clean responsive design */
 
-/* Main chat container with scrolling */
+/* Main chat container */
 .container {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 16px 24px;
+  padding: 16px 0;
   min-height: 0;
   width: 100%;
 }
 
-/* Content wrapper - FIXED: Remove fixed max-width, make it fully responsive */
+/* Content wrapper - match MessageInputContainer width */
 .content {
   width: 100%;
   max-width: 100%;
@@ -20,7 +20,24 @@
   padding-bottom: 15rem;
 }
 
+/* Responsive width constraints - match MessageInputContainer */
+@media (min-width: 640px) {
+  .content {
+    max-width: 700px;
+  }
+}
 
+@media (min-width: 1024px) {
+  .content {
+    max-width: 896px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .content {
+    max-width: 1024px;
+  }
+}
 
 /* User message container */
 .userMessageContainer {
@@ -28,6 +45,7 @@
   justify-content: flex-end;
   margin-bottom: 16px;
   width: 100%;
+  padding: 0 24px;
 }
 
 /* Assistant message container */
@@ -38,28 +56,29 @@
   width: 100%;
 }
 
-/* User message bubble - FIXED: Better responsive max-width */
+/* User message bubble - stays as bubble */
 .userMessage {
-  background-color: rgba(31, 41, 55, 1); /* bg-gray-800 */
+  background-color: rgba(31, 41, 55, 1);
   color: white;
   border-radius: 16px;
   border-bottom-right-radius: 6px;
   padding: 8px 12px;
-  border: 1px solid rgba(55, 65, 81, 0.5); /* border-gray-700/50 */
-  max-width: min(85%, 600px); /* FIXED: Responsive with reasonable max */
-  min-width: 0; /* Allow shrinking */
+  border: 1px solid rgba(55, 65, 81, 0.5);
+  max-width: min(85%, 600px);
+  min-width: 0;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   overflow-wrap: break-word;
   hyphens: auto;
 }
 
-/* Assistant message content - FIXED: Better responsive max-width */
+/* Assistant message - full width */
 .assistantMessage {
-  color: rgba(243, 244, 246, 1); /* text-gray-100 */
+  color: rgba(243, 244, 246, 1);
   width: 100%;
-  max-width: min(95%, 800px); /* FIXED: Responsive with reasonable max */
-  min-width: 0; /* Allow shrinking */
+  max-width: 100%;
+  min-width: 0;
   overflow-wrap: break-word;
+  padding: 0 24px;
 }
 
 /* User message text */
@@ -87,23 +106,23 @@
   width: 100%;
 }
 
+/* Loading content - full width */
 .loadingContent {
-  color: rgba(243, 244, 246, 1); /* text-gray-100 */
+  color: rgba(243, 244, 246, 1);
   width: 100%;
-  max-width: min(95%, 800px); /* FIXED: Consistent with assistant messages */
+  max-width: 100%;
   min-width: 0;
+  padding: 0 24px;
 }
 
 .loadingProse {
   max-width: none;
 }
 
-/* FIXED: Mobile-first responsive design */
+/* Mobile responsive */
 @media (max-width: 768px) {
   .container {
-    padding: 12px 16px;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    padding: 12px 0;
   }
   
   .content {
@@ -111,55 +130,27 @@
     padding-bottom: 12rem;
   }
   
+  .userMessageContainer {
+    padding: 0 16px;
+  }
+  
   .userMessage {
-    max-width: min(90%, 320px); /* More space on mobile */
+    max-width: min(90%, 320px);
     padding: 10px 14px;
   }
   
   .assistantMessage,
   .loadingContent {
-    max-width: 100%; /* Full width on mobile */
+    padding: 0 16px;
   }
   
   .userMessageText {
-    font-size: 15px; /* Slightly larger on mobile for readability */
-  }
-}
-
-/* Tablet adjustments */
-@media (min-width: 769px) and (max-width: 1023px) {
-  .container {
-    padding: 16px 24px;
-  }
-  
-  .content {
-    max-width: min(100%, 700px); /* Reasonable max for tablets */
-    margin: 0 auto;
-  }
-  
-  .userMessage {
-    max-width: min(80%, 500px);
-  }
-  
-  .assistantMessage,
-  .loadingContent {
-    max-width: min(95%, 650px);
+    font-size: 15px;
   }
 }
 
 /* Desktop adjustments */
 @media (min-width: 1024px) {
-  .container {
-    padding: 24px 32px;
-  }
-  
-  .content {
-    max-width: min(100%, 896px); /* Original max-width but responsive */
-    margin: 0 auto;
-  }
-  
-
-  
   .userMessageContainer,
   .assistantMessageContainer,
   .loadingContainer {
@@ -168,36 +159,10 @@
   
   .userMessage {
     padding: 12px 20px;
-    max-width: min(75%, 600px); /* Slightly smaller on desktop */
-  }
-  
-  .assistantMessage,
-  .loadingContent {
-    max-width: min(90%, 800px);
   }
   
   .userMessageText {
     font-size: 15px;
-  }
-}
-
-/* Large desktop adjustments */
-@media (min-width: 1440px) {
-  .container {
-    padding: 32px 48px;
-  }
-  
-  .content {
-    max-width: min(100%, 1024px); /* Larger max for big screens */
-  }
-  
-  .userMessage {
-    max-width: min(70%, 700px);
-  }
-  
-  .assistantMessage,
-  .loadingContent {
-    max-width: min(85%, 900px);
   }
 }
 
@@ -218,6 +183,6 @@
   .assistantMessage {
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
-    padding: 12px;
+    padding: 12px 24px;
   }
 }
