@@ -178,7 +178,7 @@ export const useChat = (onMessageSent?: (conversationId: string) => void): UseCh
       setIsLoading(false);
       setIsProcessingQueue(false);
     }
-  }, [messageQueue, currentConversationId, activeIntegrations, onMessageSent]);
+  }, [messageQueue, currentConversationId, activeIntegrations]);
 
   // Process queue when new messages arrive
   useEffect(() => {

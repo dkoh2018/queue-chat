@@ -431,7 +431,6 @@ function MainChatInterface() {
         {/* Chat Area or Welcome - now takes full height */}
         {!messages || messages.length === 0 ? (
           <WelcomeView
-            currentConversationId={currentConversationId}
             user={user}
             authLoading={false}
           />

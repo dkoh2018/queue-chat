@@ -2,13 +2,11 @@ import { useState, useEffect } from 'react';
 import type { User } from '@supabase/supabase-js';
 
 interface WelcomeViewProps {
-  currentConversationId: string | null;
   user: User | null;
   authLoading: boolean;
 }
 
 export const WelcomeView = ({
-  currentConversationId,
   user,
   authLoading
 }: WelcomeViewProps) => {

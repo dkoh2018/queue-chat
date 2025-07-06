@@ -197,7 +197,7 @@ export const useConversations = (): UseConversationsReturn => {
     }, 5000); // Wait 5 seconds to ensure all processing is done
   }, [optimisticallyUpdateConversationOrder, revalidate]);
 
-  const handleConversationSelected = useCallback((conversationId: string) => {
+  const handleConversationSelected = useCallback((_conversationId: string) => {
     // Only refresh if the data might be stale (user was actively messaging)
     // No automatic refresh - let user trigger if needed
   }, []);

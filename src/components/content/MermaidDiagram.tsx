@@ -98,7 +98,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
     
     // Force a layout recalculation to ensure proper cleanup
     requestAnimationFrame(() => {
-      document.body.offsetHeight;
+      void document.body.offsetHeight;
     });
   };
 
@@ -139,7 +139,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
         document.documentElement.style.overflow = originalHtmlOverflow;
         
         // Force a layout recalculation to prevent any lingering scaling issues
-        document.body.offsetHeight;
+        void document.body.offsetHeight;
       };
     }
   }, [isEnlarged]);
