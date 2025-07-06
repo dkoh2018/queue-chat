@@ -17,9 +17,10 @@ interface MessageInputProps {
   isOptimizing?: boolean;
   onIntegrationSelect?: (type: IntegrationType) => void;
   activeIntegrations?: IntegrationType[];
+  onFocus?: () => void;
 }
 
-export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false, onIntegrationSelect, activeIntegrations }: MessageInputProps) => {
+export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false, onIntegrationSelect, activeIntegrations, onFocus }: MessageInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastTranscriptionRef = useRef<string | undefined>(undefined);
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -117,7 +118,9 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
   const handleTextareaFocus = useCallback(() => {
     // Trigger a resize check when focused to ensure proper height
     setTimeout(() => resizeTextarea(), 0);
-  }, [resizeTextarea]);
+    // Call the onFocus prop if provided (for sidebar auto-close)
+    onFocus?.();
+  }, [resizeTextarea, onFocus]);
 
   // Handle input change with immediate resize
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -125,6 +128,14 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
     // Immediate resize for better responsiveness
     resizeTextarea();
   }, [setInputText, resizeTextarea]);
+
+  // Function to blur (turn off) the text input
+  const blurTextInput = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.blur(); // This removes focus and hides keyboard on mobile
+    }
+  }, []);
 
   return (
     <>
@@ -166,6 +177,10 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
             {/* Tool Buttons */}
             <div className={styles.toolButtons}>
               <button
+                onClick={() => {
+                  blurTextInput(); // Turn off text input when clicked
+                  // TODO: Add file attachment functionality here
+                }}
                 className={`${styles.attachButton} ${styles.noPadding}`}
                 title="Attach file">
                 <AttachIcon />
@@ -177,10 +192,12 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
                 mediaStream={mediaStream}
                 onStartRecording={startRecording}
                 onStopRecording={stopRecording}
+                onBlur={blurTextInput}
               />
               <IntegrationButton
                 onIntegrationSelect={onIntegrationSelect || (() => {})}
                 activeIntegrations={activeIntegrations || []}
+                onBlur={blurTextInput}
               />
             </div>
             

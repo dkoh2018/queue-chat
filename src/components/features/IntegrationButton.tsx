@@ -6,9 +6,10 @@ import styles from './IntegrationButton.module.css';
 interface IntegrationButtonProps {
   onIntegrationSelect: (type: IntegrationType) => void;
   activeIntegrations: IntegrationType[];
+  onBlur?: () => void;
 }
 
-export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: IntegrationButtonProps) => {
+export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations, onBlur }: IntegrationButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isTouching, setIsTouching] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -107,6 +108,11 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
           e.preventDefault();
           e.stopPropagation();
           
+          // Turn off text input when opening popup
+          if (!isOpen) {
+            onBlur?.();
+          }
+          
           setIsOpen(!isOpen);
         }}
         onTouchStart={(e) => {
@@ -118,6 +124,11 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
           e.preventDefault();
           e.stopPropagation();
           setIsTouching(false);
+          
+          // Turn off text input when opening popup on touch
+          if (!isOpen) {
+            onBlur?.();
+          }
           
           setIsOpen(!isOpen);
         }}

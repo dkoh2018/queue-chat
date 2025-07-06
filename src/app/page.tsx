@@ -399,22 +399,24 @@ function MainChatInterface() {
         onDeleteClick={handleDeleteClick}
         onClearAppData={handleClearAllAppData}
       />
-      {/* Resize handle - disabled on small screens */}
-      <div
-        onMouseDown={typeof window !== 'undefined' && window.innerWidth >= 768 ? handleMouseDown : undefined}
-        onClick={() => {
-          if (!wasDragged.current) {
-            const newOpenState = !sidebarOpen;
-            if (newOpenState && sidebarWidth === 0) {
-              setSidebarWidth(256); // Restore to default width if it was 0
+      {/* Resize handle - only visible when sidebar is open */}
+      {sidebarOpen && (
+        <div
+          onMouseDown={typeof window !== 'undefined' && window.innerWidth >= 768 ? handleMouseDown : undefined}
+          onClick={() => {
+            if (!wasDragged.current) {
+              const newOpenState = !sidebarOpen;
+              if (newOpenState && sidebarWidth === 0) {
+                setSidebarWidth(256); // Restore to default width if it was 0
+              }
+              setSidebarOpen(newOpenState);
             }
-            setSidebarOpen(newOpenState);
-          }
-        }}
-        className="group w-2 bg-gray-800/50 hover:bg-gray-700/70 transition-colors duration-200 flex items-center justify-center cursor-col-resize"
-      >
-        <div className="w-1 h-8 bg-gray-600 rounded-full transition-opacity duration-300" />
-      </div>
+          }}
+          className="group w-2 bg-gray-800/50 hover:bg-gray-700/70 transition-colors duration-200 flex items-center justify-center cursor-col-resize"
+        >
+          <div className="w-1 h-8 bg-gray-600 rounded-full transition-opacity duration-300" />
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col relative">
@@ -494,6 +496,12 @@ function MainChatInterface() {
             isOptimizing={isOptimizing}
             onIntegrationSelect={toggleIntegration}
             activeIntegrations={activeIntegrations}
+            onFocus={() => {
+              // Auto-close sidebar on mobile when user focuses on input
+              if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
+                setSidebarOpen(false);
+              }
+            }}
           />
         </MessageInputContainer>
       </div>

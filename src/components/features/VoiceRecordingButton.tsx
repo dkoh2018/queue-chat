@@ -8,6 +8,7 @@ interface VoiceRecordingButtonProps {
   mediaStream: MediaStream | null;
   onStartRecording: () => Promise<void>;
   onStopRecording: () => void;
+  onBlur?: () => void;
 }
 
 export const VoiceRecordingButton = ({
@@ -16,7 +17,8 @@ export const VoiceRecordingButton = ({
   timeRemaining,
   mediaStream,
   onStartRecording,
-  onStopRecording
+  onStopRecording,
+  onBlur
 }: VoiceRecordingButtonProps) => {
   const { audioLevels } = useAudioVisualization(isRecording ? mediaStream : null);
 
@@ -60,7 +62,10 @@ export const VoiceRecordingButton = ({
   // Normal mic button (idle or transcribing state)
   return (
     <button
-      onClick={onStartRecording}
+      onClick={() => {
+        onBlur?.(); // Turn off text input when starting recording
+        onStartRecording();
+      }}
       disabled={isTranscribing}
       className={`rounded-full transition-colors ${
         isTranscribing
