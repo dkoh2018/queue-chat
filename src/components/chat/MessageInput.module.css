@@ -9,6 +9,9 @@
   overflow: visible;
   /* Ensure proper stacking context */
   z-index: 10;
+  /* Match ChatView responsive width */
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Background layer with glass effect */
@@ -367,4 +370,59 @@
      /* Removed z-index to prevent stacking context issues with popups */
      /* z-index: 100; */
    }
+}
+
+/* RESPONSIVE WIDTH MATCHING - Match ChatView content widths */
+/* Global responsive container for message input */
+:global(.message-input-responsive) {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Mobile-first responsive design - Match ChatView breakpoints */
+@media (max-width: 768px) {
+  :global(.message-input-responsive) {
+    max-width: 100%;
+    padding: 0 4px;
+  }
+  
+  .container {
+    max-width: 100%;
+  }
+}
+
+/* Tablet adjustments - Match ChatView */
+@media (min-width: 769px) and (max-width: 1023px) {
+  :global(.message-input-responsive) {
+    max-width: min(100%, 700px);
+    margin: 0 auto;
+  }
+  
+  .container {
+    max-width: 100%;
+  }
+}
+
+/* Desktop adjustments - Match ChatView */
+@media (min-width: 1024px) {
+  :global(.message-input-responsive) {
+    max-width: min(100%, 896px);
+    margin: 0 auto;
+  }
+  
+  .container {
+    max-width: 100%;
+  }
+}
+
+/* Large desktop adjustments - Match ChatView */
+@media (min-width: 1440px) {
+  :global(.message-input-responsive) {
+    max-width: min(100%, 1024px);
+    margin: 0 auto;
+  }
+  
+  .container {
+    max-width: 100%;
+  }
 }

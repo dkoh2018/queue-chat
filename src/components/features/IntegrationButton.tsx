@@ -164,7 +164,7 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations, onB
           ref={popupRef}
           className={`${styles.popup} ${
             isAnimating ? styles.popupAnimating : styles.popupNormal
-          } ${isOpen ? styles.popupVisible : styles.popupHidden} bg-gray-800/95 backdrop-blur-sm border border-gray-600/50 rounded-md shadow-lg py-2.5 min-w-[160px]`}
+          } ${isOpen ? styles.popupVisible : styles.popupHidden} bg-gray-800 border border-gray-600/80 rounded-md shadow-lg py-2.5 min-w-[160px]`}
           onClick={(e) => {
             // Step 9: Prevent popup clicks from propagating
             e.stopPropagation();
