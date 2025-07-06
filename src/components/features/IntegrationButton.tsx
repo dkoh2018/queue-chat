@@ -80,8 +80,10 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
   useEffect(() => {
     if (isOpen) {
       setIsAnimating(true);
-      // Allow popup to render, then trigger animation
-      setTimeout(() => setIsAnimating(false), 150);
+      // Start animation immediately, no delay
+      requestAnimationFrame(() => {
+        setIsAnimating(false);
+      });
     }
   }, [isOpen]);
 
@@ -102,15 +104,10 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
       {/* Main Integration Button */}
       <button
         onClick={(e) => {
-          // Step 9: Event Propagation - Prevent event bubbling
           e.preventDefault();
           e.stopPropagation();
           
-          if (!isAnimating) {
-            setIsAnimating(true);
-            setIsOpen(!isOpen);
-            setTimeout(() => setIsAnimating(false), 200);
-          }
+          setIsOpen(!isOpen);
         }}
         onTouchStart={(e) => {
           // Prevent propagation for touch events
@@ -118,16 +115,11 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations }: I
           setIsTouching(true);
         }}
         onTouchEnd={(e) => {
-          // Step 9: Comprehensive event propagation control
           e.preventDefault();
           e.stopPropagation();
           setIsTouching(false);
           
-          if (!isAnimating) {
-            setIsAnimating(true);
-            setIsOpen(!isOpen);
-            setTimeout(() => setIsAnimating(false), 200);
-          }
+          setIsOpen(!isOpen);
         }}
         onTouchCancel={(e) => {
           e.stopPropagation();
