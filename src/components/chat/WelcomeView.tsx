@@ -53,7 +53,7 @@ export const WelcomeView = ({
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white mb-6 leading-tight tracking-tight">
           How can I help, <button className="hover:text-emerald-400 transition-colors">{getUserFirstName()}</button>?
         </h1>
-        {mounted && !currentConversationId && (
+        {mounted && (
           <div className="flex justify-center w-full">
             <div className={`inline-flex items-center px-4 py-2 border rounded-full ${
               user
