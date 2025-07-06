@@ -97,7 +97,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
+  padding: 8px 20px;
   z-index: 3;
 }
 
@@ -105,7 +105,7 @@
 .toolButtons {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 /* Action buttons section */
@@ -235,12 +235,7 @@
     z-index: 2;
   }
 
-  /* Ensure buttons can trigger popups above everything */
-  .attachButton,
-  .sendButton {
-    z-index: 50 !important;
-    position: relative;
-  }
+
 }
 
 /* iOS Safari specific fixes */
@@ -331,76 +326,7 @@
   user-select: none;
 }
 
-/* Ensure proper layering */
-.container {
-  /* Ensure message input is properly layered */
-  z-index: 10;
-}
 
-/* Mobile text selection fix - ensure proper layering for MessageInput */
 
-/* Special mobile popup support */
-@media (max-width: 768px) {
-  /* Ensure any popup containers can extend above the input */
-  .container * {
-    /* Allow all child elements to potentially show popups */
-    overflow: visible;
-  }
-  
-     /* Create a high z-index context for mobile interactions */
-}
 
-/* RESPONSIVE WIDTH MATCHING - Match ChatView content widths */
-/* Global responsive container for message input */
-:global(.message-input-responsive) {
-  width: 100%;
-  max-width: 100%;
-}
 
-/* Mobile-first responsive design - Match ChatView breakpoints */
-@media (max-width: 768px) {
-  :global(.message-input-responsive) {
-    max-width: 100%;
-    padding: 0 4px;
-  }
-  
-  .container {
-    max-width: 100%;
-  }
-}
-
-/* Tablet adjustments - Match ChatView */
-@media (min-width: 769px) and (max-width: 1023px) {
-  :global(.message-input-responsive) {
-    max-width: min(100%, 700px);
-    margin: 0 auto;
-  }
-  
-  .container {
-    max-width: 100%;
-  }
-}
-
-/* Desktop adjustments - Match ChatView */
-@media (min-width: 1024px) {
-  :global(.message-input-responsive) {
-    max-width: min(100%, 896px);
-    margin: 0 auto;
-  }
-  
-  .container {
-    max-width: 100%;
-  }
-}
-
-/* Large desktop adjustments - Match ChatView */
-@media (min-width: 1440px) {
-  :global(.message-input-responsive) {
-    max-width: min(100%, 1024px);
-    margin: 0 auto;
-  }
-  
-  .container {
-    max-width: 100%;
-  }
-}
