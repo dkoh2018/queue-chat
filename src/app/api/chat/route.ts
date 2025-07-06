@@ -3,8 +3,6 @@ import { prisma } from '@/lib/db';
 import { getAuthenticatedUser } from '@/lib/auth-utils';
 
 import { BASE_SYSTEM_PROMPT } from '@/lib/base-prompts';
-import { calendarService } from '@/services/api/calendar.service';
-import { getGoogleAccessTokenFromSession } from '@/lib/token-utils';
 import { logger, UI_CONSTANTS } from '@/utils';
 import { getIntegration } from '@/integrations';
 import { IntegrationType } from '@/types';
@@ -158,83 +156,81 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Calendar integration handling - using ONLY session tokens (the working method)
-    if (isCalendarRequest) {
+    // Calendar integration handling - NEW: Use the CalendarIntegration with 4-stage pipeline
+    if (isCalendarRequest && activeIntegrations?.includes('calendar')) {
       try {
-        // Use session token from frontend - this is the ONLY working method we proved
-        const accessToken = await getGoogleAccessTokenFromSession(providerToken || '');
-        
-        if (accessToken) {
-          // Get calendar context
-          const calendarContext = await calendarService.getCalendarContext(accessToken);
-          const formattedCalendarData = calendarService.formatCalendarContextForAI(calendarContext);
+        const calendarIntegration = getIntegration('calendar' as IntegrationType);
+        if (calendarIntegration && providerToken) {
+          // Get the session access token from the request (same way as test page)
+          const authHeader = request.headers.get('authorization');
+          const sessionToken = authHeader?.replace('Bearer ', '');
           
-          // Replace placeholders in calendar prompt with actual data and current date
-          const currentDate = new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          });
+          // Process the calendar integration using the new system
+          const result = await calendarIntegration.processMessage(
+            originalInput || messagesForAPI[messagesForAPI.length - 1].content,
+            { 
+              userId: user.id,
+              conversationId: conversation.id,
+              providerToken,  // Google Calendar token
+              sessionToken    // Supabase session token for API auth
+            }
+          );
           
-          const calendarPromptWithData = `You are a calendar assistant with access to the user's calendar data.
+          // Check if this is a final response that doesn't need further processing
+          if (result.requiresSpecialHandling && result.context?.finalResponse && result.modifiedInput) {
+            // This is the final Stage 3 response - return it directly!
+            const finalContent = result.modifiedInput;
+            
+            // Save assistant message to database
+            await prisma.message.create({
+              data: {
+                role: 'ASSISTANT',
+                content: finalContent,
+                conversationId: conversation.id
+              }
+            });
 
-Current Date: ${currentDate}
+            // Update conversation timestamp
+            await prisma.conversation.update({
+              where: { id: conversation.id },
+              data: { updatedAt: new Date() },
+            });
 
-Calendar Data:
-${formattedCalendarData}
+            logger.info('Calendar integration returned final response directly', 'CALENDAR', {
+              userId: user.id,
+              calendarProcessed: result.context?.calendarProcessed || false,
+              finalResponse: true,
+              responseLength: finalContent.length
+            });
 
-Instructions:
-- Answer questions about the user's schedule and availability
-- When showing multiple events, ALWAYS format them as a markdown table
-- After the table, provide a conversational explanation answering the user's specific question
-
-**Table Format Requirements:**
-- Use proper markdown table syntax with | separators
-- Columns: Date | Time | Event | Location | Description  
-- Use "N/A" for empty/null fields
-- Keep descriptions concise (max 50 characters)
-- Sort events chronologically
-
-**Example Response Format:**
-| Date | Time | Event | Location | Description |
-|------|------|-------|----------|-------------|
-| 2025-07-07 | 5:45 PM - 9:15 PM | CSC450 - OOP | CDM 106 | N/A |
-| 2025-07-09 | 1:00 PM - 2:15 PM | HAIRCUT | N/A | N/A |
-| 2025-07-12 | 6:00 PM - 6:30 PM | Cyber truck TEST DRIVE | Tesla, Schaumburg | N/A |
-
-Based on your calendar, here are your upcoming events this week. You have your OOP class on Monday, a haircut appointment on Wednesday, and an exciting Cybertruck test drive on Saturday!`;
+            return NextResponse.json({
+              content: finalContent,
+              conversationId: conversation.id
+            });
+          }
           
-          messagesForAPI = [
-            messagesForAPI[0], // Keep base system prompt
-            { role: 'system', content: calendarPromptWithData },
-            ...messagesForAPI.slice(1) // Keep user messages
-          ];
-          
-          logger.info('Calendar context added to chat', 'CALENDAR', {
-            userId: user.id,
-            eventCount: calendarContext.totalEvents
-          });
+          // Use the processed result for further processing
+          if (result.modifiedInput) {
+            // Replace the last user message with the calendar-enhanced version
+            messagesForAPI[messagesForAPI.length - 1] = {
+              role: 'user',
+              content: result.modifiedInput
+            };
+            
+            logger.info('Calendar integration processed successfully', 'CALENDAR', {
+              userId: user.id,
+              calendarProcessed: result.context?.calendarProcessed || false
+            });
+          }
         } else {
-          // No session token available - add prompt explaining this
-          const noAccessPrompt = `I don't have access to your calendar data right now. It looks like your calendar access has expired.
-          
-          To restore your calendar access, you'll need to:
-          1. Sign out of your account
-          2. Sign back in to refresh your Google Calendar permissions
-          
-          This is a common issue that happens when authentication tokens expire, and the sign-out/sign-in process will restore your calendar access. In the meantime, I can help you with other topics!`;
-          
-          messagesForAPI = [
-            messagesForAPI[0], // Keep base system prompt
-            { role: 'system', content: noAccessPrompt },
-            ...messagesForAPI.slice(1) // Keep user messages
-          ];
-          
-          logger.warn('Calendar request without access token', 'CALENDAR', { userId: user.id });
+          logger.warn('Calendar integration not available or no provider token', 'CALENDAR', {
+            userId: user.id,
+            hasIntegration: !!calendarIntegration,
+            hasToken: !!providerToken
+          });
         }
       } catch (error) {
-        logger.error('Failed to get calendar context for chat', 'CALENDAR', error);
+        logger.error('Failed to process calendar integration', 'CALENDAR', error);
         
         // Fallback - continue without calendar data
         const errorPrompt = `The user is asking about calendar/scheduling but there was an error accessing their calendar.

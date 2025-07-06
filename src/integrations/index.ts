@@ -1,11 +1,12 @@
 import { IntegrationType } from '@/types';
 import { BaseIntegration } from './base';
 import { MermaidIntegration } from './mermaid';
+import { CalendarIntegration } from './calendar';
 
 // Integration registry - add new integrations here
 const integrationInstances = {
   mermaid: new MermaidIntegration(),
-  // calendar: new CalendarIntegration(), // Will add this next
+  calendar: new CalendarIntegration(),
 } as const;
 
 export type IntegrationRegistry = typeof integrationInstances;
@@ -54,3 +55,4 @@ export { BaseIntegration } from './base';
 
 // Re-export specific integrations
 export { MermaidIntegration } from './mermaid';
+export { CalendarIntegration } from './calendar';

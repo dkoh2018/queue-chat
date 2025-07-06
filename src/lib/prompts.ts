@@ -9,22 +9,18 @@ TASK: Choose the best time range duration for the user's query.
 
 OUTPUT ONLY VALID JSON:
 {
-  "days": 3 | 10 | 30 | 100 | 300,
+  "days": 10 | 30 | 100 | 300,
   "maxResults": number,
   "reasoning": "brief explanation"
 }
 
 TIME RANGE OPTIONS:
-- 3 days: "today", "tomorrow", "next few days"
-- 10 days: "next week", "this weekend", "this week", "week after"
+- 10 days: "today", "tomorrow", "next few days", "next week", "this weekend", "this week", "week after"
 - 30 days: "this month", "next month"
 - 100 days: "this quarter", "next few months"
 - 300 days: "this year", "find my trip", "look at everything or all events", "when is [person] birthday"
 
 EXAMPLES:
-
-Query: "What's my schedule tomorrow?"
-{"days": 3, "maxResults": 50, "reasoning": "Tomorrow is within next 3 days timeframe"}
 
 Query: "what's my schedule for next week"
 {"days": 10, "maxResults": 100, "reasoning": "Next week requires 10-day window to capture full week"}
