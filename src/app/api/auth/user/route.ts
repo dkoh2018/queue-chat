@@ -19,8 +19,7 @@ export async function POST(request: Request) {
     } catch (dbError) {
       logger.error('Database connection failed', 'AUTH', dbError);
       return NextResponse.json({
-        error: 'Database connection failed',
-        details: 'Unable to connect to database'
+        error: 'Database connection failed'
       }, { status: 503 });
     }
 
@@ -60,9 +59,7 @@ export async function POST(request: Request) {
     );
     
     return NextResponse.json({
-      error: 'Failed to create/update user',
-      details: error instanceof Error ? error.message : 'Unknown error',
-      type: isDatabaseError ? 'database_error' : 'general_error'
+      error: 'Failed to create/update user'
     }, { status: isDatabaseError ? 503 : 500 });
   }
 }
