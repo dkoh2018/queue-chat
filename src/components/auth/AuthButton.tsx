@@ -91,7 +91,7 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         onClick={handleAuthClick}
-        className={`w-10 h-10 rounded-full glass-button flex items-center justify-center text-white font-semibold text-xs transition-all duration-200 hover:glass-glow-blue ${isDropdownOpen ? 'glass-glow-blue' : ''} relative overflow-hidden group cursor-pointer`}
+        className={`w-10 h-10 rounded-full glass-button flex items-center justify-center text-white font-semibold text-xs transition-all duration-200 ${isDropdownOpen ? '' : ''} relative overflow-hidden group cursor-pointer`}
         title={`Click for menu (${getUserDisplayName()})`}
       >
         {user.user_metadata?.avatar_url ? (

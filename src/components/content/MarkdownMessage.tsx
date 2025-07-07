@@ -114,7 +114,7 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
           li: ({ children }) => (
             <li className="text-gray-100 text-[15px] leading-relaxed relative">
               <div className="flex items-start">
-                <span className="text-blue-400 font-bold mr-3 mt-1 flex-shrink-0">•</span>
+                <span className="text-gray-400 font-bold mr-3 mt-1 flex-shrink-0">•</span>
                 <div className="flex-1">{children}</div>
               </div>
             </li>
