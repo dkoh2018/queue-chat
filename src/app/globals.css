@@ -42,7 +42,7 @@ html, body {
     }
 
     .message-input-mobile-safe {
-        bottom: max(20px, env(safe-area-inset-bottom)) !important;
+        bottom: 20px !important;
     }
 }
 

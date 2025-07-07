@@ -10,8 +10,8 @@ export const MessageInputContainer = forwardRef<HTMLDivElement, MessageInputCont
       ref={ref} 
       className="absolute left-0 right-0 bottom-0 z-50 bg-transparent message-input-mobile-safe"
       style={{
-        paddingLeft: 'max(16px, env(safe-area-inset-left))',
-        paddingRight: 'max(16px, env(safe-area-inset-right))',
+        paddingLeft: '16px',
+        paddingRight: '16px',
         paddingTop: '16px'
       }}
     >

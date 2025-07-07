@@ -244,14 +244,6 @@
 
 }
 
-/* Enhanced mobile Safari and safe area support */
-@supports (padding: env(safe-area-inset-bottom)) {
-  .container {
-    /* Additional safe area padding for iOS devices */
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-}
-
 /* iOS Safari specific optimizations */
 @media (max-width: 768px) {
   .container {
@@ -277,36 +269,9 @@
     transform: scale(1);
   }
   
-  /* Optimize for notched devices */
-  .buttonRow {
-    padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
-  }
-}
-
-/* iPhone X and newer notched devices */
-@media only screen 
-  and (device-width: 375px) 
-  and (device-height: 812px) 
-  and (-webkit-device-pixel-ratio: 3),
-only screen 
-  and (device-width: 414px) 
-  and (device-height: 896px) 
-  and (-webkit-device-pixel-ratio: 2),
-only screen 
-  and (device-width: 414px) 
-  and (device-height: 896px) 
-  and (-webkit-device-pixel-ratio: 3),
-only screen 
-  and (device-width: 390px) 
-  and (device-height: 844px) 
-  and (-webkit-device-pixel-ratio: 3),
-only screen 
-  and (device-width: 428px) 
-  and (device-height: 926px) 
-  and (-webkit-device-pixel-ratio: 3) {
-  .container {
-    /* Extra padding for notched devices */
-    margin-bottom: env(safe-area-inset-bottom, 20px);
+  /* Optimize for mobile */
+  .buttonsContainer {
+    padding-bottom: 20px;
   }
 }
 
