@@ -250,24 +250,27 @@ function MainChatInterface() {
     // Set current conversation in conversations hook FIRST
     selectConversation(conversation);
     
-    // **SIMPLIFIED**: No complex stale data checking - just load the conversation
-    const uiMessages = conversation.messages.map(msg => ({
-      role: msg.role.toLowerCase() as 'user' | 'assistant',
-      content: msg.content
-    }));
-    
-    // **FIX**: Clear any pending messages and set conversation messages
-    // This is safe because user intentionally switched conversations
-    clearMessages(); // Clear the chat hook state first
-    setMessages(uiMessages);
-    
-    // Restore saved scroll position for this conversation
+    // Defer other operations to allow UI to update first
     setTimeout(() => {
-      if (chatScrollRef.current && typeof window !== 'undefined') {
-        const savedPosition = localStorage.getItem(`scroll-${conversation.id}`);
-        chatScrollRef.current.scrollTop = savedPosition ? Number(savedPosition) : 0;
-      }
-    }, 100);
+      // **SIMPLIFIED**: No complex stale data checking - just load the conversation
+      const uiMessages = conversation.messages.map(msg => ({
+        role: msg.role.toLowerCase() as 'user' | 'assistant',
+        content: msg.content
+      }));
+      
+      // **FIX**: Clear any pending messages and set conversation messages
+      // This is safe because user intentionally switched conversations
+      clearMessages(); // Clear the chat hook state first
+      setMessages(uiMessages);
+      
+      // Restore saved scroll position for this conversation
+      setTimeout(() => {
+        if (chatScrollRef.current && typeof window !== 'undefined') {
+          const savedPosition = localStorage.getItem(`scroll-${conversation.id}`);
+          chatScrollRef.current.scrollTop = savedPosition ? Number(savedPosition) : 0;
+        }
+      }, 100);
+    }, 0); // Defer this block
   };
 
   const handleDeleteClick = (conversation: Conversation, e: React.MouseEvent) => {

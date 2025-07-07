@@ -55,7 +55,9 @@ export const useConversations = (): UseConversationsReturn => {
   const selectConversation = useCallback((conversation: Conversation) => {
     setCurrentConversationId(conversation.id);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('currentConversationId', conversation.id);
+      setTimeout(() => {
+        localStorage.setItem('currentConversationId', conversation.id);
+      }, 0);
     }
   }, []);
 
