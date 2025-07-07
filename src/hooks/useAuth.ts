@@ -23,9 +23,14 @@ export const useAuth = (): UseAuthReturn => {
       if (error) {
         logger.error('Failed to get initial session', 'AUTH', error);
         setError(error.message);
+        setUser(null);
       } else {
         setUser(session?.user ?? null);
-        logger.debug('Session initialized', 'AUTH', { hasUser: !!session?.user });
+        logger.debug('Session initialized', 'AUTH', { 
+          hasUser: !!session?.user,
+          hasAccessToken: !!session?.access_token,
+          sessionExpiry: session?.expires_at 
+        });
       }
       setLoading(false);
     });
@@ -38,8 +43,21 @@ export const useAuth = (): UseAuthReturn => {
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
         logger.info(`User ${event.toLowerCase().replace('_', ' ')}`, 'AUTH', {
           event,
-          hasUser: !!session?.user
+          hasUser: !!session?.user,
+          hasAccessToken: !!session?.access_token
         });
+      }
+      
+      // Handle token refresh failures
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        logger.error('Token refresh failed - session is null', 'AUTH');
+        setUser(null);
+        setError('Session expired - please sign in again');
+        // Redirect to login
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+        return;
       }
       
       setUser(session?.user ?? null);
@@ -166,12 +184,16 @@ export const useAuth = (): UseAuthReturn => {
       if (error) {
         setError(error.message);
         logger.error('Sign out failed', 'AUTH', error);
+        // Even on error, try to redirect to login
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
       } else {
         logger.info('User signed out successfully - all data cleared', 'AUTH');
         
-        // Force a page reload to ensure complete cleanup
+        // Redirect to login page after successful sign out
         if (typeof window !== 'undefined') {
-          window.location.reload();
+          window.location.href = '/login';
         }
       }
     } catch (err) {
@@ -184,7 +206,8 @@ export const useAuth = (): UseAuthReturn => {
       if (typeof window !== 'undefined') {
         localStorage.clear();
         sessionStorage.clear();
-        window.location.reload();
+        // Redirect to login page
+        window.location.href = '/login';
       }
     }
   }, []);

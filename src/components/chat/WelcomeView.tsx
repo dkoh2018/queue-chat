@@ -39,9 +39,6 @@ export const WelcomeView = ({
     if (authLoading) {
       return '🔄 Loading...';
     }
-    if (!user) {
-      return '🌟 Free mode - Your conversations are temporary';
-    }
     return '✨ New chat started - Ask me anything!';
   };
 
@@ -53,24 +50,11 @@ export const WelcomeView = ({
         </h1>
         {mounted && (
           <div className="flex justify-center w-full">
-            <div className={`inline-flex items-center px-4 py-2 border rounded-full ${
-              user
-                ? 'bg-emerald-500/10 border-emerald-400/20'
-                : 'bg-blue-500/10 border-blue-400/20'
-            }`}>
-              <span className={`text-sm font-medium ${
-                user ? 'text-emerald-300' : 'text-blue-300'
-              }`}>
+            <div className="inline-flex items-center px-4 py-2 border rounded-full bg-emerald-500/10 border-emerald-400/20">
+              <span className="text-sm font-medium text-emerald-300">
                 {getStatusMessage()}
               </span>
             </div>
-          </div>
-        )}
-        {mounted && !user && !authLoading && (
-          <div className="mt-4">
-            <p className="text-gray-400 text-sm">
-              Sign in with Google to save your conversations and get a personalized experience
-            </p>
           </div>
         )}
       </div>

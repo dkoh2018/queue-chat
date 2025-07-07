@@ -10,7 +10,7 @@ interface AuthButtonProps {
 }
 
 export default function AuthButton({ className = '', onClearAppData }: AuthButtonProps) {
-  const { user, loading, signInWithGoogle, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -30,11 +30,8 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
     e.preventDefault();
     e.stopPropagation();
     
-    if (user) {
-      setIsDropdownOpen(!isDropdownOpen);
-    } else {
-      await signInWithGoogle();
-    }
+    // Always toggle dropdown since user is always authenticated
+    setIsDropdownOpen(!isDropdownOpen);
   };
 
   const handleLogout = async (e: React.MouseEvent) => {
@@ -62,16 +59,14 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
   };
 
   const getUserInitials = () => {
-    if (!user) return 'PP'; // Default for anonymous users
-    
     // Try to get initials from full name first
-    const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
+    const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name;
     if (fullName) {
       return getInitials(fullName);
     }
     
     // Fallback to email-based initials
-    if (user.email) {
+    if (user?.email) {
       const emailUsername = user.email.split('@')[0];
       return getInitials(emailUsername);
     }
@@ -87,47 +82,46 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
     );
   }
 
+  // Due to middleware, user should always be authenticated at this point
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         onClick={handleAuthClick}
         className={`w-10 h-10 rounded-full glass-button flex items-center justify-center text-white font-semibold text-xs transition-all duration-200 hover:glass-glow-blue ${isDropdownOpen ? 'glass-glow-blue' : ''} relative overflow-hidden group cursor-pointer`}
-        title={user ? `Click for menu (${getUserDisplayName()})` : 'Login with Google'}
+        title={`Click for menu (${getUserDisplayName()})`}
       >
-        {user ? (
-          <>
-            {user.user_metadata?.avatar_url ? (
-              <Image
-                src={user.user_metadata.avatar_url}
-                alt="Profile"
-                width={40}
-                height={40}
-                className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              <span className="text-xs font-bold">
-                {getUserInitials()}
-              </span>
-            )}
-            {/* Dropdown indicator */}
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gray-700 rounded-full border border-gray-600 flex items-center justify-center">
-              <svg 
-                className={`w-2 h-2 text-white transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </>
+        {user.user_metadata?.avatar_url ? (
+          <Image
+            src={user.user_metadata.avatar_url}
+            alt="Profile"
+            width={40}
+            height={40}
+            className="w-full h-full rounded-full object-cover"
+          />
         ) : (
-          <span className="text-xs font-bold">PP</span>
+          <span className="text-xs font-bold">
+            {getUserInitials()}
+          </span>
         )}
+        {/* Dropdown indicator */}
+        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gray-700 rounded-full border border-gray-600 flex items-center justify-center">
+          <svg 
+            className={`w-2 h-2 text-white transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
       </button>
 
       {/* Dropdown Menu - Above the button */}
-      {user && isDropdownOpen && (
+      {isDropdownOpen && (
         <div className="absolute right-0 bottom-12 w-56 bg-gray-800/95 backdrop-blur-sm border border-gray-700 rounded-lg shadow-xl z-[9999] overflow-hidden pointer-events-auto">
           {/* User Info Header */}
           <div className="px-4 py-3 border-b border-gray-700">

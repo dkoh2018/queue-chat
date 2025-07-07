@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useConversations, useChat, useAuth } from '@/hooks';
 import { Conversation } from '@/types';
 import { optimizationService } from '@/services';
-import { AuthGate } from '@/components/auth/AuthGate';
 import Sidebar from '@/components/features/sidebar/Sidebar';
 import { ChatView } from '@/components/chat/ChatView';
 import { WelcomeView } from '@/components/chat/WelcomeView';
@@ -13,11 +12,13 @@ import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { MessageQueueView } from '@/components/chat/MessageQueueView';
 import { MessageInputContainer } from '@/components/chat/MessageInputContainer';
 import { QueueToggle } from '@/components/features/sidebar/QueueToggle';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { MenuIcon } from '@/components/icons';
 
 function MainChatInterface() {
-  // Authentication state - user is guaranteed to be authenticated here
-  const { user } = useAuth();
+  // Authentication state - STRICT: No access without authentication
+  const { user, loading } = useAuth();
+  
   // UI State - Default values for server rendering (consistent initial state)
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
@@ -37,7 +38,7 @@ function MainChatInterface() {
   const {
     conversations,
     currentConversationId,
-    loading,
+    loading: conversationsLoading,
     refreshing,
     error: conversationsError,
     isOnline,
@@ -305,6 +306,17 @@ function MainChatInterface() {
     clearChatData();
   }, [clearConversationData, clearChatData]);
 
+  // AUTH GUARDS: Prevent any "free mode" or temporary access
+  // Show loading while auth is initializing - prevents "free mode" flash
+  if (loading) {
+    return <LoadingScreen />;
+  }
+  
+  // This should never happen due to middleware, but security safety check
+  if (!user) {
+    return null; // No temporary access - redirect handled by middleware
+  }
+
   return (
     <div className="flex h-screen bg-gray-900 text-white relative">
       <Sidebar
@@ -313,7 +325,7 @@ function MainChatInterface() {
         newChatClicked={newChatClicked}
         currentConversationId={currentConversationId}
         conversations={conversations}
-        loading={loading}
+        loading={conversationsLoading}
         refreshing={refreshing}
         isOnline={isOnline}
         error={conversationsError}
@@ -424,9 +436,5 @@ function MainChatInterface() {
 }
 
 export default function Jarvis() {
-  return (
-    <AuthGate>
-      <MainChatInterface />
-    </AuthGate>
-  );
+  return <MainChatInterface />;
 }
