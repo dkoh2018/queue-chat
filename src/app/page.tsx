@@ -20,60 +20,7 @@ function MainChatInterface() {
   const { user } = useAuth();
   // UI State - Default values for server rendering (consistent initial state)
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [sidebarWidth, setSidebarWidth] = useState(256);
-  const [isResizing, setIsResizing] = useState(false);
-  const sidebarRef = useRef<HTMLDivElement>(null);
-  const dragStart = useRef<{ x: number, y: number } | null>(null);
-  const wasDragged = useRef(false);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizing(true);
-    wasDragged.current = false;
-    dragStart.current = { x: e.clientX, y: e.clientY };
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-  };
-
-  const handleMouseUp = () => {
-    setIsResizing(false);
-    document.body.style.cursor = 'auto';
-    document.body.style.userSelect = 'auto';
-    if (sidebarRef.current && wasDragged.current) {
-      setSidebarWidth(sidebarRef.current.offsetWidth);
-    }
-  };
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isResizing && sidebarRef.current) {
-      if (dragStart.current) {
-        const dx = Math.abs(e.clientX - dragStart.current.x);
-        const dy = Math.abs(e.clientY - dragStart.current.y);
-        if (dx > 10 || dy > 10) {
-          wasDragged.current = true;
-        }
-      }
-      const newWidth = e.clientX;
-      if (newWidth > 200 && newWidth < 500) {
-        sidebarRef.current.style.width = `${newWidth}px`;
-      }
-    }
-  }, [isResizing]);
-
-  useEffect(() => {
-    if (isResizing) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    } else {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isResizing, handleMouseMove]);
+  
   const [inputText, setInputText] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
@@ -182,25 +129,7 @@ function MainChatInterface() {
   }, [currentConversationId, conversations, setMessages, isLoading, isProcessingQueue, messages.length]);
 
   // Load sidebar state from localStorage after mount (client-side only)
-  useEffect(() => {
-    const savedSidebarOpen = localStorage.getItem('sidebarOpen');
-    const savedSidebarWidth = localStorage.getItem('sidebarWidth');
-    
-    if (savedSidebarOpen !== null) {
-      // User has a saved preference
-      setSidebarOpen(JSON.parse(savedSidebarOpen));
-    } else {
-      // First visit - default based on screen size
-      setSidebarOpen(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
-    }
-    
-    if (savedSidebarWidth !== null) {
-      setSidebarWidth(Number(savedSidebarWidth));
-    } else {
-      // Default responsive width
-      setSidebarWidth(256);
-    }
-  }, []);
+  
 
   // Save sidebar state changes to localStorage
   useEffect(() => {
@@ -209,14 +138,7 @@ function MainChatInterface() {
     }
   }, [sidebarOpen]);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && sidebarWidth > 0) {
-      // Only save width if it's a user-initiated change, not auto-adjustment
-      if (!isResizing) {
-        localStorage.setItem('sidebarWidth', String(sidebarWidth));
-      }
-    }
-  }, [sidebarWidth, isResizing]);
+  
 
 
   const handleNewChat = useCallback(() => {
@@ -383,11 +305,8 @@ function MainChatInterface() {
   return (
     <div className="flex h-screen bg-gray-900 text-white relative">
       <Sidebar
-        ref={sidebarRef}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        width={sidebarWidth}
-        isResizing={isResizing}
         newChatClicked={newChatClicked}
         currentConversationId={currentConversationId}
         conversations={conversations}
@@ -400,24 +319,7 @@ function MainChatInterface() {
         onDeleteClick={handleDeleteClick}
         onClearAppData={handleClearAllAppData}
       />
-      {/* Resize handle - only visible when sidebar is open */}
-      {sidebarOpen && (
-        <div
-          onMouseDown={typeof window !== 'undefined' && window.innerWidth >= 768 ? handleMouseDown : undefined}
-          onClick={() => {
-            if (!wasDragged.current) {
-              const newOpenState = !sidebarOpen;
-              if (newOpenState && sidebarWidth === 0) {
-                setSidebarWidth(256); // Restore to default width if it was 0
-              }
-              setSidebarOpen(newOpenState);
-            }
-          }}
-          className="group w-2 bg-gray-800/50 hover:bg-gray-700/70 transition-colors duration-200 flex items-center justify-center cursor-col-resize"
-        >
-          <div className="w-1 h-8 bg-gray-600 rounded-full transition-opacity duration-300" />
-        </div>
-      )}
+      
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col relative">

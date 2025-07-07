@@ -7,8 +7,6 @@ import styles from './Sidebar.module.css';
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
-  width: number;
-  isResizing: boolean;
   newChatClicked: boolean;
   currentConversationId: string | null;
   conversations: Conversation[];
@@ -57,11 +55,8 @@ const ConversationItem = memo(({
 
 ConversationItem.displayName = 'ConversationItem';
 
-const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
-  sidebarOpen,
+const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
   setSidebarOpen,
-  width,
-  isResizing,
   newChatClicked,
   currentConversationId,
   conversations,
@@ -99,9 +94,9 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({
   return (
     <div
       ref={ref}
-      className={`glass-panel ${styles.container} ${isResizing ? '' : styles.containerTransition}`}
+      className={`glass-panel ${styles.container} ${!sidebarOpen ? '' : styles.containerTransition}`}
       style={{
-        width: sidebarOpen ? width : 0
+        width: sidebarOpen ? 256 : 0
       }}
     >
         {/* Sidebar Header */}
