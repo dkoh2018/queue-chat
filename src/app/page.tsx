@@ -79,17 +79,14 @@ function MainChatInterface() {
     const scrollToBottom = () => {
       if (chatScrollRef.current) {
         const isNearBottom = chatScrollRef.current.scrollTop > chatScrollRef.current.scrollHeight - chatScrollRef.current.clientHeight - 100;
-        // Only auto-scroll if user is near bottom (not manually scrolled up)
         if (isNearBottom) {
           chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
         }
       }
     };
     
-    // Scroll to bottom whenever messages change (but respect user scroll position)
     if (messages && messages.length > 0) {
-      // Use setTimeout to ensure DOM is updated
-      setTimeout(scrollToBottom, 100);
+      requestAnimationFrame(scrollToBottom);
     }
   }, [messages]);
 

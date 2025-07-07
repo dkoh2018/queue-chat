@@ -183,12 +183,7 @@ export const useChat = (onMessageSent?: (conversationId: string) => void): UseCh
   // Process queue when new messages arrive
   useEffect(() => {
     if (messageQueue.length > 0 && !isProcessingQueue) {
-      // Small delay to ensure state is stable
-      const timeoutId = setTimeout(() => {
-        processQueue();
-      }, 100);
-      
-      return () => clearTimeout(timeoutId);
+      processQueue();
     }
   }, [messageQueue, isProcessingQueue, processQueue]);
 
@@ -201,23 +196,18 @@ export const useChat = (onMessageSent?: (conversationId: string) => void): UseCh
       return;
     }
     
-    // Enhanced duplicate prevention - check both queue and recent messages
-    const recentMessages = messagesRef.current.slice(-3); // Check last 3 messages
-    const isDuplicateInQueue = messageQueue.includes(trimmedText);
-    const isDuplicateInRecent = recentMessages.some(msg => 
-      msg.role === 'user' && msg.content === trimmedText
-    );
-    
-    if (isDuplicateInQueue || isDuplicateInRecent) {
+    if (messageQueue.includes(trimmedText)) {
       return;
     }
     
-    // Set conversation ID if provided
+    if (messageQueue.length >= 7) {
+      return;
+    }
+    
     if (conversationId && !currentConversationId) {
       setCurrentConversationId(conversationId);
     }
     
-    // Add to queue
     setMessageQueue(prev => [...prev, trimmedText]);
   }, [messageQueue, currentConversationId]);
 

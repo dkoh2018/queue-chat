@@ -131,7 +131,7 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
                 ? 'h-16'
                 : messageQueue.length <= 4
                 ? 'min-h-16 h-auto'
-                : 'h-48'
+                : 'max-h-80 h-auto'
             }`}>
               {messageQueue.length === 0 ? (
                 <li className="text-gray-400 text-center py-4 italic">
