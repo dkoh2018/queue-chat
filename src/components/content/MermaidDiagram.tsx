@@ -54,7 +54,12 @@ const EnlargeButton = ({ onEnlarge }: EnlargeButtonProps) => {
   return (
     <button
       onClick={onEnlarge}
-      className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 p-1.5 sm:p-2 bg-slate-800/90 hover:bg-slate-700/90 text-slate-300 hover:text-white rounded-md border border-slate-600/50 hover:border-slate-500 transition-all duration-200 backdrop-blur-sm shadow-lg hover:shadow-xl z-10"
+      className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 p-1.5 sm:p-2 text-slate-300 hover:text-white rounded-md transition-all duration-200 backdrop-blur-sm shadow-lg hover:shadow-xl z-10"
+      style={{
+        backgroundColor: '#252628',
+        borderColor: 'rgba(55, 56, 58, 0.5)',
+        borderWidth: '1px'
+      }}
       title="Enlarge diagram"
     >
       <svg
@@ -85,8 +90,11 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isEnlarged, setIsEnlarged] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1.5); // Default 150%
+  const [showZoomOptions, setShowZoomOptions] = useState(false);
   const id = useId();
   const graphId = `mermaid-graph-${id}`;
+
+  const zoomOptions = [0.5, 1.0, 1.5, 2.0, 2.5]; // 50%, 100%, 150%, 200%, 250%
 
   const handleEnlarge = () => {
     setIsEnlarged(true);
@@ -95,6 +103,7 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
   const handleCloseEnlarged = () => {
     setIsEnlarged(false);
     setZoomLevel(1.5); // Reset zoom when closing
+    setShowZoomOptions(false); // Close zoom options
     
     // Force a layout recalculation to ensure proper cleanup
     requestAnimationFrame(() => {
@@ -103,15 +112,30 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
   };
 
   const handleZoomIn = () => {
-    setZoomLevel(prev => Math.min(prev + 0.25, 2.5)); // Max 250%, 25% increments
+    const currentIndex = zoomOptions.findIndex(zoom => zoom === zoomLevel);
+    if (currentIndex < zoomOptions.length - 1) {
+      setZoomLevel(zoomOptions[currentIndex + 1]);
+    }
   };
 
   const handleZoomOut = () => {
-    setZoomLevel(prev => Math.max(prev - 0.25, 0.5)); // Min 50%, 25% increments
+    const currentIndex = zoomOptions.findIndex(zoom => zoom === zoomLevel);
+    if (currentIndex > 0) {
+      setZoomLevel(zoomOptions[currentIndex - 1]);
+    }
   };
 
   const handleResetZoom = () => {
     setZoomLevel(1.5); // Reset to default 150%
+  };
+
+  const handleZoomChange = (newZoom: number) => {
+    setZoomLevel(newZoom);
+    setShowZoomOptions(false);
+  };
+
+  const toggleZoomOptions = () => {
+    setShowZoomOptions(prev => !prev);
   };
 
   // Handle ESC key to close enlarged view
@@ -143,6 +167,25 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
       };
     }
   }, [isEnlarged]);
+
+  // Separate effect for handling click outside zoom dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showZoomOptions) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('.relative')) {
+          setShowZoomOptions(false);
+        }
+      }
+    };
+
+    if (showZoomOptions) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showZoomOptions]);
 
   useEffect(() => {
     mermaid.initialize({
@@ -238,58 +281,117 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
       {/* Enlarged Modal */}
       {isEnlarged && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-6 sm:p-8 lg:p-12">
-          <div className="relative w-full max-w-[92vw] lg:max-w-[88vw] xl:max-w-[85vw] h-full max-h-[90vh] lg:max-h-[88vh] bg-slate-900/95 backdrop-blur-sm rounded-xl border border-slate-600/60 shadow-2xl overflow-hidden">
+          <div 
+            className="relative w-full max-w-[92vw] lg:max-w-[88vw] xl:max-w-[85vw] h-full max-h-[90vh] lg:max-h-[88vh] backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden"
+            style={{
+              backgroundColor: '#161618',
+              borderColor: 'rgba(55, 56, 58, 0.6)',
+              borderWidth: '1px'
+            }}
+          >
             {/* Close button */}
             <button
               onClick={handleCloseEnlarged}
-              className="absolute top-4 right-4 w-10 h-10 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 z-20 shadow-lg hover:shadow-xl flex items-center justify-center"
+              className="absolute top-4 right-4 w-8 h-8 text-slate-300 hover:text-white rounded-md border transition-all duration-200 z-20 shadow-lg hover:shadow-xl flex items-center justify-center"
+              style={{
+                backgroundColor: '#252628',
+                borderColor: 'rgba(55, 56, 58, 0.5)'
+              }}
               title="Close enlarged view (ESC)"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
             
             {/* Zoom controls - Inside modal but outside scrollable area */}
-            <div className="absolute bottom-4 left-4 flex flex-col gap-2 z-20">
-              {/* Zoom In */}
-              <button
-                onClick={handleZoomIn}
-                disabled={zoomLevel >= 2.5}
-                className="w-10 h-10 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                title="Zoom in"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </button>
-              
+            <div className="absolute bottom-4 left-4 flex flex-row gap-2 z-20">
               {/* Zoom Out */}
               <button
                 onClick={handleZoomOut}
                 disabled={zoomLevel <= 0.5}
-                className="w-10 h-10 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="w-8 h-8 text-slate-300 hover:text-white rounded-md border transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                style={{
+                  backgroundColor: '#252628',
+                  borderColor: 'rgba(55, 56, 58, 0.5)'
+                }}
                 title="Zoom out"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
+                </svg>
+              </button>
+
+              {/* Zoom In */}
+              <button
+                onClick={handleZoomIn}
+                disabled={zoomLevel >= 2.5}
+                className="w-8 h-8 text-slate-300 hover:text-white rounded-md border transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                style={{
+                  backgroundColor: '#252628',
+                  borderColor: 'rgba(55, 56, 58, 0.5)'
+                }}
+                title="Zoom in"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </button>
               
               {/* Reset Zoom */}
               <button
                 onClick={handleResetZoom}
-                className="w-10 h-10 bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
+                className="w-8 h-8 text-slate-300 hover:text-white rounded-md border transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
+                style={{
+                  backgroundColor: '#252628',
+                  borderColor: 'rgba(55, 56, 58, 0.5)'
+                }}
                 title="Reset zoom (150%)"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
-              
-              {/* Zoom percentage indicator */}
-              <div className="w-10 h-6 bg-slate-800/90 text-slate-300 text-xs rounded border border-slate-600/50 text-center font-mono flex items-center justify-center">
-                {Math.round(zoomLevel * 100)}%
+
+              {/* Zoom percentage selector - clickable dropdown */}
+              <div className="relative">
+                <button
+                  onClick={toggleZoomOptions}
+                  className="w-12 h-8 text-slate-300 hover:text-white text-xs rounded-md border transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center font-mono cursor-pointer"
+                  style={{
+                    backgroundColor: '#252628',
+                    borderColor: 'rgba(55, 56, 58, 0.5)'
+                  }}
+                  title="Click to change zoom level"
+                >
+                  {Math.round(zoomLevel * 100)}%
+                </button>
+                
+                {/* Zoom options dropdown */}
+                {showZoomOptions && (
+                  <div 
+                    className="absolute bottom-full left-0 mb-1 rounded-md border shadow-lg"
+                    style={{
+                      backgroundColor: '#252628',
+                      borderColor: 'rgba(55, 56, 58, 0.5)'
+                    }}
+                  >
+                    {zoomOptions.map((zoom) => (
+                      <button
+                        key={zoom}
+                        onClick={() => handleZoomChange(zoom)}
+                        className={`w-12 h-8 text-xs font-mono transition-all duration-200 flex items-center justify-center hover:text-white first:rounded-t-md last:rounded-b-md ${
+                          zoomLevel === zoom ? 'text-white' : 'text-slate-300'
+                        }`}
+                        style={{
+                          backgroundColor: zoomLevel === zoom ? 'rgba(55, 56, 58, 0.7)' : 'transparent'
+                        }}
+                      >
+                        {Math.round(zoom * 100)}%
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             
