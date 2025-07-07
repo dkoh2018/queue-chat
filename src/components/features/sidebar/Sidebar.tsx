@@ -118,41 +118,30 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
               <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-white/20 rounded transition-colors">
                 <MenuIcon />
               </button>
-              <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-                Jarvis
+              <div className="flex items-center gap-2">
                 {refreshing && (
                   <div className="w-3 h-3 border border-emerald-400 border-t-transparent rounded-full animate-spin" />
                 )}
                 {!isOnline && (
                   <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" title="Offline" />
                 )}
-              </h1>
-              <button onClick={handleSearchClick} className="p-2 hover:bg-white/20 rounded transition-colors">
-                <SearchIcon />
-              </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={handleSearchClick} className="p-2 hover:bg-white/20 rounded transition-colors">
+                  <SearchIcon />
+                </button>
+                <button
+                  onClick={onNewChat}
+                  className="p-1.5 hover:bg-white/20 rounded transition-colors"
+                  title="New chat"
+                >
+                  <PlusIcon />
+                </button>
+              </div>
             </div>
           )}
-          
-          <div className="mx-2 mb-4">
-            <button
-              onClick={onNewChat}
-              className="w-full px-2 py-2 rounded-md transition-colors flex items-center justify-center"
-              style={{
-                backgroundColor: '#161618'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(37, 38, 40, 0.9)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#161618';
-              }}
-            >
-              <PlusIcon />
-              <span className="ml-2">New chat</span>
-            </button>
-          </div>
         </div>
-
+          
         {/* Chat History */}
         <div className={`${styles.chatHistory} customScroll`}>
           {error && (

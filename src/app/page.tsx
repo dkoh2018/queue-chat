@@ -147,8 +147,8 @@ function MainChatInterface() {
     clearMessages();
     setCurrentConversationId(null);
     
-    // Close sidebar on small screens after creating new chat
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+    // Smart sidebar behavior: if sidebar is open, close it after creating new chat
+    if (sidebarOpen) {
       setSidebarOpen(false);
     }
     
@@ -159,7 +159,7 @@ function MainChatInterface() {
         textarea.focus();
       }
     }, 150);
-  }, [clearMessages, setCurrentConversationId]);
+  }, [clearMessages, setCurrentConversationId, sidebarOpen]);
 
   const handleCancelDelete = () => {
     setDeleteModalOpen(false);
