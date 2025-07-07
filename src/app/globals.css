@@ -62,6 +62,51 @@ html, body {
 
 /* Scrollbar utilities moved to src/styles/scrollbar.css */
 
+/* Enhanced mobile Safari and safe area support */
+@supports (padding: max(0px)) {
+  html {
+    /* Support safe area insets for notched devices */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* iOS Safari specific viewport handling */
+@media (max-width: 768px) {
+  html {
+    /* Prevent iOS Safari viewport changes on keyboard */
+    height: -webkit-fill-available;
+  }
+  
+  body {
+    /* Improve iOS Safari height handling */
+    min-height: -webkit-fill-available;
+    /* Prevent iOS Safari bounce effect */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Prevent iOS Safari zoom on form inputs */
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+}
+
+/* Mobile keyboard handling */
+body.keyboard-visible {
+  /* Adjust layout when virtual keyboard is visible */
+  transition: all 0.2s ease;
+}
+
+body.keyboard-visible .chatScroll {
+  /* Prevent content from being hidden behind keyboard */
+  height: calc(100vh - var(--keyboard-height, 0px) - var(--viewport-offset, 0px));
+}
+
 /* Message input specific styles moved to src/components/chat/MessageInput.module.css */
 
 /* Integration popup styles moved to src/components/features/IntegrationButton.module.css */

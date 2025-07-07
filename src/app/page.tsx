@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useConversations, useChat, useAuth } from '@/hooks';
+import { useConversations, useChat, useAuth, useMobileKeyboardHandling } from '@/hooks';
 import { Conversation } from '@/types';
 import { optimizationService } from '@/services';
 import Sidebar from '@/components/features/sidebar/Sidebar';
@@ -16,6 +16,9 @@ import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { MenuIcon } from '@/components/icons';
 
 function MainChatInterface() {
+  // Mobile keyboard handling for iOS Safari
+  useMobileKeyboardHandling();
+  
   // Authentication state - STRICT: No access without authentication
   const { user, loading } = useAuth();
   

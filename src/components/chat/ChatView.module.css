@@ -98,6 +98,9 @@
 @media (max-width: 768px) {
   .container {
     padding: 12px 0;
+    /* Improve mobile keyboard handling */
+    height: 100vh;
+    height: -webkit-fill-available;
   }
   
   .userMessage {
@@ -107,6 +110,20 @@
   
   .userMessageText {
     font-size: 15px;
+  }
+  
+  body.keyboard-visible .container {
+    /* Adjust for virtual keyboard */
+    height: calc(100vh - var(--keyboard-height, 0px));
+    height: calc(-webkit-fill-available - var(--keyboard-height, 0px));
+  }
+}
+
+/* Safe area support for notched devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .container {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
 

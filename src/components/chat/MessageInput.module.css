@@ -244,49 +244,87 @@
 
 }
 
-/* iOS Safari specific fixes */
-@supports (-webkit-touch-callout: none) {
-  /* Prevent iOS Safari viewport jumping */
+/* Enhanced mobile Safari and safe area support */
+@supports (padding: env(safe-area-inset-bottom)) {
   .container {
-    /* Use env() for iOS Safari safe areas */
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    /* Prevent viewport shifts */
-    position: relative;
-    /* Ensure proper stacking but allow overflow */
-    z-index: 10;
-    overflow: visible;
-  }
-  
-  .content textarea {
-    /* Prevent iOS Safari zoom on focus */
-    font-size: 16px;
-    /* Improve text selection on iOS */
-    -webkit-user-select: text;
-    user-select: text;
-    /* Prevent callouts */
-    -webkit-touch-callout: none;
-    /* Optimize touch interactions */
-    touch-action: manipulation;
-    /* Ensure textarea is accessible */
-    z-index: 5;
+    /* Additional safe area padding for iOS devices */
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
-/* High DPI and mobile performance optimizations */
-@media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
-  .background {
-    /* Optimize backdrop filter for mobile */
-    backdrop-filter: blur(6px);
-    /* Reduce GPU load */
-    will-change: auto;
+/* iOS Safari specific optimizations */
+@media (max-width: 768px) {
+  .container {
+    /* Prevent iOS Safari from adjusting container on keyboard open */
+    position: relative;
+    min-height: fit-content;
   }
   
   .textarea {
-    /* Optimize text rendering on mobile */
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    /* Reduce repaints during typing */
-    will-change: height;
+    /* Prevent iOS zoom on input focus */
+    font-size: 16px !important;
+    /* Improve keyboard handling */
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 12px;
+    /* Prevent iOS Safari input zoom */
+    transform: scale(1);
+    transition: transform 0.2s ease;
+  }
+  
+  .textarea:focus {
+    /* Maintain scale on focus to prevent zoom */
+    transform: scale(1);
+  }
+  
+  /* Optimize for notched devices */
+  .buttonRow {
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+  }
+}
+
+/* iPhone X and newer notched devices */
+@media only screen 
+  and (device-width: 375px) 
+  and (device-height: 812px) 
+  and (-webkit-device-pixel-ratio: 3),
+only screen 
+  and (device-width: 414px) 
+  and (device-height: 896px) 
+  and (-webkit-device-pixel-ratio: 2),
+only screen 
+  and (device-width: 414px) 
+  and (device-height: 896px) 
+  and (-webkit-device-pixel-ratio: 3),
+only screen 
+  and (device-width: 390px) 
+  and (device-height: 844px) 
+  and (-webkit-device-pixel-ratio: 3),
+only screen 
+  and (device-width: 428px) 
+  and (device-height: 926px) 
+  and (-webkit-device-pixel-ratio: 3) {
+  .container {
+    /* Extra padding for notched devices */
+    margin-bottom: env(safe-area-inset-bottom, 20px);
+  }
+}
+
+/* Extra small screens - prevent overflow */
+@media (max-width: 375px) {
+  .textarea {
+    padding: 16px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  .loadingContainer {
+    padding: 16px;
+  }
+  
+  .container {
+    /* Ensure no horizontal overflow on very small screens */
+    min-width: 0;
+    max-width: 100%;
   }
 }
 
@@ -330,24 +368,6 @@
 .sendButton {
   -webkit-user-select: none;
   user-select: none;
-}
-
-/* Extra small screens - prevent overflow */
-@media (max-width: 375px) {
-  .textarea {
-    padding: 16px;
-    font-size: 16px; /* Prevent zoom on iOS */
-  }
-  
-  .loadingContainer {
-    padding: 16px;
-  }
-  
-  .container {
-    /* Ensure no horizontal overflow on very small screens */
-    min-width: 0;
-    max-width: 100%;
-  }
 }
 
 

@@ -5,3 +5,4 @@ export * from './useVoiceRecording';
 export * from './useAudioVisualization';
 export * from './useAuth';
 export * from './useTokenRefresh';
+export * from './useMobileKeyboard';
