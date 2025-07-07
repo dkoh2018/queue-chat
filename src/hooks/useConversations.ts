@@ -26,7 +26,6 @@ const CONVERSATIONS_KEY = '/api/conversations';
 export const useConversations = (): UseConversationsReturn => {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   
-  // SWR for smart caching and data fetching
   const { 
     data: conversations = [], 
     error, 
@@ -49,7 +48,6 @@ export const useConversations = (): UseConversationsReturn => {
     }
   });
 
-  // Detect online/offline status
   const [isOnline, setIsOnline] = useState(true);
 
   const selectConversation = useCallback((conversation: Conversation) => {
@@ -65,7 +63,6 @@ export const useConversations = (): UseConversationsReturn => {
     try {
       await conversationsService.deleteConversation(conversationId);
       
-      // Optimistic update: remove from cache immediately
       await mutate(
         CONVERSATIONS_KEY,
         (currentData: Conversation[] | undefined) => 
@@ -73,7 +70,6 @@ export const useConversations = (): UseConversationsReturn => {
         false
       );
       
-      // Clear current conversation if it was deleted
       if (currentConversationId === conversationId) {
         setCurrentConversationId(null);
         if (typeof window !== 'undefined') {
@@ -85,17 +81,14 @@ export const useConversations = (): UseConversationsReturn => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete conversation';
       logger.error('Failed to delete conversation', 'CONVERSATION', err);
-      // Revalidate to restore correct state
       await revalidate();
       throw new Error(errorMessage);
     }
   }, [currentConversationId, revalidate]);
 
-  // Online/offline detection - simplified
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      // Don't auto-revalidate on reconnect to prevent spam
     };
 
     const handleOffline = () => {
@@ -111,7 +104,6 @@ export const useConversations = (): UseConversationsReturn => {
     };
   }, []);
 
-  // Load currentConversationId from localStorage after mount (client-side only)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedConversationId = localStorage.getItem('currentConversationId');
@@ -121,7 +113,6 @@ export const useConversations = (): UseConversationsReturn => {
     }
   }, []);
 
-  // Save to localStorage when currentConversationId changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (currentConversationId) {
@@ -132,18 +123,13 @@ export const useConversations = (): UseConversationsReturn => {
     }
   }, [currentConversationId]);
 
-  // Clear all conversation data (for logout)
   const clearAllData = useCallback(() => {
-    // Clear SWR cache
     mutate(CONVERSATIONS_KEY, [], false);
     
-    // Clear current conversation
     setCurrentConversationId(null);
     
-    // Clear localStorage
     if (typeof window !== 'undefined') {
       localStorage.removeItem('currentConversationId');
-      // Clear all scroll positions
       Object.keys(localStorage).forEach(key => {
         if (key.startsWith('scroll-')) {
           localStorage.removeItem(key);
@@ -167,9 +153,9 @@ export const useConversations = (): UseConversationsReturn => {
           conversation.updatedAt = new Date().toISOString();
           
           const updatedConversations = [
-            conversation, // Move to top
-            ...currentData.slice(0, conversationIndex), // Before target
-            ...currentData.slice(conversationIndex + 1) // After target
+            conversation,
+            ...currentData.slice(0, conversationIndex),
+            ...currentData.slice(conversationIndex + 1)
           ];
           
           return updatedConversations;
@@ -178,22 +164,17 @@ export const useConversations = (): UseConversationsReturn => {
         return currentData;
       },
       {
-        revalidate: false, // Skip server round trip
-        populateCache: true // Update cache immediately
+        revalidate: false,
+        populateCache: true
       }
     );
   }, []);
 
-  // **NEW EVENT-DRIVEN SYSTEM**: Specific handlers for different events
   const handleMessageSent = useCallback((conversationId: string) => {
-    // **FIX**: Only do optimistic update, skip excessive revalidation
-    // The server will handle persistence, we just need UI feedback
     optimisticallyUpdateConversationOrder(conversationId);
-    
-    // **REDUCED**: Single revalidation after longer delay to prevent cascading
     setTimeout(() => {
       revalidate();
-    }, 5000); // Wait 5 seconds to ensure all processing is done
+    }, 5000);
   }, [optimisticallyUpdateConversationOrder, revalidate]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
