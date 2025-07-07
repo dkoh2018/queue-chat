@@ -20,9 +20,18 @@
 
 @media (max-width: 768px) {
   .container {
-    position: fixed;
+    width: 0 !important;
+    position: fixed !important;
     top: 0;
     left: 0;
     z-index: 60;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .container[style*="width: 256"] {
+    width: 256px !important;
+    transform: translateX(0);
   }
 }

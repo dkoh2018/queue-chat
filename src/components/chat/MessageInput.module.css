@@ -9,9 +9,10 @@
   overflow: visible;
   /* Ensure proper stacking context */
   z-index: 10;
-  /* Match ChatView responsive width */
+  /* Responsive width - prevent overflow */
   width: 100%;
   max-width: 100%;
+  min-width: 0;
 }
 
 /* Background layer with glass effect */
@@ -332,6 +333,24 @@
 .sendButton {
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* Extra small screens - prevent overflow */
+@media (max-width: 375px) {
+  .textarea {
+    padding: 16px !important;
+    font-size: 16px !important; /* Prevent zoom on iOS */
+  }
+  
+  .loadingContainer {
+    padding: 16px !important;
+  }
+  
+  .container {
+    /* Ensure no horizontal overflow on very small screens */
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
 }
 
 

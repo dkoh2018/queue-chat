@@ -318,7 +318,7 @@ function MainChatInterface() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white relative">
+    <div className="flex h-screen bg-gray-900 text-white relative overflow-hidden">
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -337,7 +337,14 @@ function MainChatInterface() {
       
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col relative">
+      <div className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+        
         {/* Floating Sidebar Toggle Button */}
         {!sidebarOpen && (
           <button
