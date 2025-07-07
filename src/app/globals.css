@@ -29,11 +29,8 @@ html, body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Global safe area adjustment - adjust entire website once */
 @media (max-width: 768px) {
     body {
-        /* Global bottom safe area - entire website adjusts once */
-        padding-bottom: var(--mobile-bottom-spacing, 16px);
         min-height: -webkit-fill-available;
         overscroll-behavior: none;
         -webkit-overflow-scrolling: touch;
@@ -42,13 +39,15 @@ html, body {
     html {
         height: -webkit-fill-available;
     }
-}
 
-@media (max-width: 768px) {
     input, textarea, select {
         font-size: 16px !important;
         -webkit-appearance: none;
         appearance: none;
+    }
+
+    .message-input-mobile-safe {
+        bottom: max(20px, env(safe-area-inset-bottom)) !important;
     }
 }
 
@@ -60,56 +59,6 @@ body.keyboard-visible .chatScroll {
     height: calc(100vh - var(--keyboard-height, 0px) - var(--viewport-offset, 0px));
 }
 
-/* Global bottom safe area system - Single Variable Approach */
-:root {
-  /* One variable to rule them all - clean, single spacing value */
-  --mobile-bottom-spacing: max(16px, env(safe-area-inset-bottom));
-}
-
-/* PWA mode - override with fixed spacing */
-@media (display-mode: standalone) {
-  :root {
-    /* Fixed value for PWA mode since env() might not work */
-    --mobile-bottom-spacing: 34px; /* iPhone home indicator space */
-  }
-  
-  /* When running as PWA - override mobile styles */
-  html {
-    height: 100vh !important;
-    height: -webkit-fill-available !important;
-  }
-  
-  body {
-    height: 100vh !important;
-    height: -webkit-fill-available !important;
-  }
-}
-
-/* Components use normal spacing - body handles global safe area */
-.bottom-safe-area {
-  bottom: 16px !important; /* Just normal spacing - body already adjusted */
-}
-
-/* Debug utilities - remove in production */
-@media (display-mode: standalone) {
-  body::before {
-    content: "PWA: " var(--mobile-bottom-spacing);
-    position: fixed;
-    top: 0;
-    right: 0;
-    background: rgba(34, 197, 94, 0.8);
-    color: white;
-    padding: 4px 8px;
-    font-size: 12px;
-    z-index: 9999;
-    border-radius: 0 0 0 4px;
-    pointer-events: none;
-  }
-}
-
-/* Enhanced mobile Safari and safe area support */
-
-/* Global default scrollbar styling for dark theme */
 * {
     scrollbar-width: thin;
     scrollbar-color: rgba(107, 114, 128, 0.5) transparent;
@@ -134,7 +83,6 @@ body.keyboard-visible .chatScroll {
     background-color: rgba(107, 114, 128, 0.7);
 }
 
-/* Safe area support for modern browsers - left/right only */
 @supports (padding: max(0px)) {
     html {
         padding-left: env(safe-area-inset-left);

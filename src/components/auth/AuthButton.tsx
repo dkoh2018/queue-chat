@@ -124,7 +124,7 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
       {isDropdownOpen && (
         <div className="absolute right-0 w-56 backdrop-blur-md border border-gray-600/50 rounded-lg shadow-xl z-[9999] overflow-hidden pointer-events-auto" style={{ 
           backgroundColor: 'rgba(37, 38, 40, 0.9)',
-          bottom: 'calc(100% + 16px)' /* Simple fixed spacing for dropdown */
+          bottom: 'calc(100% + 16px)'
         }}>
           {/* User Info Header */}
           <div className="px-4 py-3 border-b border-gray-700">
