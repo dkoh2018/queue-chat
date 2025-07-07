@@ -141,54 +141,33 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
             </a>
           ),
           // Add table styling
-          table: ({ children }) => {
-            const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-              const target = e.currentTarget;
-              const { deltaX, deltaY } = e;
-              
-              // If scrolling vertically, always allow it to bubble up to chat
-              if (Math.abs(deltaY) > Math.abs(deltaX)) {
-                return; // Let vertical scroll pass through to chat
-              }
-              
-              // For horizontal scrolling, check if we're at table boundaries
-              const isAtLeftEdge = target.scrollLeft === 0;
-              const isAtRightEdge = target.scrollLeft >= target.scrollWidth - target.clientWidth;
-              
-              if ((isAtLeftEdge && deltaX < 0) || (isAtRightEdge && deltaX > 0)) {
-                // At boundary, let the event bubble up
-                return;
-              }
-              
-              // Otherwise, handle table scrolling normally
-              e.stopPropagation();
-            };
-            
-            return (
-              <div 
-                className="my-6 border border-gray-800 rounded-lg shadow-md"
-                style={{
-                  // Remove overflow-x-auto from container to prevent scroll trapping
-                  overflow: 'visible'
-                }}
-              >
-                <div
-                  className="overflow-x-auto chat-scroll"
-                  onWheel={handleWheel}
-                  style={{
-                    // Improve scrolling performance
-                    WebkitOverflowScrolling: 'touch',
-                    // Prevent scroll chaining issues
-                    overscrollBehavior: 'contain'
-                  }}
-                >
-                  <table className="w-full text-sm text-left text-gray-300">{children}</table>
-                </div>
-              </div>
-            );
-          },
+          table: ({ children }) => (
+            <div 
+              className="my-6 border border-gray-800 rounded-lg shadow-md overflow-x-auto chat-scroll"
+              onWheel={(e) => {
+                // ALWAYS prioritize vertical scrolling for chat
+                if (e.deltaY !== 0) {
+                  // Any vertical scroll component - let it bubble to chat immediately
+                  return;
+                }
+                // Only handle pure horizontal scrolling
+                if (e.deltaX !== 0 && e.deltaY === 0) {
+                  e.stopPropagation();
+                }
+              }}
+              style={{
+                // Optimize for mobile
+                WebkitOverflowScrolling: 'touch',
+                // Prevent issues with scroll chaining
+                overscrollBehaviorX: 'contain',
+                overscrollBehaviorY: 'none' // Let Y scroll always bubble up
+              }}
+            >
+              <table className="w-full text-sm text-left text-gray-300">{children}</table>
+            </div>
+          ),
           thead: ({ children }) => (
-            <thead className="bg-gray-900/80 text-xs text-gray-200 uppercase tracking-wider">{children}</thead>
+            <thead className="text-xs text-gray-200 uppercase tracking-wider" style={{ backgroundColor: 'rgba(37, 38, 40, 0.9)' }}>{children}</thead>
           ),
           tbody: ({ children }) => (
             <tbody className="divide-y divide-gray-800">{children}</tbody>
