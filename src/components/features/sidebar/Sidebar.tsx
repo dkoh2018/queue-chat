@@ -173,8 +173,10 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
           )}
         </div>
 
-        {/* Authentication Button - Bottom Right */}
-        <div className="absolute bottom-4 right-4">
+        {/* Authentication Button - Bottom Right with normal spacing */}
+        <div 
+          className="absolute right-4 bottom-4"
+        >
           <AuthButton onClearAppData={onClearAppData} />
         </div>
     </div>
