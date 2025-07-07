@@ -1,112 +1,89 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+    --background: #0a0a0a;
+    --foreground: #ededed;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+    :root {
+        --background: #0a0a0a;
+        --foreground: #ededed;
+    }
 }
-
-/* Scrollbar utilities moved to src/styles/scrollbar.css */
 
 html, body {
-  height: 100%;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-  background: #161618;
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    height: 100%;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background: #161618;
+    color: var(--foreground);
+    font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Global default scrollbar styling for dark theme */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(107, 114, 128, 0.5) transparent;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(107, 114, 128, 0.5) transparent;
 }
 
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+    width: 8px;
+    height: 8px;
 }
 
 *::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: rgba(107, 114, 128, 0.5);
-  border-radius: 4px;
-  border: none;
+    background-color: rgba(107, 114, 128, 0.5);
+    border-radius: 4px;
+    border: none;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(107, 114, 128, 0.7);
+    background-color: rgba(107, 114, 128, 0.7);
 }
 
-/* Form/textarea/input utilities moved to src/styles/forms.css */
-
-/* Glass effects moved to src/styles/glass.css */
-
-/* Scrollbar utilities moved to src/styles/scrollbar.css */
-
-/* Enhanced mobile Safari and safe area support */
 @supports (padding: max(0px)) {
-  html {
-    /* Support safe area insets for notched devices */
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
+    html {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
 }
 
-/* iOS Safari specific viewport handling */
 @media (max-width: 768px) {
-  html {
-    /* Prevent iOS Safari viewport changes on keyboard */
-    height: -webkit-fill-available;
-  }
-  
-  body {
-    /* Improve iOS Safari height handling */
-    min-height: -webkit-fill-available;
-    /* Prevent iOS Safari bounce effect */
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
-  }
+    html {
+        height: -webkit-fill-available;
+    }
+    
+    body {
+        min-height: -webkit-fill-available;
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+    }
 }
 
-/* Prevent iOS Safari zoom on form inputs */
 @media (max-width: 768px) {
-  input, textarea, select {
-    font-size: 16px !important;
-    -webkit-appearance: none;
-    appearance: none;
-  }
+    input, textarea, select {
+        font-size: 16px !important;
+        -webkit-appearance: none;
+        appearance: none;
+    }
 }
 
-/* Mobile keyboard handling */
 body.keyboard-visible {
-  /* Adjust layout when virtual keyboard is visible */
-  transition: all 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 body.keyboard-visible .chatScroll {
-  /* Prevent content from being hidden behind keyboard */
-  height: calc(100vh - var(--keyboard-height, 0px) - var(--viewport-offset, 0px));
+    height: calc(100vh - var(--keyboard-height, 0px) - var(--viewport-offset, 0px));
 }
-
-/* Message input specific styles moved to src/components/chat/MessageInput.module.css */
-
-/* Integration popup styles moved to src/components/features/IntegrationButton.module.css */
