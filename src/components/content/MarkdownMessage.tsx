@@ -140,30 +140,12 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
               {children}
             </a>
           ),
-          // Add table styling
+          // Add table styling - NO horizontal scroll to prevent conflicts
           table: ({ children }) => (
-            <div 
-              className="my-6 border border-gray-800 rounded-lg shadow-md overflow-x-auto chat-scroll"
-              onWheel={(e) => {
-                // ALWAYS prioritize vertical scrolling for chat
-                if (e.deltaY !== 0) {
-                  // Any vertical scroll component - let it bubble to chat immediately
-                  return;
-                }
-                // Only handle pure horizontal scrolling
-                if (e.deltaX !== 0 && e.deltaY === 0) {
-                  e.stopPropagation();
-                }
-              }}
-              style={{
-                // Optimize for mobile
-                WebkitOverflowScrolling: 'touch',
-                // Prevent issues with scroll chaining
-                overscrollBehaviorX: 'contain',
-                overscrollBehaviorY: 'none' // Let Y scroll always bubble up
-              }}
-            >
-              <table className="w-full text-sm text-left text-gray-300">{children}</table>
+            <div className="my-6 border border-gray-800 rounded-lg shadow-md">
+              <table className="w-full text-sm text-left text-gray-300 table-fixed">
+                {children}
+              </table>
             </div>
           ),
           thead: ({ children }) => (
@@ -176,10 +158,10 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
             <tr className="hover:bg-gray-900/60 transition-colors duration-200 ease-in-out">{children}</tr>
           ),
           th: ({ children }) => (
-            <th scope="col" className="py-3 px-6 font-semibold">{children}</th>
+            <th scope="col" className="py-3 px-6 font-semibold break-words">{children}</th>
           ),
           td: ({ children }) => (
-            <td className="py-4 px-6">{children}</td>
+            <td className="py-4 px-6 break-words">{children}</td>
           ),
         }}
       >

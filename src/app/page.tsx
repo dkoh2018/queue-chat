@@ -313,7 +313,7 @@ function MainChatInterface() {
   }
 
   return (
-    <div className="flex h-screen text-white relative" style={{backgroundColor: '#161618'}}>
+    <div className="flex h-screen text-white relative">
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
