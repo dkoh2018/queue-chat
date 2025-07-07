@@ -25,7 +25,6 @@ function MainChatInterface() {
   const [inputText, setInputText] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
-  const [newChatClicked, setNewChatClicked] = useState(false);
   const [queueVisible, setQueueVisible] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isIntegrationPopupOpen, setIsIntegrationPopupOpen] = useState(false);
@@ -144,9 +143,6 @@ function MainChatInterface() {
 
 
   const handleNewChat = useCallback(() => {
-    // Provide immediate visual feedback
-    setNewChatClicked(true);
-    
     // Start new conversation
     clearMessages();
     setCurrentConversationId(null);
@@ -162,8 +158,6 @@ function MainChatInterface() {
       if (textarea) {
         textarea.focus();
       }
-      // Reset the clicked state after a short delay
-      setNewChatClicked(false);
     }, 150);
   }, [clearMessages, setCurrentConversationId]);
 
@@ -323,7 +317,6 @@ function MainChatInterface() {
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        newChatClicked={newChatClicked}
         currentConversationId={currentConversationId}
         conversations={conversations}
         loading={conversationsLoading}
