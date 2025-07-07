@@ -12,7 +12,8 @@ export const MessageInputContainer = forwardRef<HTMLDivElement, MessageInputCont
       style={{
         paddingLeft: '16px',
         paddingRight: '16px',
-        paddingTop: '16px'
+        paddingTop: '16px',
+        paddingBottom: '20px'
       }}
     >
       <div className="w-full mx-auto relative max-w-[calc(100%-1rem)] sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px]">

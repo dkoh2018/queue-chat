@@ -42,7 +42,7 @@ html, body {
     }
 
     .message-input-mobile-safe {
-        bottom: 20px !important;
+        bottom: 40px !important;
     }
 }
 
@@ -76,11 +76,4 @@ body.keyboard-visible .chatScroll {
 
 *::-webkit-scrollbar-thumb:hover {
     background-color: rgba(107, 114, 128, 0.7);
-}
-
-@supports (padding: max(0px)) {
-    html {
-        padding-left: env(safe-area-inset-left);
-        padding-right: env(safe-area-inset-right);
-    }
 }
