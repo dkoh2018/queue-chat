@@ -1,6 +1,6 @@
 .container {
   height: 100vh;
-  border-right: 1px solid rgba(75, 85, 99, 0.3);
+  border-right: 1px solid rgba(55, 56, 58, 0.3); /* Updated to match custom color scheme */
   overflow: hidden;
   flex-shrink: 0;
   display: flex;

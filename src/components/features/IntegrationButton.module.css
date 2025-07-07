@@ -56,9 +56,9 @@
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(31, 41, 55, 0.6);
+  background: #252628;
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(107, 114, 128, 0.8);
+  border: 1px solid rgba(55, 56, 58, 0.8);
   border-radius: 8px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
   padding: 8px 0;
@@ -159,7 +159,7 @@
 }
 
 .optionDefault:hover {
-  background: rgba(75, 85, 99, 0.5);
+  background: rgba(55, 56, 58, 0.5);
   color: rgb(229, 231, 235);
 }
 
@@ -169,7 +169,7 @@
 }
 
 .optionTouching {
-  background: rgba(75, 85, 99, 0.7);
+  background: rgba(55, 56, 58, 0.7);
   color: rgb(229, 231, 235);
 }
 
@@ -207,8 +207,8 @@
   }
   
   .popup {
-    background: rgb(31, 41, 55);
-    border: 1px solid rgba(107, 114, 128, 0.8);
+    background: #252628;
+    border: 1px solid rgba(55, 56, 58, 0.8);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(0, 0, 0, 0.2);
     max-width: 90vw;
     max-height: 50vh;
@@ -406,8 +406,8 @@
 /* Dark mode optimizations */
 @media (prefers-color-scheme: dark) {
   .popup {
-    background: rgb(31, 41, 55);
-    border-color: rgba(107, 114, 128, 0.6);
+    background: #252628;
+    border-color: rgba(55, 56, 58, 0.6);
     color: rgb(243, 244, 246);
   }
   
@@ -416,18 +416,18 @@
   }
   
   .optionDefault:hover {
-    background: rgba(75, 85, 99, 0.5);
+    background: rgba(55, 56, 58, 0.5);
   }
   
   @media (max-width: 768px) {
     .popup {
-      background: rgb(31, 41, 55);
-      border: 1px solid rgba(75, 85, 99, 0.4);
+      background: #252628;
+      border: 1px solid rgba(55, 56, 58, 0.4);
     }
     
     .optionDefault:hover,
     .optionDefault:focus {
-      background: rgba(55, 65, 81, 0.6);
+      background: rgba(55, 56, 58, 0.6);
     }
   }
 }
@@ -460,11 +460,11 @@
   .button:hover,
   .button:focus {
     border-color: rgba(156, 163, 175, 0.6);
-    background: rgba(75, 85, 99, 0.7);
+    background: rgba(55, 56, 58, 0.7);
   }
   
   .popup {
-    background: rgba(17, 24, 39, 0.98);
+    background: #161618;
     border: 2px solid rgba(156, 163, 175, 0.8);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
   }
@@ -475,7 +475,7 @@
   
   .option:hover,
   .option:focus {
-    background: rgba(75, 85, 99, 0.6);
+    background: rgba(55, 56, 58, 0.6);
     border-color: rgba(156, 163, 175, 0.4);
   }
   
@@ -495,7 +495,7 @@
 /* Performance optimizations for low-end devices */
 @media (max-width: 480px) and (max-height: 800px) {
   .popup {
-    background: rgb(31, 41, 55);
+    background: #252628;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
   
