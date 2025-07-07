@@ -142,7 +142,7 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
   return (
     <>
       {/* Container with backdrop filter - separated from text input */}
-      <div className={styles.container}>
+      <div className={`${styles.container} ${isIntegrationPopupOpen ? styles.popupOpen : ''}`}>
         {/* Background layer with glass effect */}
         <div className={styles.background} />
         
