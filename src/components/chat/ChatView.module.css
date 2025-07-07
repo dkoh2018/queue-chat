@@ -32,7 +32,7 @@
 
 /* User message bubble - stays as bubble */
 .userMessage {
-  background-color: rgba(31, 41, 55, 1);
+  background-color: rgba(37, 38, 40, 1);
   color: white;
   border-radius: 16px;
   border-bottom-right-radius: 6px;

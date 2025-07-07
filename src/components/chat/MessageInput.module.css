@@ -19,7 +19,7 @@
 .background {
   position: absolute;
   inset: 0;
-  background-color: rgba(31, 41, 55, 0.6); /* bg-gray-800/60 */
+  background-color: rgba(37, 38, 40, 0.9); /* #252628 with 90% opacity for glass effect */
   backdrop-filter: blur(8px);
   border: 1px solid rgba(75, 85, 99, 0.5); /* border-gray-600/50 */
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
