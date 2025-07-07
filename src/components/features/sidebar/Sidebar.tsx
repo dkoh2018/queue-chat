@@ -98,7 +98,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
       }}
     >
         {/* Sidebar Header */}
-        <div className="p-3 sm:p-4 border-b border-gray-600/50">
+        <div className="px-3 sm:px-4 pt-2 sm:pt-3 pb-1 sm:pb-1.5 border-b border-white/20">
           {isSearching ? (
             <div className="flex items-center justify-between mb-4">
               <input
@@ -114,7 +114,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
               </button>
             </div>
           ) : (
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-1">
               <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-white/20 rounded transition-colors">
                 <MenuIcon />
               </button>

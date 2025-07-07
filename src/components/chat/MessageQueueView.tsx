@@ -58,7 +58,7 @@ const SortableItem: React.FC<SortableItemProps> = ({ id, message, index, onRemov
       {...attributes}
       {...listeners}
       className={`flex items-center justify-between text-gray-300 glass-card p-2 rounded-md cursor-grab active:cursor-grabbing ${
-        isProcessing && index === 0 ? 'animate-pulse glass-glow-blue' : ''
+        isProcessing && index === 0 ? 'animate-pulse glass-glow-green' : ''
       }`}
     >
       <span className="font-mono text-xs sm:text-sm mr-2 flex-shrink-0">{`[${index + 1}]`}</span>

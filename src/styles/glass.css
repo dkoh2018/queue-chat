@@ -114,20 +114,12 @@
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-.glass-glow-blue {
-  box-shadow: 
-    0 0 20px rgba(59, 130, 246, 0.5),
-    0 0 40px rgba(59, 130, 246, 0.3),
-    0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  border-color: rgba(59, 130, 246, 0.5);
-}
-
 .glass-glow-green {
   box-shadow: 
-    0 0 10px rgba(34, 197, 94, 0.4),
-    0 0 20px rgba(34, 197, 94, 0.2),
+    0 0 15px rgba(16, 185, 129, 0.4),
+    0 0 30px rgba(16, 185, 129, 0.2),
     0 2px 4px -1px rgba(0, 0, 0, 0.1);
-  border-color: rgba(34, 197, 94, 0.5);
+  border-color: rgba(16, 185, 129, 0.5);
   will-change: box-shadow, border-color;
   transform: translateZ(0);
 }
