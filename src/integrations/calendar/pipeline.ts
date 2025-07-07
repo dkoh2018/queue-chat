@@ -56,7 +56,7 @@ interface RawCalendarData {
 
 export class CalendarPipeline {
   private baseUrl = process.env.NODE_ENV === 'production' 
-    ? 'https://your-domain.com' 
+    ? 'https://queue-chat.vercel.app' 
     : 'http://localhost:3000';
 
   /**
