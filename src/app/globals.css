@@ -31,13 +31,8 @@ html, body {
 
 @media (max-width: 768px) {
     body {
-        min-height: -webkit-fill-available;
         overscroll-behavior: none;
         -webkit-overflow-scrolling: touch;
-    }
-    
-    html {
-        height: -webkit-fill-available;
     }
 
     input, textarea, select {
