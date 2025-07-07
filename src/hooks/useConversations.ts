@@ -38,7 +38,7 @@ export const useConversations = (): UseConversationsReturn => {
     revalidateOnReconnect: false,
     revalidateOnMount: true,
     refreshInterval: 0,
-    dedupingInterval: 3000, // **CLEAN**: Reasonable deduping interval
+    dedupingInterval: 3000,
     errorRetryCount: 1,
     errorRetryInterval: 2000,
     onSuccess: (data) => {
@@ -154,9 +154,7 @@ export const useConversations = (): UseConversationsReturn => {
     logger.info('All conversation data cleared', 'CONVERSATION');
   }, []);
 
-  // **CLEAN**: Optimistic update for conversation ordering
   const optimisticallyUpdateConversationOrder = useCallback((conversationId: string) => {
-    // Move the conversation to the top immediately with better performance
     mutate(
       CONVERSATIONS_KEY,
       (currentData: Conversation[] | undefined) => {
@@ -165,7 +163,6 @@ export const useConversations = (): UseConversationsReturn => {
         const conversationIndex = currentData.findIndex(c => c.id === conversationId);
         
         if (conversationIndex >= 0) {
-          // **OPTIMIZED**: Create new array efficiently
           const conversation = { ...currentData[conversationIndex] };
           conversation.updatedAt = new Date().toISOString();
           

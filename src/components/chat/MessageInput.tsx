@@ -185,7 +185,7 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
             <div className={styles.toolButtons}>
               <button
                 onClick={() => {
-                  blurTextInput(); // Turn off text input when clicked
+                  blurTextInput();
                   // TODO: Add file attachment functionality here
                 }}
                 className={`${styles.attachButton} ${styles.noPadding}`}

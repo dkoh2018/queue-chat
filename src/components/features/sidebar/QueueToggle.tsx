@@ -32,8 +32,8 @@ export const QueueToggle: React.FC<QueueToggleProps> = ({
       onClick={handleToggle}
       className="absolute -top-12 right-0 z-60 backdrop-blur-xl hover:bg-white/10 border rounded-lg px-3 py-2 text-white text-sm font-medium transition-all duration-200 ease-in-out shadow-2xl hover:shadow-xl flex items-center gap-2"
       style={{
-        backgroundColor: '#161618', /* Your darker custom color */
-        borderColor: 'rgba(255, 255, 255, 0.3)' /* Much lighter border for better visibility */
+        backgroundColor: '#161618',
+        borderColor: 'rgba(255, 255, 255, 0.3)'
       }}
       title={isOpen ? "Hide queue" : "Show queue"}
     >

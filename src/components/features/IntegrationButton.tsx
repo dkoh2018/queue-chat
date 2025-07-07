@@ -118,12 +118,9 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations, onB
           e.preventDefault();
           e.stopPropagation();
           
-          // Turn off text input when opening popup
           if (!isOpen) {
             onBlur?.();
-            // Close sidebar if open (similar to queue toggle behavior)
             onCloseSidebar?.();
-            // Close queue if open when opening integration popup
             onCloseQueue?.();
           }
           
@@ -139,12 +136,9 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations, onB
           e.stopPropagation();
           setIsTouching(false);
           
-          // Turn off text input when opening popup on touch
           if (!isOpen) {
             onBlur?.();
-            // Close sidebar if open (similar to queue toggle behavior)
             onCloseSidebar?.();
-            // Close queue if open when opening integration popup
             onCloseQueue?.();
           }
           

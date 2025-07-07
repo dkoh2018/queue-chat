@@ -51,9 +51,7 @@ function MainChatInterface() {
     handleConversationDeleted,
   } = useConversations();
 
-  // **CLEAN EVENT-DRIVEN SYSTEM**: Simple event handler for message sending
   const handleChatMessageSent = useCallback((conversationId: string) => {
-    // Trigger the conversation update event
     handleMessageSent(conversationId);
   }, [handleMessageSent]);
 
@@ -72,7 +70,7 @@ function MainChatInterface() {
     toggleIntegration,
     error,
     clearError,
-  } = useChat(handleChatMessageSent); // **CONNECTED**: Event-driven system
+  } = useChat(handleChatMessageSent);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -105,7 +103,6 @@ function MainChatInterface() {
     }
   }, [currentConversationId]);
 
-  // **SIMPLIFIED**: Load conversations from database on mount - no complex effects
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
@@ -115,9 +112,6 @@ function MainChatInterface() {
     if (currentConversationId && conversations.length > 0) {
       const conversation = conversations.find(c => c.id === currentConversationId);
       if (conversation) {
-        // **FIX**: Don't override messages during active chat processing
-        // Only restore messages if we're not currently processing or loading
-        // AND if there are no messages in the chat state (prevent overriding live chat)
         if (!isLoading && !isProcessingQueue && messages.length === 0) {
           const uiMessages = conversation.messages.map(msg => ({
             role: msg.role.toLowerCase() as 'user' | 'assistant',
@@ -236,15 +230,11 @@ function MainChatInterface() {
   };
 
   const handleSelectConversation = async (conversation: Conversation) => {
-    // **EVENT**: Trigger conversation selected event
     handleConversationSelected(conversation.id);
     
-    // Set current conversation in conversations hook FIRST
     selectConversation(conversation);
     
-    // Defer other operations to allow UI to update first
     setTimeout(() => {
-      // **SIMPLIFIED**: No complex stale data checking - just load the conversation
       const uiMessages = conversation.messages.map(msg => ({
         role: msg.role.toLowerCase() as 'user' | 'assistant',
         content: msg.content
@@ -275,7 +265,6 @@ function MainChatInterface() {
     if (!conversationToDelete) return;
     
     try {
-      // **EVENT**: Trigger conversation deleted event
       handleConversationDeleted(conversationToDelete.id);
       
       await deleteConversation(conversationToDelete.id);

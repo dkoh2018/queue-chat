@@ -72,7 +72,6 @@ export const useChat = (onMessageSent?: (conversationId: string) => void): UseCh
     setError(null);
 
     try {
-      // **IMMEDIATE**: Update conversation order FIRST for instant feedback
       if (messageSentRef.current && currentConversationId) {
         messageSentRef.current(currentConversationId);
       }
