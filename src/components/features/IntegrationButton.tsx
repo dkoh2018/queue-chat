@@ -10,9 +10,11 @@ interface IntegrationButtonProps {
   activeIntegrations: IntegrationType[];
   onBlur?: () => void;
   onPopupStateChange?: (isOpen: boolean) => void;
+  onCloseSidebar?: () => void;
+  onCloseQueue?: () => void;
 }
 
-export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations, onBlur, onPopupStateChange }: IntegrationButtonProps) => {
+export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations, onBlur, onPopupStateChange, onCloseSidebar, onCloseQueue }: IntegrationButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isTouching, setIsTouching] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -119,6 +121,10 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations, onB
           // Turn off text input when opening popup
           if (!isOpen) {
             onBlur?.();
+            // Close sidebar if open (similar to queue toggle behavior)
+            onCloseSidebar?.();
+            // Close queue if open when opening integration popup
+            onCloseQueue?.();
           }
           
           setIsOpen(!isOpen);
@@ -136,6 +142,10 @@ export const IntegrationButton = ({ onIntegrationSelect, activeIntegrations, onB
           // Turn off text input when opening popup on touch
           if (!isOpen) {
             onBlur?.();
+            // Close sidebar if open (similar to queue toggle behavior)
+            onCloseSidebar?.();
+            // Close queue if open when opening integration popup
+            onCloseQueue?.();
           }
           
           setIsOpen(!isOpen);

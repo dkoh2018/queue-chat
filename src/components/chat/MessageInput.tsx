@@ -20,9 +20,11 @@ interface MessageInputProps {
   onFocus?: () => void;
   isIntegrationPopupOpen?: boolean;
   onIntegrationPopupStateChange?: (isOpen: boolean) => void;
+  onCloseSidebar?: () => void;
+  onCloseQueue?: () => void;
 }
 
-export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false, onIntegrationSelect, activeIntegrations, onFocus, isIntegrationPopupOpen = false, onIntegrationPopupStateChange }: MessageInputProps) => {
+export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false, onIntegrationSelect, activeIntegrations, onFocus, isIntegrationPopupOpen = false, onIntegrationPopupStateChange, onCloseSidebar, onCloseQueue }: MessageInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastTranscriptionRef = useRef<string | undefined>(undefined);
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -204,6 +206,8 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
                 activeIntegrations={activeIntegrations || []}
                 onBlur={blurTextInput}
                 onPopupStateChange={onIntegrationPopupStateChange}
+                onCloseSidebar={onCloseSidebar}
+                onCloseQueue={onCloseQueue}
               />
             </div>
             

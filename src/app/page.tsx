@@ -404,6 +404,13 @@ function MainChatInterface() {
             isOpen={queueVisible}
             onToggle={() => setQueueVisible(!queueVisible)}
             queueCount={messageQueue.length}
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            onCloseIntegrationPopup={() => {
+              if (isIntegrationPopupOpen) {
+                setIsIntegrationPopupOpen(false);
+              }
+            }}
           />
 
           {/* Queue View */}
@@ -425,6 +432,16 @@ function MainChatInterface() {
             activeIntegrations={activeIntegrations}
             isIntegrationPopupOpen={isIntegrationPopupOpen}
             onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
+            onCloseSidebar={() => {
+              if (sidebarOpen) {
+                setSidebarOpen(false);
+              }
+            }}
+            onCloseQueue={() => {
+              if (queueVisible) {
+                setQueueVisible(false);
+              }
+            }}
             onFocus={() => {
               // Auto-close sidebar on mobile when user focuses on input
               if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
