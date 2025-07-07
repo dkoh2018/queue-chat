@@ -351,7 +351,16 @@ function MainChatInterface() {
         {!sidebarOpen && (
           <button
             onClick={() => setSidebarOpen(true)}
-            className="fixed top-4 left-4 z-30 p-2 bg-gray-800/60 backdrop-blur-sm rounded-lg text-white hover:bg-gray-700/60 transition-all duration-200"
+            className="fixed top-4 left-4 z-30 p-2 backdrop-blur-sm rounded-lg text-white transition-all duration-200"
+            style={{
+              backgroundColor: 'rgba(37, 38, 40, 0.9)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(37, 38, 40, 1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(37, 38, 40, 0.9)';
+            }}
             title="Open sidebar (⌘+\)"
           >
             <MenuIcon />

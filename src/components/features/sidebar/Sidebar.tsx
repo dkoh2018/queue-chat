@@ -7,7 +7,6 @@ import styles from './Sidebar.module.css';
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
-  newChatClicked: boolean;
   currentConversationId: string | null;
   conversations: Conversation[];
   loading: boolean;
@@ -37,7 +36,7 @@ const ConversationItem = memo(({
     <div
       key={conversation.id}
       onClick={() => onSelectConversation(conversation)}
-      className={`group flex items-center justify-between px-2 sm:px-2 py-2 mx-2 sm:mx-2 rounded-lg cursor-pointer sidebar-item transition-all duration-200 ${
+      className={`group flex items-center justify-between px-2 py-2 mx-2 rounded-lg cursor-pointer sidebar-item transition-all duration-200 ${
         isActive ? 'glass-card glass-glow-green' : 'hover:glass-card'
       }`}
     >
@@ -57,7 +56,6 @@ ConversationItem.displayName = 'ConversationItem';
 
 const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
   setSidebarOpen,
-  newChatClicked,
   currentConversationId,
   conversations,
   loading,
@@ -135,21 +133,24 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
             </div>
           )}
           
-          <button
-            onClick={onNewChat}
-            className={`w-full mb-4 px-4 py-2 rounded-md transition-colors ${
-              newChatClicked
-                ? 'bg-emerald-600'
-                : !currentConversationId
-                  ? 'bg-emerald-600 hover:bg-emerald-700'
-                  : 'bg-gray-800 hover:bg-gray-700'
-            }`}
-          >
-            <div className="flex items-center justify-center">
+          <div className="mx-2 mb-4">
+            <button
+              onClick={onNewChat}
+              className="w-full px-2 py-2 rounded-md transition-colors flex items-center justify-center"
+              style={{
+                backgroundColor: '#161618'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(37, 38, 40, 0.9)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#161618';
+              }}
+            >
               <PlusIcon />
               <span className="ml-2">New chat</span>
-            </div>
-          </button>
+            </button>
+          </div>
         </div>
 
         {/* Chat History */}
