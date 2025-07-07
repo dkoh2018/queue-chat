@@ -3,12 +3,10 @@ import type { User } from '@supabase/supabase-js';
 
 interface WelcomeViewProps {
   user: User | null;
-  authLoading: boolean;
 }
 
 export const WelcomeView = ({
-  user,
-  authLoading
+  user
 }: WelcomeViewProps) => {
   const [mounted, setMounted] = useState(false);
 
@@ -18,7 +16,6 @@ export const WelcomeView = ({
 
   // Get user's first name from Google metadata
   const getUserFirstName = () => {
-    if (authLoading) return 'there';
     if (!user) return 'there';
     
     // Try to get first name from user metadata
@@ -36,9 +33,6 @@ export const WelcomeView = ({
   };
 
   const getStatusMessage = () => {
-    if (authLoading) {
-      return '🔄 Loading...';
-    }
     return '✨ New chat started - Ask me anything!';
   };
 

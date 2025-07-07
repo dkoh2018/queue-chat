@@ -64,25 +64,4 @@ html, body {
 
 /* Message input specific styles moved to src/components/chat/MessageInput.module.css */
 
-/* Focus state management for separated layers */
-.message-input-container:focus-within .message-input-background {
-  border-color: rgba(52, 211, 153, 0.6);
-  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.2);
-}
-
-/* Ensure text selection works properly on all mobile browsers */
-@media (max-width: 768px) {
-  .message-input-content textarea {
-    /* Force text selection to work properly */
-    -webkit-user-select: text !important;
-    user-select: text !important;
-    /* Prevent any backdrop filter interference */
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-    /* Ensure proper stacking */
-    z-index: 999 !important;
-    position: relative !important;
-  }
-}
-
 /* Integration popup styles moved to src/components/features/IntegrationButton.module.css */

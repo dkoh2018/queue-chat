@@ -3,13 +3,13 @@
 
 /* Fix text selection visibility in transparent textareas */
 textarea::selection {
-  background: rgba(59, 130, 246, 0.6) !important;
-  color: white !important;
+  background: rgba(59, 130, 246, 0.6);
+  color: white;
 }
 
 textarea::-moz-selection {
-  background: rgba(59, 130, 246, 0.6) !important;
-  color: white !important;
+  background: rgba(59, 130, 246, 0.6);
+  color: white;
 }
 
 /* Enhanced text selection for mobile devices */
@@ -22,13 +22,13 @@ textarea, input {
 
 /* Ensure text selection is visible on mobile */
 textarea::selection, input::selection {
-  background: rgba(59, 130, 246, 0.7) !important;
-  color: white !important;
+  background: rgba(59, 130, 246, 0.7);
+  color: white;
 }
 
 textarea::-moz-selection, input::-moz-selection {
-  background: rgba(59, 130, 246, 0.7) !important;
-  color: white !important;
+  background: rgba(59, 130, 246, 0.7);
+  color: white;
 }
 
 /* Fix mobile text selection layering - Critical for iOS Safari */

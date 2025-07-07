@@ -79,11 +79,15 @@ function MainChatInterface() {
   useEffect(() => {
     const scrollToBottom = () => {
       if (chatScrollRef.current) {
-        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+        const isNearBottom = chatScrollRef.current.scrollTop > chatScrollRef.current.scrollHeight - chatScrollRef.current.clientHeight - 100;
+        // Only auto-scroll if user is near bottom (not manually scrolled up)
+        if (isNearBottom) {
+          chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+        }
       }
     };
     
-    // Scroll to bottom whenever messages change
+    // Scroll to bottom whenever messages change (but respect user scroll position)
     if (messages && messages.length > 0) {
       // Use setTimeout to ensure DOM is updated
       setTimeout(scrollToBottom, 100);
@@ -128,9 +132,6 @@ function MainChatInterface() {
       }
     }
   }, [currentConversationId, conversations, setMessages, isLoading, isProcessingQueue, messages.length]);
-
-  // Load sidebar state from localStorage after mount (client-side only)
-  
 
   // Save sidebar state changes to localStorage
   useEffect(() => {
@@ -338,12 +339,13 @@ function MainChatInterface() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
-        {sidebarOpen && (
+        {/* TEMPORARILY DISABLED - Mobile backdrop overlay */}
+        {/* {sidebarOpen && (
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            className="fixed inset-0 bg-black/50 z-40 block md:hidden"
             onClick={() => setSidebarOpen(false)}
           />
-        )}
+        )} */}
         
         {/* Floating Sidebar Toggle Button */}
         {!sidebarOpen && (
@@ -359,7 +361,6 @@ function MainChatInterface() {
         {!messages || messages.length === 0 ? (
           <WelcomeView
             user={user}
-            authLoading={false}
           />
         ) : (
           <ChatView messages={messages} isLoading={isLoading} ref={chatScrollRef} />

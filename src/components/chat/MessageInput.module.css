@@ -213,20 +213,17 @@
 /* Mobile optimizations */
 @media (max-width: 768px) {
   .content textarea {
-    /* Force text selection to work properly */
-    -webkit-user-select: text !important;
-    user-select: text !important;
     /* Prevent zoom on focus in iOS Safari */
-    font-size: 16px !important;
+    font-size: 16px;
     /* Improve touch responsiveness */
     touch-action: manipulation;
-          /* Ensure textarea stays on top */
-      z-index: 5;
+    /* Ensure textarea stays on top */
+    z-index: 5;
   }
   
   .container {
     /* Critical: Allow popups to extend beyond container */
-    overflow: visible !important;
+    overflow: visible;
     /* Prevent container from interfering with touch events */
     touch-action: manipulation;
     /* Ensure proper stacking but allow overflow */
@@ -262,10 +259,10 @@
   
   .content textarea {
     /* Prevent iOS Safari zoom on focus */
-    font-size: 16px !important;
+    font-size: 16px;
     /* Improve text selection on iOS */
-    -webkit-user-select: text !important;
-    user-select: text !important;
+    -webkit-user-select: text;
+    user-select: text;
     /* Prevent callouts */
     -webkit-touch-callout: none;
     /* Optimize touch interactions */
@@ -338,18 +335,18 @@
 /* Extra small screens - prevent overflow */
 @media (max-width: 375px) {
   .textarea {
-    padding: 16px !important;
-    font-size: 16px !important; /* Prevent zoom on iOS */
+    padding: 16px;
+    font-size: 16px; /* Prevent zoom on iOS */
   }
   
   .loadingContainer {
-    padding: 16px !important;
+    padding: 16px;
   }
   
   .container {
     /* Ensure no horizontal overflow on very small screens */
-    min-width: 0 !important;
-    max-width: 100% !important;
+    min-width: 0;
+    max-width: 100%;
   }
 }
 
