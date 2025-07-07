@@ -22,7 +22,6 @@ import { XIcon } from '@/components/icons';
 interface MessageQueueViewProps {
   messageQueue: string[];
   onRemoveMessage: (index: number) => void;
-  onClearQueue: () => void;
   onReorderQueue: (startIndex: number, endIndex: number) => void;
   isProcessing: boolean;
   isVisible: boolean;
@@ -82,7 +81,6 @@ const SortableItem: React.FC<SortableItemProps> = ({ id, message, index, onRemov
 export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
   messageQueue,
   onRemoveMessage,
-  onClearQueue,
   onReorderQueue,
   isProcessing,
   isVisible,
@@ -118,15 +116,6 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
           <h3 className="text-lg font-semibold text-white">
             {messageQueue.length === 0 ? 'No Queue' : `Next Prompt (${messageQueue.length})`}
           </h3>
-          {messageQueue.length > 0 && (
-            <button
-              onClick={onClearQueue}
-              className="text-gray-400 hover:text-white glass-button p-1 rounded"
-              title="Clear queue"
-            >
-              <XIcon className="w-5 h-5" />
-            </button>
-          )}
         </div>
         <DndContext
           sensors={sensors}
@@ -137,7 +126,13 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
             items={messageQueue.map((message, index) => `${message}-${index}`)}
             strategy={verticalListSortingStrategy}
           >
-            <ul className="space-y-2 max-h-48 overflow-y-auto chat-scroll">
+            <ul className={`space-y-2 overflow-y-auto chat-scroll transition-all duration-300 ${
+              messageQueue.length === 0 
+                ? 'h-16'
+                : messageQueue.length <= 4
+                ? 'min-h-16 h-auto'
+                : 'h-48'
+            }`}>
               {messageQueue.length === 0 ? (
                 <li className="text-gray-400 text-center py-4 italic">
                   No messages queued... yet!

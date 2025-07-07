@@ -66,7 +66,6 @@ function MainChatInterface() {
     clearMessages,
     setMessages,
     removeMessageFromQueue,
-    clearQueue,
     reorderQueue,
     clearAllData: clearChatData,
     activeIntegrations,
@@ -389,7 +388,6 @@ function MainChatInterface() {
           <MessageQueueView
             messageQueue={messageQueue}
             onRemoveMessage={removeMessageFromQueue}
-            onClearQueue={clearQueue}
             isProcessing={isProcessingQueue}
             onReorderQueue={reorderQueue}
             isVisible={queueVisible}
