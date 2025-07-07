@@ -338,7 +338,7 @@ function MainChatInterface() {
       
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col relative min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col relative min-w-0">
         {/* TEMPORARILY DISABLED - Mobile backdrop overlay */}
         {/* {sidebarOpen && (
           <div 
