@@ -15,7 +15,9 @@ export const ChatView = memo(forwardRef<HTMLDivElement, ChatViewProps>(({ messag
   
   return (
     <div ref={ref} className={`${styles.container} chatScroll`}>
-      <div className="w-full mx-auto px-6 sm:px-4 pt-12 pb-60 max-w-full sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px]">
+      <div 
+        className="w-full mx-auto px-6 sm:px-4 pt-12 pb-60 max-w-full sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px]"
+      >
         {safeMessages.map((msg, index) => {
           // Ensure each message has required properties
           if (!msg || typeof msg !== 'object' || !msg.role || !msg.content) {

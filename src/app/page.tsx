@@ -31,6 +31,7 @@ function MainChatInterface() {
   
   // Refs for better performance
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const messageInputRef = useRef<HTMLDivElement>(null);
 
   // Custom Hooks for Business Logic - only load if user is authenticated or auth is required
   const {
@@ -373,7 +374,7 @@ function MainChatInterface() {
         )}
 
         {/* Fixed Message Input - positioned inside main content */}
-        <MessageInputContainer>
+        <MessageInputContainer ref={messageInputRef}>
           {/* Queue Toggle Button */}
           <QueueToggle
             isOpen={queueVisible}
