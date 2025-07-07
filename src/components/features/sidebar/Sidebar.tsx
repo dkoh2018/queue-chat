@@ -37,7 +37,7 @@ const ConversationItem = memo(({
     <div
       key={conversation.id}
       onClick={() => onSelectConversation(conversation)}
-      className={`group flex items-center justify-between px-2 sm:px-3 py-2 mx-2 sm:mx-3 rounded-lg cursor-pointer sidebar-item transition-all duration-200 ${
+      className={`group flex items-center justify-between px-2 sm:px-2 py-2 mx-2 sm:mx-2 rounded-lg cursor-pointer sidebar-item transition-all duration-200 ${
         isActive ? 'glass-card glass-glow-green' : 'hover:glass-card'
       }`}
     >
