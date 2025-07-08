@@ -1,41 +1,26 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useConversations, useChat, useAuth, useMobileKeyboardHandling, usePersistedState } from '@/hooks';
+import { useConversations, useChat, useMobileKeyboardHandling, usePersistedState, useKeyboardShortcuts, useScrollManagement, useAuthGuard } from '@/hooks';
 import { Conversation } from '@/types';
 import { optimizationService } from '@/services';
 import Sidebar from '@/components/features/sidebar/Sidebar';
-import { ChatView } from '@/components/chat/ChatView';
-import { MessageInput } from '@/components/chat/MessageInput';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
-import { MessageQueueView } from '@/components/chat/MessageQueueView';
-
-import { QueueToggle } from '@/components/features/sidebar/QueueToggle';
-import { LoadingScreen } from '@/components/ui/LoadingScreen';
-import { MenuIcon } from '@/components/icons';
+import { ErrorToast } from '@/components/ui/ErrorToast';
+import { FloatingSidebarToggle, DesktopChatLayout, MobileChatLayout } from '@/components/layout';
 
 function MainChatInterface() {
-  // Mobile keyboard handling for iOS Safari
   useMobileKeyboardHandling();
-  
-  // Authentication state - STRICT: No access without authentication
-  const { user, loading } = useAuth();
-  
-  // UI State - Default values for server rendering (consistent initial state)
+  const { user, AuthGuardComponent } = useAuthGuard();
   const [sidebarOpen, setSidebarOpen] = usePersistedState('sidebarOpen', true);
-  
   const [inputText, setInputText] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
   const [queueVisible, setQueueVisible] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isIntegrationPopupOpen, setIsIntegrationPopupOpen] = useState(false);
-  
-  // Refs for better performance
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
-
-  // Custom Hooks for Business Logic - only load if user is authenticated or auth is required
   const {
     conversations,
     currentConversationId,
@@ -73,42 +58,16 @@ function MainChatInterface() {
     clearError,
   } = useChat(handleChatMessageSent);
 
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    const scrollToBottom = () => {
-      if (chatScrollRef.current) {
-        const isNearBottom = chatScrollRef.current.scrollTop > chatScrollRef.current.scrollHeight - chatScrollRef.current.clientHeight - 100;
-        if (isNearBottom) {
-          chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-        }
-      }
-    };
-    
-    if (messages && messages.length > 0) {
-      requestAnimationFrame(scrollToBottom);
-    }
-  }, [messages]);
-
-  // Save scroll position when user scrolls in any conversation
-  useEffect(() => {
-    const handleScroll = () => {
-      if (currentConversationId && typeof window !== 'undefined' && chatScrollRef.current) {
-        localStorage.setItem(`scroll-${currentConversationId}`, String(chatScrollRef.current.scrollTop));
-      }
-    };
-
-    const chatContainer = chatScrollRef.current;
-    if (chatContainer) {
-      chatContainer.addEventListener('scroll', handleScroll);
-      return () => chatContainer.removeEventListener('scroll', handleScroll);
-    }
-  }, [currentConversationId]);
+  const { restoreScrollPosition } = useScrollManagement({
+    messages,
+    currentConversationId,
+    chatScrollRef,
+  });
 
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
 
-  // Restore conversation state on page load
   useEffect(() => {
     if (currentConversationId && conversations.length > 0) {
       const conversation = conversations.find(c => c.id === currentConversationId);
@@ -121,21 +80,15 @@ function MainChatInterface() {
           setMessages(uiMessages);
         }
       }
-    }  }, [currentConversationId, conversations, setMessages, isLoading, isProcessingQueue, messages.length]);
-
-  
+    }
+  }, [currentConversationId, conversations, setMessages, isLoading, isProcessingQueue, messages.length]);
 
   const handleNewChat = useCallback(() => {
-    // Start new conversation
     clearMessages();
     setCurrentConversationId(null);
-    
-    // Smart sidebar behavior: if sidebar is open, close it after creating new chat
     if (sidebarOpen) {
       setSidebarOpen(false);
     }
-    
-    // Focus the input field for better UX
     setTimeout(() => {
       const textarea = document.querySelector('textarea[placeholder="Ask anything"]') as HTMLTextAreaElement;
       if (textarea) {
@@ -149,52 +102,18 @@ function MainChatInterface() {
     setConversationToDelete(null);
   };
 
-  // Keyboard shortcuts (Cmd+K for new chat, Cmd+\ for sidebar toggle)
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
-        event.preventDefault();
-        handleNewChat();
-      }
-      if ((event.metaKey || event.ctrlKey) && event.key === '\\') {
-        event.preventDefault();
-        setSidebarOpen(prev => !prev);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleNewChat, setSidebarOpen]);
-
-  // Keyboard shortcut for Escape key
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        if (deleteModalOpen) {
-          handleCancelDelete();
-        } else {
-          const textarea = document.querySelector('textarea[placeholder="Ask anything"]') as HTMLTextAreaElement;
-          if (document.activeElement === textarea) {
-            textarea.blur();
-          }
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [deleteModalOpen]);
+  useKeyboardShortcuts({
+    handleNewChat,
+    setSidebarOpen,
+    deleteModalOpen,
+    handleCancelDelete,
+  });
 
   const isNewChat = !messages || messages.length === 0;
 
   const handleSend = async () => {
     const text = inputText.trim();
     if (!text) return;
-
     setInputText('');
     await sendMessage(text, currentConversationId);
   };
@@ -202,21 +121,16 @@ function MainChatInterface() {
   const handleOptimize = async () => {
     const text = inputText.trim();
     if (!text || isOptimizing) return;
-
     const originalText = text;
     setIsOptimizing(true);
-    setInputText(''); // Clear text during optimization
-
+    setInputText('');
     try {
       const response = await optimizationService.optimizeInput({
         userInput: text,
         conversationHistory: messages,
       });
-      
-      // Replace the input text with optimized version
       setInputText(response.optimizedInput);
     } catch {
-      // Restore original text if optimization fails
       setInputText(originalText);
     } finally {
       setIsOptimizing(false);
@@ -225,28 +139,16 @@ function MainChatInterface() {
 
   const handleSelectConversation = async (conversation: Conversation) => {
     handleConversationSelected(conversation.id);
-    
     selectConversation(conversation);
-    
     setTimeout(() => {
       const uiMessages = conversation.messages.map(msg => ({
         role: msg.role.toLowerCase() as 'user' | 'assistant',
         content: msg.content
       }));
-      
-      // **FIX**: Clear any pending messages and set conversation messages
-      // This is safe because user intentionally switched conversations
-      clearMessages(); // Clear the chat hook state first
+      clearMessages();
       setMessages(uiMessages);
-      
-      // Restore saved scroll position for this conversation
-      setTimeout(() => {
-        if (chatScrollRef.current && typeof window !== 'undefined') {
-          const savedPosition = localStorage.getItem(`scroll-${conversation.id}`);
-          chatScrollRef.current.scrollTop = savedPosition ? Number(savedPosition) : 0;
-        }
-      }, 100);
-    }, 0); // Defer this block
+      restoreScrollPosition(conversation.id);
+    }, 0);
   };
 
   const handleDeleteClick = (conversation: Conversation, e: React.MouseEvent) => {
@@ -257,39 +159,26 @@ function MainChatInterface() {
 
   const handleConfirmDelete = async () => {
     if (!conversationToDelete) return;
-    
     try {
       handleConversationDeleted(conversationToDelete.id);
-      
       await deleteConversation(conversationToDelete.id);
-      
-      // If we're deleting the current conversation, start a new one
       if (currentConversationId === conversationToDelete.id) {
         handleNewChat();
       }
     } catch {
-      // Error handled silently - user will see UI feedback
     } finally {
       setDeleteModalOpen(false);
       setConversationToDelete(null);
     }
   };
 
-  // Create clear all app data function for logout
   const handleClearAllAppData = useCallback(() => {
     clearConversationData();
     clearChatData();
   }, [clearConversationData, clearChatData]);
 
-  // AUTH GUARDS: Prevent any "free mode" or temporary access
-  // Show loading while auth is initializing - prevents "free mode" flash
-  if (loading) {
-    return <LoadingScreen />;
-  }
-  
-  // This should never happen due to middleware, but security safety check
-  if (!user) {
-    return null; // No temporary access - redirect handled by middleware
+  if (AuthGuardComponent) {
+    return <AuthGuardComponent />;
   }
 
   return (
@@ -308,220 +197,58 @@ function MainChatInterface() {
         onDeleteClick={handleDeleteClick}
         onClearAppData={handleClearAllAppData}
       />
-      
-
-      {/* Main Content */}
       <div className="flex-1 flex flex-col relative min-w-0 sidebar-mobile-safe">
-        {/* TEMPORARILY DISABLED - Mobile backdrop overlay */}
-        {/* {sidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black/50 z-40 block md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )} */}
-        
-        {/* Floating Sidebar Toggle Button */}
-        {!sidebarOpen && (
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="fixed top-4 left-4 z-30 p-2 backdrop-blur-sm rounded-lg text-white transition-all duration-200"
-            style={{
-              backgroundColor: 'rgba(37, 38, 40, 0.9)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(37, 38, 40, 1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(37, 38, 40, 0.9)';
-            }}
-            title="Open sidebar (⌘+\)"
-          >
-            <MenuIcon />
-          </button>
-        )}
-        {/* Chat Area or Welcome - now takes full height */}
-        {/* Desktop: Single animated container for both states */}
-        <div className="hidden md:block flex-1">
-          <div className={`h-full flex flex-col px-4 sm:px-6 lg:px-8 chat-layout-animated ${isNewChat ? 'chat-layout-centered' : 'chat-layout-normal'}`}>
-            {/* Title - always present, animates position */}
-            <div className="title-animated">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white leading-tight tracking-tight text-center">
-                How can I help, <button className="hover:text-emerald-400 transition-colors">{user?.user_metadata?.first_name || user?.user_metadata?.full_name?.split(' ')[0] || 'there'}</button>?
-              </h1>
-            </div>
-
-            {/* Chat messages - only show when not new chat */}
-            {!isNewChat && (
-              <div className="flex-1 min-h-0">
-                <ChatView messages={messages} isLoading={isLoading} ref={chatScrollRef} />
-              </div>
-            )}
-
-            {/* Input container - always present, animates position */}
-            <div className="input-animated">
-              <div className="w-full max-w-[calc(100%-1rem)] sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px] mx-auto">
-                {/* Queue elements - positioned relative to input */}
-                <div className="fade-in-animated">
-                  <QueueToggle
-                    isOpen={queueVisible}
-                    onToggle={() => setQueueVisible(!queueVisible)}
-                    queueCount={messageQueue.length}
-                    sidebarOpen={sidebarOpen}
-                    setSidebarOpen={setSidebarOpen}
-                    onCloseIntegrationPopup={() => {
-                      if (isIntegrationPopupOpen) {
-                        setIsIntegrationPopupOpen(false);
-                      }
-                    }}
-                  />
-
-                  <MessageQueueView
-                    messageQueue={messageQueue}
-                    onRemoveMessage={removeMessageFromQueue}
-                    isProcessing={isProcessingQueue}
-                    isVisible={queueVisible}
-                  />
-                </div>
-
-                <MessageInput
-                  inputText={inputText}
-                  setInputText={setInputText}
-                  onSend={handleSend}
-                  onOptimize={handleOptimize}
-                  isOptimizing={isOptimizing}
-                  onIntegrationSelect={toggleIntegration}
-                  activeIntegrations={activeIntegrations}
-                  isIntegrationPopupOpen={isIntegrationPopupOpen}
-                  onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
-                  onCloseSidebar={() => {
-                    if (sidebarOpen) {
-                      setSidebarOpen(false);
-                    }
-                  }}
-                  onCloseQueue={() => {
-                    if (queueVisible) {
-                      setQueueVisible(false);
-                    }
-                  }}
-                  onFocus={() => {
-                    if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
-                      setSidebarOpen(false);
-                    }
-                  }}
-                  hideDisclaimer={isNewChat}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile: Sidebar-like flex container structure */}
-        <div className="md:hidden flex-1 flex flex-col px-4 sm:px-6 lg:px-8 h-full overflow-hidden">
-          {/* Title - flex-shrink: 0 when visible, hidden when chat exists */}
-          <div className={`flex-shrink-0 ${!messages || messages.length === 0 ? 'flex-1 flex flex-col justify-center items-center' : 'h-0 overflow-hidden'}`}>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-white leading-tight tracking-tight text-center mb-8">
-              How can I help, <button className="hover:text-emerald-400 transition-colors">{user?.user_metadata?.first_name || user?.user_metadata?.full_name?.split(' ')[0] || 'there'}</button>?
-            </h1>
-          </div>
-
-          {/* Chat messages - flex: 1 with overflow like sidebar chatHistory */}
-          {(!messages || messages.length === 0) ? null : (
-            <div className="flex-1 min-h-0 overflow-hidden">
-              <ChatView messages={messages} isLoading={isLoading} ref={chatScrollRef} />
-            </div>
-          )}
-
-          {/* Input container - flex-shrink: 0 like sidebar footer */}
-          <div className="flex-shrink-0 backdrop-blur-sm z-10" style={{
-            paddingTop: '1rem',
-            paddingBottom: 'calc(var(--safe-bottom, 0px) + var(--input-spacing, 16px))'
-          }}>
-            <div className="w-full sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px] mx-auto">
-              {/* Queue elements - always present like desktop */}
-              <div className={`transition-all duration-300 -mb-4 ${(!messages || messages.length === 0) ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto delay-700'}`}>
-                <QueueToggle
-                  isOpen={queueVisible}
-                  onToggle={() => setQueueVisible(!queueVisible)}
-                  queueCount={messageQueue.length}
-                  sidebarOpen={sidebarOpen}
-                  setSidebarOpen={setSidebarOpen}
-                  onCloseIntegrationPopup={() => {
-                    if (isIntegrationPopupOpen) {
-                      setIsIntegrationPopupOpen(false);
-                    }
-                  }}
-                />
-
-                <MessageQueueView
-                  messageQueue={messageQueue}
-                  onRemoveMessage={removeMessageFromQueue}
-                  isProcessing={isProcessingQueue}
-                  isVisible={queueVisible}
-                />
-              </div>
-
-              <MessageInput
-                inputText={inputText}
-                setInputText={setInputText}
-                onSend={handleSend}
-                onOptimize={handleOptimize}
-                isOptimizing={isOptimizing}
-                onIntegrationSelect={toggleIntegration}
-                activeIntegrations={activeIntegrations}
-                isIntegrationPopupOpen={isIntegrationPopupOpen}
-                onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
-                onCloseSidebar={() => {
-                  if (sidebarOpen) {
-                    setSidebarOpen(false);
-                  }
-                }}
-                onCloseQueue={() => {
-                  if (queueVisible) {
-                    setQueueVisible(false);
-                  }
-                }}
-                onFocus={() => {
-                  if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
-                    setSidebarOpen(false);
-                  }
-                }}
-                hideDisclaimer={false}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Error Display - show chat errors */}
-        {error && (
-          <div className="fixed top-4 right-4 z-50 max-w-md">
-            <div className="bg-red-900/90 backdrop-blur-sm border border-red-500/50 rounded-lg p-4 text-white shadow-lg">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-medium text-red-100">Message Error</h3>
-                    <p className="text-sm text-red-200 mt-1">{error}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={clearError}
-                  className="flex-shrink-0 ml-4 text-red-400 hover:text-red-300"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
+        <FloatingSidebarToggle 
+          isVisible={!sidebarOpen}
+          onToggle={() => setSidebarOpen(true)}
+        />
+        <DesktopChatLayout
+          user={user}
+          isNewChat={isNewChat}
+          messages={messages}
+          isLoading={isLoading}
+          chatScrollRef={chatScrollRef}
+          inputText={inputText}
+          setInputText={setInputText}
+          isOptimizing={isOptimizing}
+          queueVisible={queueVisible}
+          setQueueVisible={setQueueVisible}
+          messageQueue={messageQueue}
+          isProcessingQueue={isProcessingQueue}
+          onRemoveMessage={removeMessageFromQueue}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          isIntegrationPopupOpen={isIntegrationPopupOpen}
+          setIsIntegrationPopupOpen={setIsIntegrationPopupOpen}
+          activeIntegrations={activeIntegrations}
+          onIntegrationSelect={toggleIntegration}
+          onSend={handleSend}
+          onOptimize={handleOptimize}
+        />
+        <MobileChatLayout
+          user={user}
+          messages={messages}
+          isLoading={isLoading}
+          chatScrollRef={chatScrollRef}
+          inputText={inputText}
+          setInputText={setInputText}
+          isOptimizing={isOptimizing}
+          queueVisible={queueVisible}
+          setQueueVisible={setQueueVisible}
+          messageQueue={messageQueue}
+          isProcessingQueue={isProcessingQueue}
+          onRemoveMessage={removeMessageFromQueue}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          isIntegrationPopupOpen={isIntegrationPopupOpen}
+          setIsIntegrationPopupOpen={setIsIntegrationPopupOpen}
+          activeIntegrations={activeIntegrations}
+          onIntegrationSelect={toggleIntegration}
+          onSend={handleSend}
+          onOptimize={handleOptimize}
+        />
+        <ErrorToast error={error} onClearError={clearError} />
       </div>
-      
       <ConfirmationModal
         isOpen={deleteModalOpen}
         onConfirm={handleConfirmDelete}
