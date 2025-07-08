@@ -6,3 +6,4 @@ export * from './useAudioVisualization';
 export * from './useAuth';
 export * from './useTokenRefresh';
 export * from './useMobileKeyboard';
+export * from './usePersistedState';

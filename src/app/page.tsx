@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useConversations, useChat, useAuth, useMobileKeyboardHandling } from '@/hooks';
+import { useConversations, useChat, useAuth, useMobileKeyboardHandling, usePersistedState } from '@/hooks';
 import { Conversation } from '@/types';
 import { optimizationService } from '@/services';
 import Sidebar from '@/components/features/sidebar/Sidebar';
@@ -22,7 +22,7 @@ function MainChatInterface() {
   const { user, loading } = useAuth();
   
   // UI State - Default values for server rendering (consistent initial state)
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = usePersistedState('sidebarOpen', true);
   
   const [inputText, setInputText] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -121,18 +121,9 @@ function MainChatInterface() {
           setMessages(uiMessages);
         }
       }
-    }
-  }, [currentConversationId, conversations, setMessages, isLoading, isProcessingQueue, messages.length]);
-
-  // Save sidebar state changes to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
-    }
-  }, [sidebarOpen]);
+    }  }, [currentConversationId, conversations, setMessages, isLoading, isProcessingQueue, messages.length]);
 
   
-
 
   const handleNewChat = useCallback(() => {
     // Start new conversation
@@ -151,7 +142,7 @@ function MainChatInterface() {
         textarea.focus();
       }
     }, 150);
-  }, [clearMessages, setCurrentConversationId, sidebarOpen]);
+  }, [clearMessages, setCurrentConversationId, sidebarOpen, setSidebarOpen]);
 
   const handleCancelDelete = () => {
     setDeleteModalOpen(false);
@@ -175,7 +166,7 @@ function MainChatInterface() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleNewChat]);
+  }, [handleNewChat, setSidebarOpen]);
 
   // Keyboard shortcut for Escape key
   useEffect(() => {
