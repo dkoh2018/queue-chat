@@ -50,7 +50,8 @@ html, body {
 @media (max-width: 768px) {
     :root {
         --chat-padding: 12px 0;
-        --address-bar-offset:0px;
+        --address-bar-offset: 0px;
+        --sidebar-bottom-padding: 60px;
         --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
@@ -70,7 +71,7 @@ html, body {
     }
 
     .sidebar-mobile-safe {
-        padding-bottom: calc(var(--safe-bottom) + var(--address-bar-offset));
+        padding-bottom: calc(var(--safe-bottom) + var(--sidebar-bottom-padding));
     }
 }
 
