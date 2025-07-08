@@ -35,7 +35,7 @@ textarea::-moz-selection, input::-moz-selection {
 @media (max-width: 768px) {
   textarea, input {
     position: relative;
-    z-index: 100 !important;
+    z-index: 50 !important;
     /* Force hardware acceleration for better mobile performance */
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
@@ -75,7 +75,7 @@ textarea::-moz-selection, input::-moz-selection {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
     /* Ensure proper layering */
-    z-index: 200 !important;
+    z-index: 60 !important;
     /* Force compositing layer for better performance */
     will-change: transform, contents;
   }

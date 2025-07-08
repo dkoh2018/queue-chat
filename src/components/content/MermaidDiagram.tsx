@@ -156,11 +156,29 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
       
+      // Mobile-specific viewport fixes
+      if (window.innerWidth < 768) {
+        // Prevent iOS Safari address bar interference
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        document.body.style.height = '100%';
+        // Prevent overscroll bounce on iOS
+        document.body.style.overscrollBehavior = 'none';
+      }
+      
       return () => {
         document.removeEventListener('keydown', handleKeyDown);
         // Restore original overflow values safely
         document.body.style.overflow = originalBodyOverflow;
         document.documentElement.style.overflow = originalHtmlOverflow;
+        
+        // Restore mobile-specific properties
+        if (window.innerWidth < 768) {
+          document.body.style.position = '';
+          document.body.style.width = '';
+          document.body.style.height = '';
+          document.body.style.overscrollBehavior = '';
+        }
         
         // Force a layout recalculation to prevent any lingering scaling issues
         void document.body.offsetHeight;
@@ -280,15 +298,28 @@ const MermaidDiagram = ({ chart }: MermaidDiagramProps) => {
 
       {/* Enlarged Modal */}
       {isEnlarged && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-6 sm:p-8 lg:p-12">
-          <div 
-            className="relative w-full max-w-[92vw] lg:max-w-[88vw] xl:max-w-[85vw] h-full max-h-[90vh] lg:max-h-[88vh] backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden"
-            style={{
-              backgroundColor: '#161618',
-              borderColor: 'rgba(55, 56, 58, 0.6)',
-              borderWidth: '1px'
-            }}
-          >
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[9999] flex items-center justify-center p-6 sm:p-8 lg:p-12" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999
+        }}>
+                      <div 
+              className="relative w-full max-w-[92vw] lg:max-w-[88vw] xl:max-w-[85vw] h-full max-h-[90vh] lg:max-h-[88vh] backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden"
+              style={{
+                backgroundColor: '#161618',
+                borderColor: 'rgba(55, 56, 58, 0.6)',
+                borderWidth: '1px',
+                // Mobile-specific optimizations
+                maxHeight: window?.innerWidth < 768 ? '95vh' : '88vh',
+                maxWidth: window?.innerWidth < 768 ? '95vw' : '88vw',
+                // Prevent mobile viewport issues
+                position: 'relative',
+                zIndex: 10
+              }}
+            >
             {/* Close button */}
             <button
               onClick={handleCloseEnlarged}

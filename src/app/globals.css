@@ -66,7 +66,20 @@ html, body {
         appearance: none;
     }
 
-
+    /* Ensure modals display properly on mobile */
+    .fixed.z-\[9999\] {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        z-index: 9999 !important;
+        /* Prevent iOS Safari issues */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        /* Ensure smooth rendering */
+        will-change: transform;
+    }
 }
 
 /* Desktop-only smooth animations */

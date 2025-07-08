@@ -84,7 +84,14 @@ const TableEnlarge = ({ children }: TableEnlargeProps) => {
 
       {/* Enlarged Modal */}
       {isEnlarged && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-6 sm:p-8 lg:p-12">
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[9999] flex items-center justify-center p-6 sm:p-8 lg:p-12" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999
+        }}>
           <div 
             className="relative w-full max-w-[95vw] h-full max-h-[90vh] backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden"
             style={{
