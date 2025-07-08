@@ -16,21 +16,18 @@ export const WelcomeView = ({
     setMounted(true);
   }, []);
 
-  // Get user's first name from Google metadata
   const getUserFirstName = () => {
     if (!user) return 'there';
-    
-    // Try to get first name from user metadata
+
     const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
     if (fullName) {
       return fullName.split(' ')[0];
     }
-    
-    // Fallback to email username
+
     if (user.email) {
       return user.email.split('@')[0];
     }
-    
+
     return 'there';
   };
 
