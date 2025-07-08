@@ -1,63 +1,24 @@
 import React from 'react';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { XIcon } from '@/components/icons';
 
 interface MessageQueueViewProps {
   messageQueue: string[];
   onRemoveMessage: (message: string) => void;
-  onReorderQueue: (startIndex: number, endIndex: number) => void;
   isProcessing: boolean;
   isVisible: boolean;
 }
 
-interface SortableItemProps {
-  id: string;
+interface QueueItemProps {
   message: string;
   index: number;
   onRemoveMessage: (message: string) => void;
   isProcessing: boolean;
 }
 
-const SortableItem: React.FC<SortableItemProps> = ({ id, message, index, onRemoveMessage, isProcessing }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
+const QueueItem: React.FC<QueueItemProps> = ({ message, index, onRemoveMessage, isProcessing }) => {
   return (
     <li
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={`flex items-center justify-between text-gray-300 glass-card p-2 rounded-md cursor-grab active:cursor-grabbing ${
+      className={`flex items-center justify-between text-gray-300 glass-card p-2 rounded-md ${
         isProcessing && index === 0 ? 'animate-pulse glass-glow-green' : ''
       }`}
     >
@@ -81,30 +42,9 @@ const SortableItem: React.FC<SortableItemProps> = ({ id, message, index, onRemov
 export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
   messageQueue,
   onRemoveMessage,
-  onReorderQueue,
   isProcessing,
   isVisible,
 }) => {
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (active.id !== over?.id) {
-      const oldIndex = messageQueue.findIndex(message => message === active.id);
-      const newIndex = messageQueue.findIndex(message => message === over?.id);
-      
-      if (oldIndex !== -1 && newIndex !== -1) {
-        onReorderQueue(oldIndex, newIndex);
-      }
-    }
-  };
-
   if (!isVisible) {
     return null;
   }
@@ -119,41 +59,29 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
             {messageQueue.length === 0 ? 'No Queue' : `Next Prompt (${messageQueue.length})`}
           </h3>
         </div>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={messageQueue}
-            strategy={verticalListSortingStrategy}
-          >
-            <ul className={`space-y-2 overflow-y-auto chat-scroll transition-all duration-300 ${
-              messageQueue.length === 0
-                ? 'h-16'
-                : messageQueue.length <= 4
-                ? 'min-h-16 h-auto'
-                : 'max-h-80 h-auto'
-            }`}>
-              {messageQueue.length === 0 ? (
-                <li className="text-gray-400 text-center py-4 italic">
-                  No messages queued... yet!
-                </li>
-              ) : (
-                messageQueue.map((message, index) => (
-                  <SortableItem
-                    key={message}
-                    id={message}
-                    message={message}
-                    index={index}
-                    onRemoveMessage={onRemoveMessage}
-                    isProcessing={isProcessing}
-                  />
-                ))
-              )}
-            </ul>
-          </SortableContext>
-        </DndContext>
+        <ul className={`space-y-2 overflow-y-auto chat-scroll transition-all duration-300 ${
+          messageQueue.length === 0
+            ? 'h-16'
+            : messageQueue.length <= 4
+            ? 'min-h-16 h-auto'
+            : 'max-h-80 h-auto'
+        }`}>
+          {messageQueue.length === 0 ? (
+            <li className="text-gray-400 text-center py-4 italic">
+              No messages queued... yet!
+            </li>
+          ) : (
+            messageQueue.map((message, index) => (
+              <QueueItem
+                key={`${message}-${index}`}
+                message={message}
+                index={index}
+                onRemoveMessage={onRemoveMessage}
+                isProcessing={isProcessing}
+              />
+            ))
+          )}
+        </ul>
       </div>
     </div>
   );

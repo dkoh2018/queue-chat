@@ -407,7 +407,6 @@ function MainChatInterface() {
             messageQueue={messageQueue}
             onRemoveMessage={removeMessageFromQueue}
             isProcessing={isProcessingQueue}
-            onReorderQueue={reorderQueue}
             isVisible={queueVisible}
           />
 
