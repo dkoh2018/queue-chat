@@ -217,6 +217,12 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
           </p>
         </div>
       )}
+
+      <div className={styles.disclaimer}>
+        <p className={styles.disclaimerText}>
+          Jarvis can make mistakes.
+        </p>
+      </div>
     </>
   );
 };
