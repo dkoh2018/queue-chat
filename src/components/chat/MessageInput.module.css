@@ -189,17 +189,12 @@
 }
 
 @media (max-width: 768px) {
-  .content textarea {
-    font-size: 16px;
-    touch-action: manipulation;
-    z-index: 24;
-  }
-
   .container {
     overflow: visible;
     touch-action: manipulation;
     position: relative;
     z-index: 22;
+    min-height: fit-content;
   }
 
   .content {
@@ -207,16 +202,12 @@
     position: relative;
     z-index: 23;
   }
-}
 
-@media (max-width: 768px) {
-  .container {
-    position: relative;
-    min-height: fit-content;
-  }
-  
+  .content textarea,
   .textarea {
     font-size: 16px !important;
+    touch-action: manipulation;
+    z-index: 24;
     -webkit-appearance: none;
     appearance: none;
     border-radius: 12px;

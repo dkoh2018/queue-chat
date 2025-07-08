@@ -424,26 +424,26 @@ function MainChatInterface() {
           </div>
         </div>
 
-        {/* Mobile: Single container structure like desktop */}
-        <div className="md:hidden flex-1 flex flex-col px-4 sm:px-6 lg:px-8">
-          {/* Title - always present, hidden like desktop after first message */}
-          <div className={`${!messages || messages.length === 0 ? 'flex-1 flex flex-col justify-center items-center' : 'h-0 overflow-hidden'}`}>
+        {/* Mobile: Sidebar-like flex container structure */}
+        <div className="md:hidden flex-1 flex flex-col px-4 sm:px-6 lg:px-8 h-full overflow-hidden">
+          {/* Title - flex-shrink: 0 when visible, hidden when chat exists */}
+          <div className={`flex-shrink-0 ${!messages || messages.length === 0 ? 'flex-1 flex flex-col justify-center items-center' : 'h-0 overflow-hidden'}`}>
             <h1 className="text-2xl sm:text-3xl font-semibold text-white leading-tight tracking-tight text-center mb-8">
               How can I help, <button className="hover:text-emerald-400 transition-colors">{user?.user_metadata?.first_name || user?.user_metadata?.full_name?.split(' ')[0] || 'there'}</button>?
             </h1>
           </div>
 
-          {/* Chat messages - only show when not new chat */}
+          {/* Chat messages - flex: 1 with overflow like sidebar chatHistory */}
           {(!messages || messages.length === 0) ? null : (
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-hidden">
               <ChatView messages={messages} isLoading={isLoading} ref={chatScrollRef} />
             </div>
           )}
 
-          {/* Input container - always present, positioned naturally */}
+          {/* Input container - flex-shrink: 0 like sidebar footer */}
           <div className="flex-shrink-0 backdrop-blur-sm z-10" style={{
             paddingTop: '1rem',
-            paddingBottom: 'calc(var(--safe-bottom, 0px) + var(--input-spacing, 20px))'
+            paddingBottom: 'calc(var(--safe-bottom, 0px) + var(--input-spacing, 16px))'
           }}>
             <div className="w-full sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px] mx-auto">
               {/* Queue elements - always present like desktop */}
