@@ -82,22 +82,22 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 12px 0;
-    height: 100vh;
+    padding: var(--chat-padding, 12px 0);
+    height: calc(var(--vh, 1vh) * 100);
     height: -webkit-fill-available;
   }
-  
+
   .userMessage {
     max-width: min(90%, 280px);
     padding: 10px 14px;
   }
-  
+
   .userMessageText {
     font-size: 15px;
   }
-  
+
   body.keyboard-visible .container {
-    height: calc(100vh - var(--keyboard-height, 0px));
+    height: calc(var(--vh, 1vh) * 100 - var(--keyboard-height, 0px));
     height: calc(-webkit-fill-available - var(--keyboard-height, 0px));
   }
 }

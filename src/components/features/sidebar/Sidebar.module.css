@@ -28,7 +28,7 @@
 
 .footer {
   flex-shrink: 0;
-  min-height: 60px;
+  min-height: var(--sidebar-min-height, 60px);
 }
 
 @media (max-width: 768px) {
@@ -42,13 +42,13 @@
     transition: transform 0.3s ease-in-out;
     border-right: none;
   }
-  
+
   .container[style*="width: 256"] {
     width: 256px;
     transform: translateX(0);
   }
 
   .footer {
-    padding-bottom: max(60px, env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--safe-bottom, 0px) + var(--address-bar-offset, 0px));
   }
 }

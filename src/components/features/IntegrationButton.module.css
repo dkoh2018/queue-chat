@@ -1,33 +1,28 @@
-/* Integration Button Container - Interactive Elements Layer (30-50) */
 .container {
   position: relative;
-  z-index: 32; /* Integration button layer - above other input buttons */
+  z-index: 32;
   isolation: isolate;
   margin-left: -12px;
 }
 
-/* Integration Button - Circular button with hover effects */
 .button {
-  border-radius: 50%; /* Perfect circle */
+  border-radius: 50%;
   transition: all 0.15s ease;
   padding: 6px;
   min-width: 44px;
   min-height: 44px;
   position: relative;
-  z-index: 33; /* Slightly above container for proper layering */
-  /* Touch and interaction optimizations */
+  z-index: 33;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
   touch-action: manipulation;
-  /* Remove default button styling */
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   border: none;
-  outline: none; /* No focus outline - we removed focus-visible */
+  outline: none;
   font-family: inherit;
-  /* Performance optimizations */
   transform: translateZ(0);
   -webkit-transform: translate3d(0, 0, 0);
   will-change: transform, background-color, opacity;
@@ -41,12 +36,11 @@
   transform: scale(0.95) translateZ(0);
 }
 
-/* Integration Popup - Overlays & Popups Layer (100-200) */
 .popup {
   position: absolute;
-  bottom: calc(100% + 8px); /* Position above the button */
+  bottom: calc(100% + 8px);
   left: 50%;
-  transform: translateX(-50%); /* Center horizontally */
+  transform: translateX(-50%);
   background: #252628;
   backdrop-filter: blur(4px);
   border: 1px solid rgba(55, 56, 58, 0.8);
@@ -54,8 +48,7 @@
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
   padding: 8px 0;
   min-width: 160px;
-  z-index: 100; /* Popup layer - above all interactive elements */
-  /* Performance optimizations */
+  z-index: 100;
   will-change: transform, opacity, visibility;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
@@ -92,7 +85,6 @@
   transform: translateX(-50%) translateY(0) scale(1);
 }
 
-/* Integration Option Items - Individual menu items */
 .option {
   width: 100%;
   text-align: left;
@@ -104,20 +96,17 @@
   gap: 12px;
   min-height: 44px;
   position: relative;
-  z-index: 101; /* Above popup background for proper interaction */
-  /* Touch optimizations */
+  z-index: 101;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
   touch-action: manipulation;
-  /* Remove default button styling */
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
   border: none;
   outline: none;
   font-family: inherit;
-  /* Performance optimizations */
   transform: translateZ(0);
   will-change: transform, background-color;
   contain: layout style;
@@ -179,7 +168,6 @@
     transition: background-color 0.1s ease, opacity 0.1s ease, transform 0.05s ease;
   }
   
-  /* Mobile popup styling - maintains same z-index hierarchy */
   .popup {
     background: #252628;
     border: 1px solid rgba(55, 56, 58, 0.8);
@@ -190,17 +178,16 @@
     -webkit-overflow-scrolling: touch;
     transition: opacity 0.1s ease, transform 0.1s ease;
     pointer-events: auto;
-    z-index: 100; /* Same as desktop - popup layer */
+    z-index: 100;
   }
-  
-  /* Mobile option styling - maintains same z-index hierarchy */
+
   .option {
     min-height: 48px;
     padding: 12px 16px;
     font-size: 16px;
     transition: background-color 0.05s ease, color 0.05s ease;
     pointer-events: auto;
-    z-index: 101; /* Same as desktop - above popup background */
+    z-index: 101;
     color: rgb(209, 213, 219);
   }
 }

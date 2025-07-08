@@ -110,8 +110,8 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
   }
 
   return (
-    <div className="absolute bottom-full right-0 w-80 sm:w-96 z-40 transition-all duration-300 ease-in-out transform translate-y-0 opacity-100 max-w-[calc(100vw-2rem)]" style={{
-      marginBottom: '40px'
+    <div className="absolute bottom-full right-0 w-80 sm:w-96 z-110 transition-all duration-300 ease-in-out transform translate-y-0 opacity-100 max-w-[calc(100vw-2rem)]" style={{
+      marginBottom: 'var(--queue-spacing, 40px)'
     }}>
       <div className="glass-panel rounded-t-2xl rounded-bl-2xl p-3 sm:p-4 border-b border-gray-600/50">
         <div className="flex justify-between items-center mb-2">
@@ -129,7 +129,7 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
             strategy={verticalListSortingStrategy}
           >
             <ul className={`space-y-2 overflow-y-auto chat-scroll transition-all duration-300 ${
-              messageQueue.length === 0 
+              messageQueue.length === 0
                 ? 'h-16'
                 : messageQueue.length <= 4
                 ? 'min-h-16 h-auto'

@@ -6,10 +6,17 @@ export const useMobileKeyboardHandling = () => {
 
     let initialViewportHeight = window.innerHeight;
 
+    const updateViewportHeight = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
     const handleViewportChange = () => {
       const currentHeight = window.innerHeight;
       const heightDifference = initialViewportHeight - currentHeight;
-      
+
+      updateViewportHeight();
+
       if (heightDifference > 150) {
         document.body.style.setProperty('--keyboard-height', `${heightDifference}px`);
         document.body.classList.add('keyboard-visible');
@@ -41,8 +48,10 @@ export const useMobileKeyboardHandling = () => {
       }
     };
 
+    updateViewportHeight();
+
     window.addEventListener('resize', handleResize, { passive: true });
-    
+
     if ('visualViewport' in window) {
       window.visualViewport?.addEventListener('resize', handleVisualViewportChange, { passive: true });
       window.visualViewport?.addEventListener('scroll', handleVisualViewportChange, { passive: true });

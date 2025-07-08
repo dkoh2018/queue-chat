@@ -29,7 +29,24 @@ html, body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+:root {
+  --input-spacing: 20px;
+  --sidebar-min-height: 60px;
+  --chat-padding: 0;
+  --vh: 1vh;
+  --safe-bottom: 0px;
+  --address-bar-offset: 0px;
+  --keyboard-height: 0px;
+  --queue-spacing: 40px;
+}
+
 @media (max-width: 768px) {
+    :root {
+        --chat-padding: 12px 0;
+        --address-bar-offset: 40px;
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
     body {
         overscroll-behavior: none;
         -webkit-overflow-scrolling: touch;
@@ -42,11 +59,11 @@ html, body {
     }
 
     .message-input-mobile-safe {
-        bottom: 40px !important;
+        bottom: calc(var(--safe-bottom) + var(--address-bar-offset)) !important;
     }
 
     .sidebar-mobile-safe {
-        padding-bottom: 40px;
+        padding-bottom: calc(var(--safe-bottom) + var(--address-bar-offset));
     }
 }
 
