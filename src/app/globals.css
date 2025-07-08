@@ -38,7 +38,7 @@ html, body {
 
 :root {
   --input-spacing: 20px;
-  --sidebar-min-height: 60px;
+  --sidebar-min-height: 80px;
   --chat-padding: 0;
   --vh: 1vh;
   --safe-bottom: 0px;
@@ -50,7 +50,7 @@ html, body {
 @media (max-width: 768px) {
     :root {
         --chat-padding: 12px 0;
-        --address-bar-offset: 60px;
+        --address-bar-offset: 70px;
         --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
