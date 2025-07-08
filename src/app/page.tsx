@@ -67,7 +67,6 @@ function MainChatInterface() {
     clearMessages,
     setMessages,
     removeMessageFromQueue,
-    reorderQueue,
     clearAllData: clearChatData,
     activeIntegrations,
     toggleIntegration,
@@ -302,7 +301,7 @@ function MainChatInterface() {
   }
 
   return (
-    <div className="flex h-screen text-white relative">
+    <div className="flex text-white relative main-container">
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
