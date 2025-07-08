@@ -7,3 +7,4 @@ export { XIcon } from './XIcon';
 export { MenuIcon } from './MenuIcon';
 export { IntegrationIcon } from './IntegrationIcon';
 export { CheckIcon } from './CheckIcon';
+export { KeyboardIcon } from './KeyboardIcon';

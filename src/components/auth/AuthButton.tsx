@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useAuth } from '@/hooks';
+import { KeyboardIcon } from '@/components/icons';
+import { KeyboardShortcutsModal } from '@/components/ui';
 
 interface AuthButtonProps {
   className?: string;
@@ -12,6 +14,7 @@ interface AuthButtonProps {
 export default function AuthButton({ className = '', onClearAppData }: AuthButtonProps) {
   const { user, loading, signOut } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,6 +42,13 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
       setIsDropdownOpen(false);
     } catch {
     }
+  };
+
+  const handleKeyboardShortcuts = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsKeyboardShortcutsOpen(true);
+    // Don't close the dropdown - keep it open for easy access
   };
 
   const getInitials = (name: string): string => {
@@ -134,6 +144,13 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
           </div>
           <div className="py-2">
             <button
+              onClick={handleKeyboardShortcuts}
+              className="w-full px-4 py-3 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200 flex items-center group"
+            >
+              <KeyboardIcon />
+              <span className="ml-3">Keyboard Shortcuts</span>
+            </button>
+            <button
               onClick={handleLogout}
               className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200 flex items-center group"
             >
@@ -145,6 +162,11 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
           </div>
         </div>
       )}
+      
+      <KeyboardShortcutsModal
+        isOpen={isKeyboardShortcutsOpen}
+        onClose={() => setIsKeyboardShortcutsOpen(false)}
+      />
     </div>
   );
 }
