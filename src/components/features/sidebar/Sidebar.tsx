@@ -1,7 +1,7 @@
 import { forwardRef, memo, useState, useMemo } from 'react';
 import { Conversation } from '@/types';
 import { PlusIcon, SearchIcon, MenuIcon, XIcon } from '@/components/icons';
-import AuthButton from '@/components/auth/AuthButton';
+import ProfileMenu from '@/components/auth/ProfileMenu';
 import styles from './Sidebar.module.css';
 
 interface SidebarProps {
@@ -173,7 +173,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
         <div className={`${styles.footer} border-t border-white/20 px-3 sm:px-4 py-3 flex items-center justify-between`}>
           <div className="flex items-center gap-2">
           </div>
-          <AuthButton onClearAppData={onClearAppData} />
+                      <ProfileMenu onClearAppData={onClearAppData} />
         </div>
     </div>
   );

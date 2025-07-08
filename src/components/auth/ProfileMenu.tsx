@@ -6,21 +6,30 @@ import { useAuth } from '@/hooks';
 import { KeyboardIcon } from '@/components/icons';
 import { KeyboardShortcutsModal } from '@/components/ui';
 
-interface AuthButtonProps {
+interface ProfileMenuProps {
   className?: string;
   onClearAppData?: () => void;
 }
 
-export default function AuthButton({ className = '', onClearAppData }: AuthButtonProps) {
+export default function ProfileMenu({ className = '', onClearAppData }: ProfileMenuProps) {
   const { user, loading, signOut } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const keyboardModalOpenRef = useRef(false);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    keyboardModalOpenRef.current = isKeyboardShortcutsOpen;
+  }, [isKeyboardShortcutsOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
+        // Don't close dropdown if keyboard shortcuts modal is open
+        if (!keyboardModalOpenRef.current) {
+          setIsDropdownOpen(false);
+        }
       }
     };
 
@@ -49,6 +58,12 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
     e.stopPropagation();
     setIsKeyboardShortcutsOpen(true);
     // Don't close the dropdown - keep it open for easy access
+  };
+
+  const handleCloseKeyboardShortcuts = () => {
+    setIsKeyboardShortcutsOpen(false);
+    // Also close the dropdown when keyboard shortcuts modal is closed
+    setIsDropdownOpen(false);
   };
 
   const getInitials = (name: string): string => {
@@ -165,8 +180,8 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
       
       <KeyboardShortcutsModal
         isOpen={isKeyboardShortcutsOpen}
-        onClose={() => setIsKeyboardShortcutsOpen(false)}
+        onClose={handleCloseKeyboardShortcuts}
       />
     </div>
   );
-}
+} 
