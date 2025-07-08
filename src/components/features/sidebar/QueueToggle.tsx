@@ -30,7 +30,7 @@ export const QueueToggle: React.FC<QueueToggleProps> = ({
   return (
     <button
       onClick={handleToggle}
-      className="absolute -top-10 right-0 z-60 backdrop-blur-xl hover:bg-white/10 border rounded-bl-lg rounded-br-lg px-3 py-2 text-white text-sm font-medium transition-all duration-200 ease-in-out shadow-2xl hover:shadow-xl flex items-center gap-2"
+      className="absolute -top-10 right-0 z-60 backdrop-blur-xl hover:bg-white/10 border rounded-lg px-3 py-2 text-white text-sm font-medium transition-all duration-200 ease-in-out shadow-2xl hover:shadow-xl flex items-center gap-2"
       style={{
         backgroundColor: '#161618',
         borderColor: 'rgba(255, 255, 255, 0.3)'

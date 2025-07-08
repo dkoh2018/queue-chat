@@ -21,7 +21,7 @@ import { XIcon } from '@/components/icons';
 
 interface MessageQueueViewProps {
   messageQueue: string[];
-  onRemoveMessage: (index: number) => void;
+  onRemoveMessage: (message: string) => void;
   onReorderQueue: (startIndex: number, endIndex: number) => void;
   isProcessing: boolean;
   isVisible: boolean;
@@ -31,7 +31,7 @@ interface SortableItemProps {
   id: string;
   message: string;
   index: number;
-  onRemoveMessage: (index: number) => void;
+  onRemoveMessage: (message: string) => void;
   isProcessing: boolean;
 }
 
@@ -67,7 +67,7 @@ const SortableItem: React.FC<SortableItemProps> = ({ id, message, index, onRemov
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          onRemoveMessage(index);
+          onRemoveMessage(message);
         }}
         className="text-gray-400 hover:text-white glass-button p-1 rounded ml-2"
         title="Remove message"
@@ -96,8 +96,8 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      const oldIndex = messageQueue.findIndex((_, index) => `${messageQueue[index]}-${index}` === active.id);
-      const newIndex = messageQueue.findIndex((_, index) => `${messageQueue[index]}-${index}` === over?.id);
+      const oldIndex = messageQueue.findIndex(message => message === active.id);
+      const newIndex = messageQueue.findIndex(message => message === over?.id);
       
       if (oldIndex !== -1 && newIndex !== -1) {
         onReorderQueue(oldIndex, newIndex);
@@ -125,7 +125,7 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
           onDragEnd={handleDragEnd}
         >
           <SortableContext
-            items={messageQueue.map((message, index) => `${message}-${index}`)}
+            items={messageQueue}
             strategy={verticalListSortingStrategy}
           >
             <ul className={`space-y-2 overflow-y-auto chat-scroll transition-all duration-300 ${
@@ -142,8 +142,8 @@ export const MessageQueueView: React.FC<MessageQueueViewProps> = ({
               ) : (
                 messageQueue.map((message, index) => (
                   <SortableItem
-                    key={`${message}-${index}`}
-                    id={`${message}-${index}`}
+                    key={message}
+                    id={message}
                     message={message}
                     index={index}
                     onRemoveMessage={onRemoveMessage}

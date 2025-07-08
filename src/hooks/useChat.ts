@@ -16,7 +16,7 @@ interface UseChatReturn {
   sendMessage: (text: string, conversationId?: string | null) => Promise<void>;
   clearMessages: () => void;
   setMessages: (messages: UIMessage[]) => void;
-  removeMessageFromQueue: (index: number) => void;
+  removeMessageFromQueue: (message: string) => void;
   clearQueue: () => void;
   reorderQueue: (startIndex: number, endIndex: number) => void;
   clearAllData: () => void;
@@ -34,6 +34,7 @@ export const useChat = (onMessageSent?: (conversationId: string) => void): UseCh
   const [error, setError] = useState<string | null>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [activeIntegrations, setActiveIntegrations] = useState<IntegrationType[]>([]);
+  const [isManualDeletion, setIsManualDeletion] = useState(false);
   
   // Use refs to avoid stale closures
   const messagesRef = useRef<UIMessage[]>([]);
@@ -179,12 +180,12 @@ export const useChat = (onMessageSent?: (conversationId: string) => void): UseCh
     }
   }, [messageQueue, currentConversationId, activeIntegrations]);
 
-  // Process queue when new messages arrive
+  // Process queue when new messages arrive (but not during manual deletions)
   useEffect(() => {
-    if (messageQueue.length > 0 && !isProcessingQueue) {
+    if (messageQueue.length > 0 && !isProcessingQueue && !isManualDeletion) {
       processQueue();
     }
-  }, [messageQueue, isProcessingQueue, processQueue]);
+  }, [messageQueue, isProcessingQueue, processQueue, isManualDeletion]);
 
   const sendMessage = useCallback(async (
     text: string,
@@ -217,8 +218,14 @@ export const useChat = (onMessageSent?: (conversationId: string) => void): UseCh
     setCurrentConversationId(null);
   }, []);
 
-  const removeMessageFromQueue = useCallback((index: number) => {
-    setMessageQueue(prev => prev.filter((_, i) => i !== index));
+  const removeMessageFromQueue = useCallback((message: string) => {
+    setIsManualDeletion(true);
+    setMessageQueue(prev => prev.filter(msg => msg !== message));
+    
+    // Reset the manual deletion flag after a brief delay to allow queue processing to resume
+    setTimeout(() => {
+      setIsManualDeletion(false);
+    }, 100);
   }, []);
 
   const clearQueue = useCallback(() => {
