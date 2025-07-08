@@ -70,9 +70,7 @@ html, body {
         bottom: calc(var(--safe-bottom) + var(--address-bar-offset)) !important;
     }
 
-    .sidebar-mobile-safe {
-        padding-bottom: calc(var(--safe-bottom) + var(--sidebar-bottom-padding));
-    }
+
 }
 
 body.keyboard-visible {

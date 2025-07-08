@@ -49,6 +49,6 @@
   }
 
   .footer {
-    padding-bottom: calc(var(--safe-bottom, 0px) + var(--address-bar-offset, 0px));
+    padding-bottom: calc(var(--safe-bottom, 0px) + var(--sidebar-bottom-padding, 60px));
   }
 }
