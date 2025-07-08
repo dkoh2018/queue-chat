@@ -1,3 +1,4 @@
+
 import { NextRequest } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { logger } from '@/utils';
@@ -11,7 +12,6 @@ export interface AuthenticatedUser {
 
 export async function getAuthenticatedUser(request: NextRequest): Promise<AuthenticatedUser | null> {
   try {
-    // Get the authorization header
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       logger.error('No authorization header found', 'AUTH');
@@ -20,7 +20,6 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<Authen
 
     const token = authHeader.replace('Bearer ', '');
     
-    // Verify the token with Supabase
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
     
     if (error || !user) {

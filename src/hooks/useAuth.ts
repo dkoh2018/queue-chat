@@ -16,9 +16,7 @@ export const useAuth = (): UseAuthReturn => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize auth state
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         logger.error('Failed to get initial session', 'AUTH', error);
@@ -26,20 +24,18 @@ export const useAuth = (): UseAuthReturn => {
         setUser(null);
       } else {
         setUser(session?.user ?? null);
-        logger.debug('Session initialized', 'AUTH', { 
+        logger.debug('Session initialized', 'AUTH', {
           hasUser: !!session?.user,
           hasAccessToken: !!session?.access_token,
-          sessionExpiry: session?.expires_at 
+          sessionExpiry: session?.expires_at
         });
       }
       setLoading(false);
     });
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Only log important auth events
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
         logger.info(`User ${event.toLowerCase().replace('_', ' ')}`, 'AUTH', {
           event,
@@ -47,32 +43,28 @@ export const useAuth = (): UseAuthReturn => {
           hasAccessToken: !!session?.access_token
         });
       }
-      
-      // Handle token refresh failures
+
       if (event === 'TOKEN_REFRESHED' && !session) {
         logger.error('Token refresh failed - session is null', 'AUTH');
         setUser(null);
         setError('Session expired - please sign in again');
-        // Redirect to login
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }
         return;
       }
-      
+
       setUser(session?.user ?? null);
       setError(null);
-      
+
       if (event === 'SIGNED_IN' && session?.user) {
-        // Check if we have provider tokens here
         if (session.provider_token) {
           logger.debug('OAuth tokens received', 'AUTH', {
             tokenLength: session.provider_token.length,
             hasRefreshToken: !!session.provider_refresh_token
           });
         }
-        
-        // Create or update user in our database
+
         await createOrUpdateUser(session.user);
       }
     });
@@ -82,7 +74,6 @@ export const useAuth = (): UseAuthReturn => {
 
   const createOrUpdateUser = async (authUser: User) => {
     try {
-      // Check if user exists in our database
       const response = await fetch('/api/auth/user', {
         method: 'POST',
         headers: {
@@ -114,9 +105,6 @@ export const useAuth = (): UseAuthReturn => {
         userId: authUser.id,
         userEmail: authUser.email
       });
-      
-      // Don't throw the error - allow the user to continue even if DB sync fails
-      // This prevents the auth flow from breaking completely
     }
   };
 
@@ -149,18 +137,14 @@ export const useAuth = (): UseAuthReturn => {
   const signOut = useCallback(async (clearAppData?: () => void) => {
     try {
       setError(null);
-      
-      // Clear user state immediately for security
+
       setUser(null);
-      
-      // Clear app data (conversations, messages, etc.)
+
       if (clearAppData) {
         clearAppData();
       }
-      
-      // Clear all localStorage data related to the user
+
       if (typeof window !== 'undefined') {
-        // Clear conversation-related localStorage
         const keysToRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
@@ -169,29 +153,25 @@ export const useAuth = (): UseAuthReturn => {
           }
         }
         keysToRemove.forEach(key => localStorage.removeItem(key));
-        
-        // Clear any other sensitive data
+
         localStorage.removeItem('lastConversationId');
         localStorage.removeItem('currentUser');
-        sessionStorage.clear(); // Clear all session storage
+        sessionStorage.clear();
       }
-      
-      // Sign out from Supabase (this clears auth cookies/tokens)
+
       const { error } = await supabase.auth.signOut({
-        scope: 'global' // This ensures logout from all sessions/devices
+        scope: 'global'
       });
-      
+
       if (error) {
         setError(error.message);
         logger.error('Sign out failed', 'AUTH', error);
-        // Even on error, try to redirect to login
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }
       } else {
         logger.info('User signed out successfully - all data cleared', 'AUTH');
-        
-        // Redirect to login page after successful sign out
+
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }
@@ -200,13 +180,11 @@ export const useAuth = (): UseAuthReturn => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign out';
       setError(errorMessage);
       logger.error('Sign out error', 'AUTH', err);
-      
-      // Even if there's an error, clear local state for security
+
       setUser(null);
       if (typeof window !== 'undefined') {
         localStorage.clear();
         sessionStorage.clear();
-        // Redirect to login page
         window.location.href = '/login';
       }
     }

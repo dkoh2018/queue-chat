@@ -10,7 +10,6 @@ interface ChatViewProps {
 }
 
 export const ChatView = memo(forwardRef<HTMLDivElement, ChatViewProps>(({ messages, isLoading = false }, ref) => {
-  // Ensure messages is always an array
   const safeMessages = Array.isArray(messages) ? messages : [];
   
   return (
@@ -19,7 +18,6 @@ export const ChatView = memo(forwardRef<HTMLDivElement, ChatViewProps>(({ messag
         className="w-full mx-auto px-4 pt-12 pb-64 max-w-[calc(100%-2rem)] sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px]"
       >
         {safeMessages.map((msg, index) => {
-          // Ensure each message has required properties
           if (!msg || typeof msg !== 'object' || !msg.role || !msg.content) {
             return null;
           }
@@ -44,7 +42,6 @@ export const ChatView = memo(forwardRef<HTMLDivElement, ChatViewProps>(({ messag
           );
         })}
         
-        {/* Loading indicator for AI response */}
         {isLoading && (
           <div className={styles.loadingContainer}>
             <div className={styles.loadingContent}>

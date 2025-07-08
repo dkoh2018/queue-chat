@@ -88,7 +88,6 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
     setSearchQuery('');
   };
 
-
   return (
     <div
       ref={ref}
@@ -97,10 +96,9 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
         width: sidebarOpen ? 256 : 0
       }}
     >
-        {/* Sidebar Header */}
-        <div className="px-3 sm:px-4 pt-2 sm:pt-3 pb-1 sm:pb-1.5 border-b border-white/20">
+        <div className={`${styles.header} border-b border-white/20 px-3 sm:px-4 py-3 flex items-center justify-between`}>
           {isSearching ? (
-            <div className="flex items-center justify-between mb-4">
+            <>
               <input
                 type="text"
                 value={searchQuery}
@@ -112,13 +110,13 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
               <button onClick={handleCancelSearch} className="p-2 hover:bg-white/20 rounded ml-2 transition-colors">
                 <XIcon />
               </button>
-            </div>
+            </>
           ) : (
-            <div className="flex items-center justify-between mb-1">
+            <>
               <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-white/20 rounded transition-colors">
                 <MenuIcon />
               </button>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 absolute left-1/2 transform -translate-x-1/2">
                 {refreshing && (
                   <div className="w-3 h-3 border border-emerald-400 border-t-transparent rounded-full animate-spin" />
                 )}
@@ -138,11 +136,10 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
                   <PlusIcon />
                 </button>
               </div>
-            </div>
+            </>
           )}
         </div>
           
-        {/* Chat History */}
         <div className={`${styles.chatHistory} customScroll`}>
           {error && (
             <div className="text-xs text-orange-400 px-3 sm:px-4 mb-3 bg-orange-500/10 py-2 mx-2 rounded border border-orange-500/20">
@@ -173,12 +170,9 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
           )}
         </div>
 
-        <div 
-          className="absolute right-4"
-          style={{
-            bottom: 'max(16px, env(safe-area-inset-bottom))'
-          }}
-        >
+        <div className={`${styles.footer} border-t border-white/20 px-3 sm:px-4 py-3 flex items-center justify-between`}>
+          <div className="flex items-center gap-2">
+          </div>
           <AuthButton onClearAppData={onClearAppData} />
         </div>
     </div>

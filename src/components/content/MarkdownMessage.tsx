@@ -17,7 +17,6 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          // Handle code blocks and inline code separately
           code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode; }) {
             const match = /language-(\w+)/.exec(className || '');
             const lang = match ? match[1] : '';
@@ -27,7 +26,6 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
                 if (typeof child === 'string') {
                   return child;
                 }
-                // Handle cases where the child might be a React element (e.g., from syntax highlighting)
                 if (React.isValidElement<{ children?: React.ReactNode }>(child) && child.props.children) {
                   return React.Children.toArray(child.props.children).join('');
                 }
@@ -37,7 +35,6 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
             }
             
             if (inline) {
-              // Render inline code as simple <code> tag (no block elements)
               return (
                 <code
                   className="bg-gray-800 text-gray-100 px-1.5 py-0.5 rounded font-mono text-sm border border-gray-700"
@@ -47,7 +44,6 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
                 </code>
               );
             } else {
-              // Render code blocks using CodeBlock component
               return (
                 <CodeBlock
                   className={className}
@@ -57,28 +53,21 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
               );
             }
           },
-          // Style other markdown elements
           p: ({ children }) => {
-            // Check if children contain block-level elements (like code blocks)
             const hasBlockElements = React.Children.toArray(children).some((child) => {
-              // Check for React elements that are block-level
               if (React.isValidElement(child)) {
-                // Direct block elements
                 if (child.type === 'div' || child.type === 'pre' || child.type === 'blockquote' || child.type === 'table') {
                   return true;
                 }
-                // Code blocks (our custom component) - check both function name and displayName
                 if (typeof child.type === 'function') {
                   const componentName = (child.type as { displayName?: string; name?: string }).displayName || (child.type as { name?: string }).name;
                   if (componentName === 'CodeBlock') {
                     return true;
                   }
                 }
-                // Check if it's our CodeBlock component by reference
                 if (child.type === CodeBlock) {
                   return true;
                 }
-                // Check props for block code indicators
                 const props = child.props as { className?: string; inline?: boolean };
                 if (props.className?.includes('language-') && !props.inline) {
                   return true;
@@ -87,7 +76,6 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
               return false;
             });
 
-            // If contains block elements, use div to avoid invalid HTML nesting
             const Tag = hasBlockElements ? 'div' : 'p';
             
             return (
@@ -140,7 +128,6 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
               {children}
             </a>
           ),
-          // Add table styling - NO horizontal scroll to prevent conflicts
           table: ({ children }) => (
             <div className="my-6 border border-gray-800 rounded-lg shadow-md">
               <table className="w-full text-sm text-left text-gray-300 table-fixed">

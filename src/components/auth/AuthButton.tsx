@@ -14,7 +14,6 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -29,8 +28,6 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
   const handleAuthClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Always toggle dropdown since user is always authenticated
     setIsDropdownOpen(!isDropdownOpen);
   };
 
@@ -41,12 +38,10 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
       await signOut(onClearAppData);
       setIsDropdownOpen(false);
     } catch {
-      // Error handled by auth system
     }
   };
 
-  const getInitials = (name: string | undefined): string => {
-    if (!name) return 'PP';
+  const getInitials = (name: string): string => {
     const names = name.split(' ').filter(n => n.length > 0);
     if (names.length >= 2) {
       return (names[0][0] + names[names.length - 1][0]).toUpperCase();
@@ -55,23 +50,17 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
   };
 
   const getUserDisplayName = () => {
-    return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'User';
+    return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || user?.email || 'User';
   };
 
   const getUserInitials = () => {
-    // Try to get initials from full name first
-    const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name;
+    if (!user) return 'U';
+    const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
     if (fullName) {
       return getInitials(fullName);
     }
-    
-    // Fallback to email-based initials
-    if (user?.email) {
-      const emailUsername = user.email.split('@')[0];
-      return getInitials(emailUsername);
-    }
-    
-    return 'U'; // Ultimate fallback
+    const emailUsername = user.email!.split('@')[0];
+    return getInitials(emailUsername);
   };
 
   if (loading) {
@@ -82,7 +71,6 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
     );
   }
 
-  // Due to middleware, user should always be authenticated at this point
   if (!user) {
     return null;
   }
@@ -107,7 +95,6 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
             {getUserInitials()}
           </span>
         )}
-        {/* Dropdown indicator */}
         <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gray-700 rounded-full border border-gray-600 flex items-center justify-center">
           <svg 
             className={`w-2 h-2 text-white transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
@@ -119,14 +106,11 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
           </svg>
         </div>
       </button>
-
-      {/* Dropdown Menu - Above the button */}
       {isDropdownOpen && (
         <div className="absolute right-0 w-56 backdrop-blur-md border border-gray-600/50 rounded-lg shadow-xl z-[9999] overflow-hidden pointer-events-auto" style={{ 
           backgroundColor: 'rgba(37, 38, 40, 0.9)',
           bottom: 'calc(100% + 16px)'
         }}>
-          {/* User Info Header */}
           <div className="px-4 py-3 border-b border-gray-700">
             <div className="flex items-center space-x-3">
               {user.user_metadata?.avatar_url ? (
@@ -148,10 +132,7 @@ export default function AuthButton({ className = '', onClearAppData }: AuthButto
               </div>
             </div>
           </div>
-
-          {/* Menu Items */}
           <div className="py-2">
-            {/* Logout Button */}
             <button
               onClick={handleLogout}
               className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200 flex items-center group"

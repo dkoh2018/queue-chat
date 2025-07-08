@@ -25,29 +25,25 @@ export const VoiceRecordingButton = ({
   if (isRecording) {
     return (
       <div className="flex items-center bg-red-500/10 border border-red-500/20 rounded-full px-3 py-1.5 space-x-2 transition-all duration-300 ease-out">
-        {/* Recording indicator dot */}
         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
         
-        {/* Live audio waveform */}
         <div className="flex items-center space-x-0.5">
           {audioLevels.map((level, index) => (
             <div
               key={index}
               className="w-0.5 bg-red-500 rounded-full transition-all duration-100 ease-out"
               style={{
-                height: `${8 + level * 16}px`, // 8px min, up to 24px max
-                opacity: 0.6 + level * 0.4 // More opacity for higher levels
+                height: `${8 + level * 16}px`,
+                opacity: 0.6 + level * 0.4
               }}
             />
           ))}
         </div>
         
-        {/* Timer */}
         <span className="text-red-400 font-mono text-sm flex-shrink-0">
           00:{String(30 - timeRemaining).padStart(2, '0')}
         </span>
         
-        {/* Stop button */}
         <button
           onClick={onStopRecording}
           className="w-5 h-5 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center transition-colors flex-shrink-0"
@@ -59,11 +55,10 @@ export const VoiceRecordingButton = ({
     );
   }
 
-  // Normal mic button (idle or transcribing state)
   return (
     <button
       onClick={() => {
-        onBlur?.(); // Turn off text input when starting recording
+        onBlur?.();
         onStartRecording();
       }}
       disabled={isTranscribing}

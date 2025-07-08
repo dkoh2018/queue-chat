@@ -11,7 +11,6 @@ interface CodeBlockProps {
 const CodeBlock = ({ children, className }: CodeBlockProps) => {
   const [copied, setCopied] = useState(false);
   
-  // Extract language from className (format: "language-javascript")
   const language = className?.replace(/language-/, '') || 'text';
 
   const handleCopy = async () => {
@@ -20,13 +19,11 @@ const CodeBlock = ({ children, className }: CodeBlockProps) => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Copy failed silently
     }
   };
 
   return (
     <div className="relative group my-4">
-      {/* Copy Button */}
       <button
         onClick={handleCopy}
         className="absolute top-2 right-2 px-2 py-1 bg-gray-600 hover:bg-gray-500 text-gray-200 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
@@ -35,14 +32,12 @@ const CodeBlock = ({ children, className }: CodeBlockProps) => {
         {copied ? '✓ Copied!' : 'Copy'}
       </button>
 
-      {/* Language Label */}
       {language !== 'text' && (
         <div className="absolute top-2 left-2 px-2 py-1 bg-gray-600 text-gray-200 text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           {language}
         </div>
       )}
 
-      {/* Code Block */}
       <Highlight
         theme={themes.vsDark}
         code={children.trim()}
@@ -67,7 +62,6 @@ const CodeBlock = ({ children, className }: CodeBlockProps) => {
   );
 };
 
-// Add displayName for better debugging and component detection
 CodeBlock.displayName = 'CodeBlock';
 
 export default CodeBlock;

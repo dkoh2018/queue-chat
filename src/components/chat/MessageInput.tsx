@@ -29,7 +29,6 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
   const lastTranscriptionRef = useRef<string | undefined>(undefined);
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Voice recording functionality
   const {
     state: voiceState,
     mediaStream,
@@ -37,48 +36,39 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
     stopRecording
   } = useVoiceRecording();
 
-  // Handle voice transcription completion
   useEffect(() => {
     if (voiceState.rawTranscription && voiceState.rawTranscription !== lastTranscriptionRef.current) {
-      // Append transcribed text to existing input (don't replace)
       const newText = inputText ? `${inputText} ${voiceState.rawTranscription}` : voiceState.rawTranscription;
       setInputText(newText);
       lastTranscriptionRef.current = voiceState.rawTranscription;
     }
   }, [voiceState.rawTranscription, inputText, setInputText]);
 
-  // Debounced auto-resize function
   const resizeTextarea = useCallback(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    // Clear any pending resize operations
     if (resizeTimeoutRef.current) {
       clearTimeout(resizeTimeoutRef.current);
     }
 
-    // Debounce the resize operation
     resizeTimeoutRef.current = setTimeout(() => {
-      const baseHeight = 60; // Fixed base height
-      const maxHeight = 160;  // Max height before scrolling
+      const baseHeight = 60;
+      const maxHeight = 160;
       
-      // If input is empty or only whitespace, always reset to base height
       if (!inputText.trim()) {
         textarea.style.height = `${baseHeight}px`;
         textarea.style.overflowY = 'hidden';
         return;
       }
       
-      // Reset height to get accurate scrollHeight measurement
       textarea.style.height = `${baseHeight}px`;
       
-      // Force a reflow to ensure accurate measurement
       void textarea.offsetHeight;
       
       const scrollHeight = textarea.scrollHeight;
       
-      // Only grow if content naturally exceeds base height + some buffer
-      const buffer = 10; // Small buffer to prevent premature growth
+      const buffer = 10;
       if (scrollHeight > baseHeight + buffer) {
         const newHeight = Math.min(scrollHeight, maxHeight);
         textarea.style.height = `${newHeight}px`;
@@ -89,18 +79,15 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
           textarea.style.overflowY = 'hidden';
         }
       } else {
-        // Keep base height for content that fits comfortably
         textarea.style.height = `${baseHeight}px`;
         textarea.style.overflowY = 'hidden';
       }
-    }, 10); // Small delay to debounce rapid changes
+    }, 10);
   }, [inputText]);
 
-  // Auto-resize effect
   useEffect(() => {
     resizeTextarea();
     
-    // Cleanup timeout on unmount
     return () => {
       if (resizeTimeoutRef.current) {
         clearTimeout(resizeTimeoutRef.current);
@@ -108,49 +95,37 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
     };
   }, [resizeTextarea]);
 
-  // Initial height setup on mount
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      // Set initial height immediately on mount
       textarea.style.height = '60px';
       textarea.style.overflowY = 'hidden';
     }
-  }, []); // Empty dependency array - only run on mount
+  }, []);
 
-  // Handle textarea focus to ensure proper height
   const handleTextareaFocus = useCallback(() => {
-    // Trigger a resize check when focused to ensure proper height
     setTimeout(() => resizeTextarea(), 0);
-    // Call the onFocus prop if provided (for sidebar auto-close)
     onFocus?.();
   }, [resizeTextarea, onFocus]);
 
-  // Handle input change with immediate resize
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(e.target.value);
-    // Immediate resize for better responsiveness
     resizeTextarea();
   }, [setInputText, resizeTextarea]);
 
-  // Function to blur (turn off) the text input
   const blurTextInput = useCallback(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.blur(); // This removes focus and hides keyboard on mobile
+      textarea.blur();
     }
   }, []);
 
   return (
     <>
-      {/* Container with backdrop filter - separated from text input */}
       <div className={`${styles.container} ${isIntegrationPopupOpen ? styles.popupOpen : ''}`}>
-        {/* Background layer with glass effect */}
         <div className={styles.background} />
         
-        {/* Content layer - isolated from backdrop filter */}
         <div className={styles.content}>
-          {/* Textarea or Loading State */}
           {isOptimizing ? (
             <div className={styles.loadingContainer}>
               <TypingDots />
@@ -179,14 +154,11 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
             />
           )}
           
-          {/* Buttons Container */}
           <div className={styles.buttonsContainer}>
-            {/* Tool Buttons */}
             <div className={styles.toolButtons}>
               <button
                 onClick={() => {
                   blurTextInput();
-                  // TODO: Add file attachment functionality here
                 }}
                 className={`${styles.attachButton} ${styles.noPadding}`}
                 title="Attach file">
@@ -211,15 +183,12 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
               />
             </div>
             
-            {/* Action Buttons */}
             <div className={styles.actionButtons}>
-              {/* Optimize Button */}
               <OptimizeButton
                 onClick={onOptimize}
                 disabled={!inputText.trim() || isOptimizing}
               />
               
-              {/* Send Button */}
               <button
                 onClick={onSend}
                 disabled={!inputText.trim() || isOptimizing}
@@ -241,7 +210,6 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
         </div>
       </div>
 
-      {/* Voice Recording Error */}
       {voiceState.error && (
         <div className={styles.errorContainer}>
           <p className={styles.errorText}>
@@ -249,13 +217,6 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
           </p>
         </div>
       )}
-
-      {/* Disclaimer */}
-      <div className={styles.disclaimer}>
-        <p className={styles.disclaimerText}>
-          Jarvis can make mistakes.
-        </p>
-      </div>
     </>
   );
 };
