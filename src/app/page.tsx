@@ -441,7 +441,10 @@ function MainChatInterface() {
           )}
 
           {/* Input container - always present, positioned naturally */}
-          <div className="flex-shrink-0 py-4 backdrop-blur-sm z-10">
+          <div className="flex-shrink-0 backdrop-blur-sm z-10" style={{
+            paddingTop: '1rem',
+            paddingBottom: 'calc(var(--safe-bottom, 0px) + var(--input-spacing, 20px))'
+          }}>
             <div className="w-full sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px] mx-auto">
               {/* Queue elements - always present like desktop */}
               <div className={`transition-all duration-300 -mb-4 ${(!messages || messages.length === 0) ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto delay-700'}`}>

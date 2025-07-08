@@ -52,6 +52,7 @@ html, body {
         --chat-padding: 12px 0;
         --address-bar-offset: 0px;
         --sidebar-bottom-padding: 10px;
+        --input-spacing: 16px;
         --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
