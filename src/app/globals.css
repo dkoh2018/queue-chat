@@ -50,7 +50,7 @@ html, body {
 @media (max-width: 768px) {
     :root {
         --chat-padding: 12px 0;
-        --address-bar-offset: 70px;
+        --address-bar-offset:10px;
         --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
