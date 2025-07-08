@@ -4,6 +4,8 @@ An asynchronous chat application featuring intelligent message queue processing 
 
 ![Queue Chat Demo](./public/demo.gif)
 
+[📹 **Watch Full Demo Video**](./public/demo.mp4) *(Click to view complete walkthrough with controls)*
+
 ## Problem Statement
 
 Traditional chat-based AI interactions follow a linear, depth-first conversation pattern that can be inefficient for complex, multi-faceted queries. Users often experience:
