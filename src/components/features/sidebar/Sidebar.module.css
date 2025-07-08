@@ -49,6 +49,6 @@
   }
 
   .footer {
-    padding-bottom: max(40px, env(safe-area-inset-bottom));
+    padding-bottom: max(60px, env(safe-area-inset-bottom));
   }
 }
