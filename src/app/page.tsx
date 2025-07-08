@@ -6,11 +6,10 @@ import { Conversation } from '@/types';
 import { optimizationService } from '@/services';
 import Sidebar from '@/components/features/sidebar/Sidebar';
 import { ChatView } from '@/components/chat/ChatView';
-import { WelcomeView } from '@/components/chat/WelcomeView';
 import { MessageInput } from '@/components/chat/MessageInput';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { MessageQueueView } from '@/components/chat/MessageQueueView';
-import { MessageInputContainer } from '@/components/chat/MessageInputContainer';
+
 import { QueueToggle } from '@/components/features/sidebar/QueueToggle';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { MenuIcon } from '@/components/icons';
@@ -34,7 +33,7 @@ function MainChatInterface() {
   
   // Refs for better performance
   const chatScrollRef = useRef<HTMLDivElement>(null);
-  const messageInputRef = useRef<HTMLDivElement>(null);
+
 
   // Custom Hooks for Business Logic - only load if user is authenticated or auth is required
   const {
@@ -350,64 +349,153 @@ function MainChatInterface() {
           </button>
         )}
         {/* Chat Area or Welcome - now takes full height */}
-        {!messages || messages.length === 0 ? (
-          isNewChat ? (
-            <>
-              {/* Desktop: Centered layout */}
-              <div className="hidden md:flex flex-1 flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
-                <div className="text-center max-w-2xl w-full">
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white mb-6 leading-tight tracking-tight">
-                    How can I help, <button className="hover:text-emerald-400 transition-colors">{user?.user_metadata?.first_name || user?.user_metadata?.full_name?.split(' ')[0] || 'there'}</button>?
-                  </h1>
-                  <div className="w-full max-w-[calc(100%-1rem)] sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px] mx-auto">
-                    <MessageInput
-                      inputText={inputText}
-                      setInputText={setInputText}
-                      onSend={handleSend}
-                      onOptimize={handleOptimize}
-                      isOptimizing={isOptimizing}
-                      onIntegrationSelect={toggleIntegration}
-                      activeIntegrations={activeIntegrations}
-                      isIntegrationPopupOpen={isIntegrationPopupOpen}
-                      onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
-                      onCloseSidebar={() => {
-                        if (sidebarOpen) {
-                          setSidebarOpen(false);
-                        }
-                      }}
-                      onCloseQueue={() => {
-                        if (queueVisible) {
-                          setQueueVisible(false);
-                        }
-                      }}
-                      onFocus={() => {
-                        if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
-                          setSidebarOpen(false);
-                        }
-                      }}
-                      hideDisclaimer={isNewChat}
-                    />
-                  </div>
-                </div>
-              </div>
+        {/* Desktop: Single animated container for both states */}
+        <div className="hidden md:block flex-1">
+          <div className={`h-full flex flex-col px-4 sm:px-6 lg:px-8 chat-layout-animated ${isNewChat ? 'chat-layout-centered' : 'chat-layout-normal'}`}>
+            {/* Title - always present, animates position */}
+            <div className="title-animated">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white leading-tight tracking-tight text-center">
+                How can I help, <button className="hover:text-emerald-400 transition-colors">{user?.user_metadata?.first_name || user?.user_metadata?.full_name?.split(' ')[0] || 'there'}</button>?
+              </h1>
+            </div>
 
-              {/* Mobile: Normal layout */}
-              <div className="md:hidden flex-1 flex flex-col">
-                <WelcomeView
-                  user={user}
-                  hideStatusBadge={isNewChat}
+            {/* Chat messages - only show when not new chat */}
+            {!isNewChat && (
+              <div className="flex-1 min-h-0">
+                <ChatView messages={messages} isLoading={isLoading} ref={chatScrollRef} />
+              </div>
+            )}
+
+            {/* Input container - always present, animates position */}
+            <div className="input-animated">
+              <div className="w-full max-w-[calc(100%-1rem)] sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px] mx-auto">
+                {/* Queue elements - positioned relative to input */}
+                <div className="fade-in-animated">
+                  <QueueToggle
+                    isOpen={queueVisible}
+                    onToggle={() => setQueueVisible(!queueVisible)}
+                    queueCount={messageQueue.length}
+                    sidebarOpen={sidebarOpen}
+                    setSidebarOpen={setSidebarOpen}
+                    onCloseIntegrationPopup={() => {
+                      if (isIntegrationPopupOpen) {
+                        setIsIntegrationPopupOpen(false);
+                      }
+                    }}
+                  />
+
+                  <MessageQueueView
+                    messageQueue={messageQueue}
+                    onRemoveMessage={removeMessageFromQueue}
+                    isProcessing={isProcessingQueue}
+                    isVisible={queueVisible}
+                  />
+                </div>
+
+                <MessageInput
+                  inputText={inputText}
+                  setInputText={setInputText}
+                  onSend={handleSend}
+                  onOptimize={handleOptimize}
+                  isOptimizing={isOptimizing}
+                  onIntegrationSelect={toggleIntegration}
+                  activeIntegrations={activeIntegrations}
+                  isIntegrationPopupOpen={isIntegrationPopupOpen}
+                  onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
+                  onCloseSidebar={() => {
+                    if (sidebarOpen) {
+                      setSidebarOpen(false);
+                    }
+                  }}
+                  onCloseQueue={() => {
+                    if (queueVisible) {
+                      setQueueVisible(false);
+                    }
+                  }}
+                  onFocus={() => {
+                    if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
+                      setSidebarOpen(false);
+                    }
+                  }}
+                  hideDisclaimer={isNewChat}
                 />
               </div>
-            </>
-          ) : (
-            <WelcomeView
-              user={user}
-              hideStatusBadge={false}
-            />
-          )
-        ) : (
-          <ChatView messages={messages} isLoading={isLoading} ref={chatScrollRef} />
-        )}
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile: Single container structure like desktop */}
+        <div className="md:hidden flex-1 flex flex-col px-4 sm:px-6 lg:px-8">
+          {/* Title - always present, hidden like desktop after first message */}
+          <div className={`${!messages || messages.length === 0 ? 'flex-1 flex flex-col justify-center items-center' : 'h-0 overflow-hidden'}`}>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-white leading-tight tracking-tight text-center mb-8">
+              How can I help, <button className="hover:text-emerald-400 transition-colors">{user?.user_metadata?.first_name || user?.user_metadata?.full_name?.split(' ')[0] || 'there'}</button>?
+            </h1>
+          </div>
+
+          {/* Chat messages - only show when not new chat */}
+          {(!messages || messages.length === 0) ? null : (
+            <div className="flex-1 min-h-0">
+              <ChatView messages={messages} isLoading={isLoading} ref={chatScrollRef} />
+            </div>
+          )}
+
+          {/* Input container - always present, positioned like desktop */}
+          <div className="flex-shrink-0 py-4 mt-auto backdrop-blur-sm z-10">
+            <div className="w-full sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px] mx-auto">
+              {/* Queue elements - always present like desktop */}
+              <div className={`transition-all duration-300 -mb-4 ${(!messages || messages.length === 0) ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto delay-700'}`}>
+                <QueueToggle
+                  isOpen={queueVisible}
+                  onToggle={() => setQueueVisible(!queueVisible)}
+                  queueCount={messageQueue.length}
+                  sidebarOpen={sidebarOpen}
+                  setSidebarOpen={setSidebarOpen}
+                  onCloseIntegrationPopup={() => {
+                    if (isIntegrationPopupOpen) {
+                      setIsIntegrationPopupOpen(false);
+                    }
+                  }}
+                />
+
+                <MessageQueueView
+                  messageQueue={messageQueue}
+                  onRemoveMessage={removeMessageFromQueue}
+                  isProcessing={isProcessingQueue}
+                  isVisible={queueVisible}
+                />
+              </div>
+
+              <MessageInput
+                inputText={inputText}
+                setInputText={setInputText}
+                onSend={handleSend}
+                onOptimize={handleOptimize}
+                isOptimizing={isOptimizing}
+                onIntegrationSelect={toggleIntegration}
+                activeIntegrations={activeIntegrations}
+                isIntegrationPopupOpen={isIntegrationPopupOpen}
+                onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
+                onCloseSidebar={() => {
+                  if (sidebarOpen) {
+                    setSidebarOpen(false);
+                  }
+                }}
+                onCloseQueue={() => {
+                  if (queueVisible) {
+                    setQueueVisible(false);
+                  }
+                }}
+                onFocus={() => {
+                  if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
+                    setSidebarOpen(false);
+                  }
+                }}
+                hideDisclaimer={isNewChat}
+              />
+            </div>
+          </div>
+        </div>
 
         {/* Error Display - show chat errors */}
         {error && (
@@ -438,93 +526,6 @@ function MainChatInterface() {
           </div>
         )}
 
-        {/* Fixed Message Input - positioned inside main content */}
-        {!isNewChat && (
-          <MessageInputContainer ref={messageInputRef}>
-            <QueueToggle
-              isOpen={queueVisible}
-              onToggle={() => setQueueVisible(!queueVisible)}
-              queueCount={messageQueue.length}
-              sidebarOpen={sidebarOpen}
-              setSidebarOpen={setSidebarOpen}
-              onCloseIntegrationPopup={() => {
-                if (isIntegrationPopupOpen) {
-                  setIsIntegrationPopupOpen(false);
-                }
-              }}
-            />
-
-            <MessageQueueView
-              messageQueue={messageQueue}
-              onRemoveMessage={removeMessageFromQueue}
-              isProcessing={isProcessingQueue}
-              isVisible={queueVisible}
-            />
-
-            <MessageInput
-              inputText={inputText}
-              setInputText={setInputText}
-              onSend={handleSend}
-              onOptimize={handleOptimize}
-              isOptimizing={isOptimizing}
-              onIntegrationSelect={toggleIntegration}
-              activeIntegrations={activeIntegrations}
-              isIntegrationPopupOpen={isIntegrationPopupOpen}
-              onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
-              onCloseSidebar={() => {
-                if (sidebarOpen) {
-                  setSidebarOpen(false);
-                }
-              }}
-              onCloseQueue={() => {
-                if (queueVisible) {
-                  setQueueVisible(false);
-                }
-              }}
-              onFocus={() => {
-                if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
-                  setSidebarOpen(false);
-                }
-              }}
-              hideDisclaimer={false}
-            />
-          </MessageInputContainer>
-        )}
-
-        {/* Mobile: MessageInput for new chat */}
-        {isNewChat && (
-          <div className="md:hidden">
-            <MessageInputContainer ref={messageInputRef}>
-              <MessageInput
-                inputText={inputText}
-                setInputText={setInputText}
-                onSend={handleSend}
-                onOptimize={handleOptimize}
-                isOptimizing={isOptimizing}
-                onIntegrationSelect={toggleIntegration}
-                activeIntegrations={activeIntegrations}
-                isIntegrationPopupOpen={isIntegrationPopupOpen}
-                onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
-                onCloseSidebar={() => {
-                  if (sidebarOpen) {
-                    setSidebarOpen(false);
-                  }
-                }}
-                onCloseQueue={() => {
-                  if (queueVisible) {
-                    setQueueVisible(false);
-                  }
-                }}
-                onFocus={() => {
-                  if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
-                    setSidebarOpen(false);
-                  }
-                }}
-                hideDisclaimer={isNewChat}
-              />
-            </MessageInputContainer>
-          </div>
-        )}
       </div>
       
       <ConfirmationModal

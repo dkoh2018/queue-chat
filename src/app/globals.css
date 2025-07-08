@@ -69,21 +69,95 @@ html, body {
     .message-input-mobile-safe {
         bottom: calc(var(--safe-bottom) + var(--address-bar-offset)) !important;
     }
+}
 
-    .centered-input {
-        position: static !important;
-        top: auto !important;
-        left: auto !important;
-        right: auto !important;
-        bottom: auto !important;
-        transform: none !important;
-        width: 100% !important;
-        max-width: 600px !important;
-        margin: 0 auto !important;
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+/* Desktop-only smooth animations */
+@media (min-width: 768px) {
+    .chat-layout-animated {
+        position: relative;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        transition: all 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
 
+    .title-animated {
+        transition: all 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+        will-change: transform, opacity;
+        flex-shrink: 0;
+    }
 
+    .input-animated {
+        transition: all 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+        will-change: transform;
+        flex-shrink: 0;
+        z-index: 10;
+    }
+
+    .fade-in-animated {
+        will-change: opacity, transform;
+        /* No transition by default - instant disappearing */
+    }
+
+    /* Centered state (new chat) */
+    .chat-layout-centered {
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+    }
+
+    .chat-layout-centered .title-animated {
+        opacity: 1;
+        transform: translateY(0);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .chat-layout-centered .input-animated {
+        transform: translateY(0);
+        width: 100%;
+        max-width: 750px;
+        border-top: none;
+        background: transparent;
+    }
+
+    .chat-layout-centered .fade-in-animated {
+        opacity: 0;
+        transform: translateY(30px);
+        pointer-events: none;
+        /* No transition - instant hiding */
+    }
+
+    /* Normal state (after first message) */
+    .chat-layout-normal {
+        justify-content: flex-start;
+        padding: 0;
+    }
+
+    .chat-layout-normal .title-animated {
+        opacity: 0;
+        transform: translateY(-30px);
+        pointer-events: none;
+        height: 0;
+        overflow: hidden;
+        margin: 0;
+    }
+
+    .chat-layout-normal .input-animated {
+        transform: translateY(0);
+        position: relative;
+        padding: 1rem;
+        backdrop-filter: blur(10px);
+        margin-top: auto;
+    }
+
+    .chat-layout-normal .fade-in-animated {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+        /* Add transition only for appearing */
+        transition: opacity 1.0s ease-out 0.8s, transform 1.0s ease-out 0.8s;
+    }
 }
 
 body.keyboard-visible {
