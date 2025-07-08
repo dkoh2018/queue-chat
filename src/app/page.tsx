@@ -199,6 +199,8 @@ function MainChatInterface() {
     };
   }, [deleteModalOpen]);
 
+  const isNewChat = !messages || messages.length === 0;
+
   const handleSend = async () => {
     const text = inputText.trim();
     if (!text) return;
@@ -349,9 +351,60 @@ function MainChatInterface() {
         )}
         {/* Chat Area or Welcome - now takes full height */}
         {!messages || messages.length === 0 ? (
-          <WelcomeView
-            user={user}
-          />
+          isNewChat ? (
+            <>
+              {/* Desktop: Centered layout */}
+              <div className="hidden md:flex flex-1 flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+                <div className="text-center max-w-2xl w-full">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white mb-6 leading-tight tracking-tight">
+                    How can I help, <button className="hover:text-emerald-400 transition-colors">{user?.user_metadata?.first_name || user?.user_metadata?.full_name?.split(' ')[0] || 'there'}</button>?
+                  </h1>
+                  <div className="w-full max-w-[calc(100%-1rem)] sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px] mx-auto">
+                    <MessageInput
+                      inputText={inputText}
+                      setInputText={setInputText}
+                      onSend={handleSend}
+                      onOptimize={handleOptimize}
+                      isOptimizing={isOptimizing}
+                      onIntegrationSelect={toggleIntegration}
+                      activeIntegrations={activeIntegrations}
+                      isIntegrationPopupOpen={isIntegrationPopupOpen}
+                      onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
+                      onCloseSidebar={() => {
+                        if (sidebarOpen) {
+                          setSidebarOpen(false);
+                        }
+                      }}
+                      onCloseQueue={() => {
+                        if (queueVisible) {
+                          setQueueVisible(false);
+                        }
+                      }}
+                      onFocus={() => {
+                        if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
+                          setSidebarOpen(false);
+                        }
+                      }}
+                      hideDisclaimer={isNewChat}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile: Normal layout */}
+              <div className="md:hidden flex-1 flex flex-col">
+                <WelcomeView
+                  user={user}
+                  hideStatusBadge={isNewChat}
+                />
+              </div>
+            </>
+          ) : (
+            <WelcomeView
+              user={user}
+              hideStatusBadge={false}
+            />
+          )
         ) : (
           <ChatView messages={messages} isLoading={isLoading} ref={chatScrollRef} />
         )}
@@ -386,57 +439,92 @@ function MainChatInterface() {
         )}
 
         {/* Fixed Message Input - positioned inside main content */}
-        <MessageInputContainer ref={messageInputRef}>
-          {/* Queue Toggle Button */}
-          <QueueToggle
-            isOpen={queueVisible}
-            onToggle={() => setQueueVisible(!queueVisible)}
-            queueCount={messageQueue.length}
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={setSidebarOpen}
-            onCloseIntegrationPopup={() => {
-              if (isIntegrationPopupOpen) {
-                setIsIntegrationPopupOpen(false);
-              }
-            }}
-          />
+        {!isNewChat && (
+          <MessageInputContainer ref={messageInputRef}>
+            <QueueToggle
+              isOpen={queueVisible}
+              onToggle={() => setQueueVisible(!queueVisible)}
+              queueCount={messageQueue.length}
+              sidebarOpen={sidebarOpen}
+              setSidebarOpen={setSidebarOpen}
+              onCloseIntegrationPopup={() => {
+                if (isIntegrationPopupOpen) {
+                  setIsIntegrationPopupOpen(false);
+                }
+              }}
+            />
 
-          {/* Queue View */}
-          <MessageQueueView
-            messageQueue={messageQueue}
-            onRemoveMessage={removeMessageFromQueue}
-            isProcessing={isProcessingQueue}
-            isVisible={queueVisible}
-          />
+            <MessageQueueView
+              messageQueue={messageQueue}
+              onRemoveMessage={removeMessageFromQueue}
+              isProcessing={isProcessingQueue}
+              isVisible={queueVisible}
+            />
 
-          <MessageInput
-            inputText={inputText}
-            setInputText={setInputText}
-            onSend={handleSend}
-            onOptimize={handleOptimize}
-            isOptimizing={isOptimizing}
-            onIntegrationSelect={toggleIntegration}
-            activeIntegrations={activeIntegrations}
-            isIntegrationPopupOpen={isIntegrationPopupOpen}
-            onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
-            onCloseSidebar={() => {
-              if (sidebarOpen) {
-                setSidebarOpen(false);
-              }
-            }}
-            onCloseQueue={() => {
-              if (queueVisible) {
-                setQueueVisible(false);
-              }
-            }}
-            onFocus={() => {
-              // Auto-close sidebar on mobile when user focuses on input
-              if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
-                setSidebarOpen(false);
-              }
-            }}
-          />
-        </MessageInputContainer>
+            <MessageInput
+              inputText={inputText}
+              setInputText={setInputText}
+              onSend={handleSend}
+              onOptimize={handleOptimize}
+              isOptimizing={isOptimizing}
+              onIntegrationSelect={toggleIntegration}
+              activeIntegrations={activeIntegrations}
+              isIntegrationPopupOpen={isIntegrationPopupOpen}
+              onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
+              onCloseSidebar={() => {
+                if (sidebarOpen) {
+                  setSidebarOpen(false);
+                }
+              }}
+              onCloseQueue={() => {
+                if (queueVisible) {
+                  setQueueVisible(false);
+                }
+              }}
+              onFocus={() => {
+                if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
+                  setSidebarOpen(false);
+                }
+              }}
+              hideDisclaimer={false}
+            />
+          </MessageInputContainer>
+        )}
+
+        {/* Mobile: MessageInput for new chat */}
+        {isNewChat && (
+          <div className="md:hidden">
+            <MessageInputContainer ref={messageInputRef}>
+              <MessageInput
+                inputText={inputText}
+                setInputText={setInputText}
+                onSend={handleSend}
+                onOptimize={handleOptimize}
+                isOptimizing={isOptimizing}
+                onIntegrationSelect={toggleIntegration}
+                activeIntegrations={activeIntegrations}
+                isIntegrationPopupOpen={isIntegrationPopupOpen}
+                onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
+                onCloseSidebar={() => {
+                  if (sidebarOpen) {
+                    setSidebarOpen(false);
+                  }
+                }}
+                onCloseQueue={() => {
+                  if (queueVisible) {
+                    setQueueVisible(false);
+                  }
+                }}
+                onFocus={() => {
+                  if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
+                    setSidebarOpen(false);
+                  }
+                }}
+                hideDisclaimer={isNewChat}
+              />
+            </MessageInputContainer>
+          </div>
+        )}
       </div>
       
       <ConfirmationModal

@@ -70,6 +70,19 @@ html, body {
         bottom: calc(var(--safe-bottom) + var(--address-bar-offset)) !important;
     }
 
+    .centered-input {
+        position: static !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        width: 100% !important;
+        max-width: 600px !important;
+        margin: 0 auto !important;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
 
 }
 

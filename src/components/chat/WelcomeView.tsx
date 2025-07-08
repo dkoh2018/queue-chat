@@ -3,10 +3,12 @@ import type { User } from '@supabase/supabase-js';
 
 interface WelcomeViewProps {
   user: User | null;
+  hideStatusBadge?: boolean;
 }
 
 export const WelcomeView = ({
-  user
+  user,
+  hideStatusBadge = false
 }: WelcomeViewProps) => {
   const [mounted, setMounted] = useState(false);
 
@@ -37,12 +39,12 @@ export const WelcomeView = ({
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 pb-32 min-h-0">
-      <div className="text-center max-w-2xl w-full">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white mb-6 leading-tight tracking-tight">
+    <div className={`flex-1 flex flex-col items-center px-4 sm:px-6 lg:px-8 min-h-0 ${hideStatusBadge ? 'justify-center pb-32' : 'justify-center pb-32'}`}>
+      <div className="text-center w-full mx-auto">
+        <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-white leading-tight tracking-tight ${hideStatusBadge ? 'mb-2' : 'mb-6'} px-2`}>
           How can I help, <button className="hover:text-emerald-400 transition-colors">{getUserFirstName()}</button>?
         </h1>
-        {mounted && (
+        {mounted && !hideStatusBadge && (
           <div className="flex justify-center w-full">
             <div className="inline-flex items-center px-4 py-2 border rounded-full bg-emerald-500/10 border-emerald-400/20">
               <span className="text-sm font-medium text-emerald-300">

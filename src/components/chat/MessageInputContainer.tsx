@@ -2,13 +2,14 @@ import React, { forwardRef } from 'react';
 
 interface MessageInputContainerProps {
   children: React.ReactNode;
+  className?: string;
 }
 
-export const MessageInputContainer = forwardRef<HTMLDivElement, MessageInputContainerProps>(({ children }, ref) => {
+export const MessageInputContainer = forwardRef<HTMLDivElement, MessageInputContainerProps>(({ children, className = '' }, ref) => {
   return (
     <div
       ref={ref}
-      className="absolute left-0 right-0 bottom-0 z-20 bg-transparent message-input-mobile-safe"
+      className={`absolute left-0 right-0 bottom-0 z-20 bg-transparent message-input-mobile-safe ${className}`}
       style={{
         paddingLeft: '16px',
         paddingRight: '16px',

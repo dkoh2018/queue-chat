@@ -22,9 +22,10 @@ interface MessageInputProps {
   onIntegrationPopupStateChange?: (isOpen: boolean) => void;
   onCloseSidebar?: () => void;
   onCloseQueue?: () => void;
+  hideDisclaimer?: boolean;
 }
 
-export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false, onIntegrationSelect, activeIntegrations, onFocus, isIntegrationPopupOpen = false, onIntegrationPopupStateChange, onCloseSidebar, onCloseQueue }: MessageInputProps) => {
+export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false, onIntegrationSelect, activeIntegrations, onFocus, isIntegrationPopupOpen = false, onIntegrationPopupStateChange, onCloseSidebar, onCloseQueue, hideDisclaimer = false }: MessageInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastTranscriptionRef = useRef<string | undefined>(undefined);
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -218,11 +219,13 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
         </div>
       )}
 
-      <div className={styles.disclaimer}>
-        <p className={styles.disclaimerText}>
-          Jarvis can make mistakes.
-        </p>
-      </div>
+      {!hideDisclaimer && (
+        <div className={styles.disclaimer}>
+          <p className={styles.disclaimerText}>
+            Jarvis can make mistakes.
+          </p>
+        </div>
+      )}
     </>
   );
 };
