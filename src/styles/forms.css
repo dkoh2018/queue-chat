@@ -1,4 +1,7 @@
+/* Forms Utility Module */
+/* Scrollbar styling moved to src/styles/scrollbar.css */
 
+/* Fix text selection visibility in transparent textareas */
 textarea::selection {
   background: rgba(59, 130, 246, 0.6);
   color: white;
@@ -9,7 +12,7 @@ textarea::-moz-selection {
   color: white;
 }
 
-
+/* Enhanced text selection for mobile devices */
 textarea, input {
   -webkit-user-select: text;
   -moz-user-select: text;
@@ -17,7 +20,7 @@ textarea, input {
   user-select: text;
 }
 
-
+/* Ensure text selection is visible on mobile */
 textarea::selection, input::selection {
   background: rgba(59, 130, 246, 0.7);
   color: white;

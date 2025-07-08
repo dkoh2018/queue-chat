@@ -7,7 +7,6 @@ import { optimizationService } from '@/services';
 import Sidebar from '@/components/features/sidebar/Sidebar';
 import { ChatView } from '@/components/chat/ChatView';
 import { MessageInput } from '@/components/chat/MessageInput';
-import { MessageInputContainer } from '@/components/chat/MessageInputContainer';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { MessageQueueView } from '@/components/chat/MessageQueueView';
 
@@ -369,7 +368,7 @@ function MainChatInterface() {
 
             {/* Input container - always present, animates position */}
             <div className="input-animated">
-              <MessageInputContainer>
+              <div className="w-full max-w-[calc(100%-1rem)] sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px] mx-auto">
                 {/* Queue elements - positioned relative to input */}
                 <div className="fade-in-animated">
                   <QueueToggle
@@ -420,7 +419,7 @@ function MainChatInterface() {
                   }}
                   hideDisclaimer={isNewChat}
                 />
-              </MessageInputContainer>
+              </div>
             </div>
           </div>
         </div>
@@ -442,58 +441,60 @@ function MainChatInterface() {
           )}
 
           {/* Input container - always present, positioned naturally */}
-          <MessageInputContainer>
-            {/* Queue elements - always present like desktop */}
-            <div className={`transition-all duration-300 -mb-4 ${(!messages || messages.length === 0) ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto delay-700'}`}>
-              <QueueToggle
-                isOpen={queueVisible}
-                onToggle={() => setQueueVisible(!queueVisible)}
-                queueCount={messageQueue.length}
-                sidebarOpen={sidebarOpen}
-                setSidebarOpen={setSidebarOpen}
-                onCloseIntegrationPopup={() => {
-                  if (isIntegrationPopupOpen) {
-                    setIsIntegrationPopupOpen(false);
+          <div className="flex-shrink-0 py-4 backdrop-blur-sm z-10">
+            <div className="w-full sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px] mx-auto">
+              {/* Queue elements - always present like desktop */}
+              <div className={`transition-all duration-300 -mb-4 ${(!messages || messages.length === 0) ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto delay-700'}`}>
+                <QueueToggle
+                  isOpen={queueVisible}
+                  onToggle={() => setQueueVisible(!queueVisible)}
+                  queueCount={messageQueue.length}
+                  sidebarOpen={sidebarOpen}
+                  setSidebarOpen={setSidebarOpen}
+                  onCloseIntegrationPopup={() => {
+                    if (isIntegrationPopupOpen) {
+                      setIsIntegrationPopupOpen(false);
+                    }
+                  }}
+                />
+
+                <MessageQueueView
+                  messageQueue={messageQueue}
+                  onRemoveMessage={removeMessageFromQueue}
+                  isProcessing={isProcessingQueue}
+                  isVisible={queueVisible}
+                />
+              </div>
+
+              <MessageInput
+                inputText={inputText}
+                setInputText={setInputText}
+                onSend={handleSend}
+                onOptimize={handleOptimize}
+                isOptimizing={isOptimizing}
+                onIntegrationSelect={toggleIntegration}
+                activeIntegrations={activeIntegrations}
+                isIntegrationPopupOpen={isIntegrationPopupOpen}
+                onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
+                onCloseSidebar={() => {
+                  if (sidebarOpen) {
+                    setSidebarOpen(false);
                   }
                 }}
-              />
-
-              <MessageQueueView
-                messageQueue={messageQueue}
-                onRemoveMessage={removeMessageFromQueue}
-                isProcessing={isProcessingQueue}
-                isVisible={queueVisible}
+                onCloseQueue={() => {
+                  if (queueVisible) {
+                    setQueueVisible(false);
+                  }
+                }}
+                onFocus={() => {
+                  if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
+                    setSidebarOpen(false);
+                  }
+                }}
+                hideDisclaimer={false}
               />
             </div>
-
-            <MessageInput
-              inputText={inputText}
-              setInputText={setInputText}
-              onSend={handleSend}
-              onOptimize={handleOptimize}
-              isOptimizing={isOptimizing}
-              onIntegrationSelect={toggleIntegration}
-              activeIntegrations={activeIntegrations}
-              isIntegrationPopupOpen={isIntegrationPopupOpen}
-              onIntegrationPopupStateChange={setIsIntegrationPopupOpen}
-              onCloseSidebar={() => {
-                if (sidebarOpen) {
-                  setSidebarOpen(false);
-                }
-              }}
-              onCloseQueue={() => {
-                if (queueVisible) {
-                  setQueueVisible(false);
-                }
-              }}
-              onFocus={() => {
-                if (typeof window !== 'undefined' && window.innerWidth < 768 && sidebarOpen) {
-                  setSidebarOpen(false);
-                }
-              }}
-              hideDisclaimer={false}
-            />
-          </MessageInputContainer>
+          </div>
         </div>
 
         {/* Error Display - show chat errors */}

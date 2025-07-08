@@ -1,4 +1,7 @@
+/* Global Scrollbar Utility Module */
+/* Extracted from globals.css to provide consistent scrollbar styling across components */
 
+/* Chat scrollbar: seamless overlay for chat containers */
 .chatScroll {
   overflow-y: auto;
   scrollbar-width: thin;
@@ -23,7 +26,7 @@
   background-color: rgba(107, 114, 128, 0.7);
 }
 
-
+/* Textarea scrollbar: clean scrolling for text inputs */
 .textareaScroll {
   scrollbar-width: thin;
 }
@@ -193,7 +196,7 @@
   }
 }
 
-
+/* Dark mode scrollbar adjustments */
 @media (prefers-color-scheme: dark) {
   .chatScroll::-webkit-scrollbar-thumb,
   .textareaScroll::-webkit-scrollbar-thumb {
@@ -206,7 +209,7 @@
   }
 }
 
-
+/* Utility classes for common scroll combinations */
 .chatContainer {
   composes: chatScroll;
   max-height: 100%;

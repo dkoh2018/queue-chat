@@ -115,14 +115,10 @@ html, body {
 
     .chat-layout-centered .input-animated {
         transform: translateY(0);
-        position: relative;
         width: 100%;
         max-width: 750px;
         border-top: none;
         background: transparent;
-        bottom: auto;
-        left: auto;
-        right: auto;
     }
 
     .chat-layout-centered .fade-in-animated {
@@ -149,11 +145,10 @@ html, body {
 
     .chat-layout-normal .input-animated {
         transform: translateY(0);
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 20;
+        position: relative;
+        padding: 1rem;
+        backdrop-filter: blur(10px);
+        margin-top: auto;
     }
 
     .chat-layout-normal .fade-in-animated {
