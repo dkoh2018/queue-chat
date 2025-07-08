@@ -50,6 +50,6 @@
   }
 
   .footer {
-    padding-bottom: calc(var(--safe-bottom, 0px) + var(--sidebar-bottom-padding, 60px));
+    padding-bottom: calc(var(--safe-bottom, 0px) + var(--sidebar-bottom-padding, 16px));
   }
 }

@@ -84,8 +84,7 @@
 @media (max-width: 768px) {
   .container {
     padding: var(--chat-padding, 12px 0);
-    height: calc(var(--vh, 1vh) * 100);
-    height: -webkit-fill-available;
+    height: 100%;
   }
 
   .userMessage {
