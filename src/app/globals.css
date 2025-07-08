@@ -45,7 +45,6 @@ html, body {
         bottom: 40px !important;
     }
 
-    /* Ensure conversation layout adjusts for mobile sidebar */
     .sidebar-mobile-safe {
         padding-bottom: 40px;
     }

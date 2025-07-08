@@ -1,13 +1,15 @@
+/* Message Input Container - UI Components Layer (10-50) */
 .container {
   position: relative;
   border-radius: 12px;
   overflow: visible;
-  z-index: 10;
+  z-index: 22; /* Message input content layer */
   width: 100%;
   max-width: 100%;
   min-width: 0;
 }
 
+/* Message Input Background - Behind content but above base layer */
 .background {
   position: absolute;
   inset: 0;
@@ -18,7 +20,7 @@
   transition: all 0.2s ease;
   border-radius: 12px;
   pointer-events: none;
-  z-index: 1;
+  z-index: 21; /* Background layer - below content */
 }
 
 .popupOpen .background {
@@ -30,11 +32,12 @@
   border-color: rgba(55, 56, 58, 0.6);
 }
 
+/* Message Input Content - Above background, contains textarea and buttons */
 .content {
   position: relative;
   display: flex;
   flex-direction: column;
-  z-index: 2;
+  z-index: 23; /* Content layer - above background */
   opacity: 1;
   pointer-events: auto;
   transition: opacity 0.2s ease;
@@ -44,6 +47,7 @@
   border-color: rgba(52, 211, 153, 0.6);
 }
 
+/* Textarea - Text input field */
 .textarea {
   width: 100%;
   color: white;
@@ -59,7 +63,7 @@
   background: transparent;
   position: relative;
   transition: height 0.15s ease;
-  z-index: 3;
+  z-index: 24; /* Text input layer - above content */
 }
 
 .textarea::placeholder {
@@ -70,6 +74,7 @@
   outline: none;
 }
 
+/* Loading Container - Shows typing dots during optimization */
 .loadingContainer {
   width: 100%;
   color: white;
@@ -84,15 +89,16 @@
   font-size: 16px;
   line-height: 1.5;
   height: 60px;
-  z-index: 3;
+  z-index: 24; /* Same as textarea - replaces it during loading */
 }
 
+/* Buttons Container - Contains all input buttons */
 .buttonsContainer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px 10px 20px;
-  z-index: 3;
+  z-index: 25; /* Button container layer - above text input */
 }
 
 .toolButtons {
@@ -111,6 +117,7 @@
   padding: 0;
 }
 
+/* Attach Button - Interactive Elements Layer (30-50) */
 .attachButton {
   padding: 6px;
   border-radius: 9999px;
@@ -121,7 +128,7 @@
   color: inherit;
   cursor: pointer;
   position: relative;
-  z-index: 4;
+  z-index: 30; /* Attach button layer - Interactive Elements */
 }
 
 .attachButton:hover {
@@ -129,6 +136,7 @@
   opacity: 1;
 }
 
+/* Send Button - Interactive Elements Layer (30-50) */
 .sendButton {
   border-radius: 9999px;
   transition: all 0.2s ease;
@@ -140,7 +148,7 @@
   border: none;
   cursor: pointer;
   position: relative;
-  z-index: 4;
+  z-index: 34; /* Send button layer - highest interactive element */
 }
 
 .sendButtonActive {
@@ -188,24 +196,25 @@
   color: rgba(156, 163, 175, 1);
 }
 
+/* Mobile optimizations - maintains same z-index hierarchy */
 @media (max-width: 768px) {
   .content textarea {
     font-size: 16px;
     touch-action: manipulation;
-    z-index: 5;
+    z-index: 24; /* Same as desktop - text input layer */
   }
-  
+
   .container {
     overflow: visible;
     touch-action: manipulation;
     position: relative;
-    z-index: 10;
+    z-index: 22; /* Same as desktop - content layer */
   }
 
   .content {
     overflow: visible;
     position: relative;
-    z-index: 2;
+    z-index: 23; /* Same as desktop - above background */
   }
 }
 

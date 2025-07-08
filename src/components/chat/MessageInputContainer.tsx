@@ -4,11 +4,12 @@ interface MessageInputContainerProps {
   children: React.ReactNode;
 }
 
+// Message Input Container - UI Components Layer (10-50)
 export const MessageInputContainer = forwardRef<HTMLDivElement, MessageInputContainerProps>(({ children }, ref) => {
   return (
-    <div 
-      ref={ref} 
-      className="absolute left-0 right-0 bottom-0 z-50 bg-transparent message-input-mobile-safe"
+    <div
+      ref={ref}
+      className="absolute left-0 right-0 bottom-0 z-20 bg-transparent message-input-mobile-safe"
       style={{
         paddingLeft: '16px',
         paddingRight: '16px',
