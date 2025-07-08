@@ -2,9 +2,7 @@
 
 An asynchronous chat application featuring intelligent message queue processing and two-stage AI optimization for enhanced conversational context and response quality.
 
-![Queue Chat Interface](./public/IMG_1388.png)
-![Message Queue Management](./public/IMG_2898.png)
-![Conversation Flow](./public/IMG_4344.png)
+![Queue Chat Demo](./public/demo.gif)
 
 ## Problem Statement
 
