@@ -33,12 +33,12 @@ export const useConversations = (): UseConversationsReturn => {
     isValidating: refreshing,
     mutate: revalidate 
   } = useSWR(CONVERSATIONS_KEY, conversationsService.getConversations, {
-    revalidateOnFocus: true, // Refresh when user returns to tab
-    revalidateOnReconnect: true, // Refresh when internet reconnects
-    revalidateOnMount: true, // Always fetch fresh data on mount
+    revalidateOnFocus: false, // Don't refresh on focus - causes selection lag
+    revalidateOnReconnect: true, // Keep reconnect refresh
+    revalidateOnMount: true, // Keep mount refresh
     refreshInterval: 0, // No automatic polling
-    dedupingInterval: 500, // Reduce duplicate requests (from 1000ms)
-    errorRetryCount: 2, 
+    dedupingInterval: 1000, // Increase to reduce duplicate requests
+    errorRetryCount: 2,
     errorRetryInterval: 1000,
     keepPreviousData: true, // Show old data while loading new data
     onSuccess: (data) => {
@@ -52,11 +52,10 @@ export const useConversations = (): UseConversationsReturn => {
   const [isOnline, setIsOnline] = useState(true);
 
   const selectConversation = useCallback((conversation: Conversation) => {
+    // Update both state and localStorage synchronously
     setCurrentConversationId(conversation.id);
     if (typeof window !== 'undefined') {
-      setTimeout(() => {
-        localStorage.setItem('currentConversationId', conversation.id);
-      }, 0);
+      localStorage.setItem('currentConversationId', conversation.id);
     }
   }, []);
 

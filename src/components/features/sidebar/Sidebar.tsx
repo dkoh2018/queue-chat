@@ -1,4 +1,4 @@
-import { forwardRef, memo, useState, useMemo } from 'react';
+import { forwardRef, memo, useState, useMemo, useCallback } from 'react';
 import { Conversation } from '@/types';
 import { PlusIcon, SearchIcon, MenuIcon, XIcon } from '@/components/icons';
 import ProfileMenu from '@/components/auth/ProfileMenu';
@@ -26,24 +26,31 @@ interface ConversationItemProps {
   onDeleteClick: (conversation: Conversation, e: React.MouseEvent) => void;
 }
 
-const ConversationItem = memo(({ 
-  conversation, 
-  isActive, 
-  onSelectConversation, 
-  onDeleteClick 
+const ConversationItem = memo(({
+  conversation,
+  isActive,
+  onSelectConversation,
+  onDeleteClick
 }: ConversationItemProps) => {
+  const handleClick = useCallback(() => {
+    onSelectConversation(conversation);
+  }, [conversation, onSelectConversation]);
+
+  const handleDeleteClick = useCallback((e: React.MouseEvent) => {
+    onDeleteClick(conversation, e);
+  }, [conversation, onDeleteClick]);
+
   return (
     <div
-      key={conversation.id}
-      onClick={() => onSelectConversation(conversation)}
-      className={`group flex items-center justify-between px-2 py-2 mx-2 rounded-lg cursor-pointer sidebar-item transition-all duration-200 ${
+      onClick={handleClick}
+      className={`group flex items-center justify-between px-2 py-2 mx-2 rounded-lg cursor-pointer sidebar-item transition-colors duration-150 ${
         isActive ? 'glass-card glass-glow-green' : 'hover:glass-card'
       }`}
     >
       <span className="text-sm font-medium text-gray-100 truncate leading-relaxed pr-2">{conversation.title}</span>
       <button
-        onClick={(e) => onDeleteClick(conversation, e)}
-        className="opacity-0 group-hover:opacity-100 p-1.5 glass-button rounded transition-all duration-200 text-gray-400 hover:text-white flex-shrink-0 hover:border-red-500/60 hover:shadow-red-500/20"
+        onClick={handleDeleteClick}
+        className="opacity-0 group-hover:opacity-100 p-1.5 glass-button rounded transition-opacity duration-150 text-gray-400 hover:text-white flex-shrink-0 hover:border-red-500/60 hover:shadow-red-500/20"
         title="Delete conversation"
       >
         <XIcon />

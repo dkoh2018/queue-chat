@@ -115,12 +115,13 @@
 }
 
 .glass-glow-green {
-  box-shadow: 
-    0 0 15px rgba(16, 185, 129, 0.4),
-    0 0 30px rgba(16, 185, 129, 0.2),
+  background: rgba(37, 38, 40, 0.6);
+  box-shadow:
+    0 0 12px rgba(16, 185, 129, 0.3),
+    0 0 24px rgba(16, 185, 129, 0.15),
     0 2px 4px -1px rgba(0, 0, 0, 0.1);
-  border-color: rgba(16, 185, 129, 0.5);
-  will-change: box-shadow, border-color;
+  border-color: rgba(16, 185, 129, 0.4);
+  will-change: auto;
   transform: translateZ(0);
 }
 
