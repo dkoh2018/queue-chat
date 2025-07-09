@@ -5,7 +5,7 @@ import { useConversations, useChat, useMobileKeyboardHandling, usePersistedState
 import { Conversation } from '@/types';
 import { optimizationService } from '@/services';
 import Sidebar from '@/components/features/sidebar/Sidebar';
-import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { DeleteConfirmation } from '@/components/ui/DeleteConfirmation';
 import { ErrorToast } from '@/components/ui/ErrorToast';
 import { FloatingSidebarToggle, DesktopChatLayout, MobileChatLayout } from '@/components/layout';
 
@@ -179,35 +179,24 @@ function MainChatInterface() {
     }
   };
 
-  const handleSelectConversation = async (conversation: Conversation) => {
-    console.log('🔍 Selecting conversation:', {
-      id: conversation.id,
-      title: conversation.title,
-      messageCount: conversation.messages?.length || 0,
-      messages: conversation.messages?.slice(0, 2).map(m => ({ role: m.role, content: m.content.slice(0, 50) + '...' }))
-    });
+  const handleSelectConversation = useCallback((conversation: Conversation) => {
+    // Immediate state update for instant UI feedback
+    setCurrentConversationId(conversation.id);
 
-    handleConversationSelected(conversation.id);
+    // Batch all UI updates together
+    const uiMessages = conversation.messages.map(msg => ({
+      role: msg.role.toLowerCase() as 'user' | 'assistant',
+      content: msg.content
+    }));
+
+    // Single batch update
+    clearMessages();
+    setMessages(uiMessages);
+
+    // Handle persistence and scroll restoration
     selectConversation(conversation);
-    
-    // Use requestAnimationFrame for better performance
-    requestAnimationFrame(() => {
-      const uiMessages = conversation.messages.map(msg => ({
-        role: msg.role.toLowerCase() as 'user' | 'assistant', // Convert 'USER'/'ASSISTANT' to 'user'/'assistant'
-        content: msg.content
-      }));
-      
-      console.log('🔍 Setting UI messages:', {
-        conversationId: conversation.id,
-        uiMessageCount: uiMessages.length,
-        uiMessages: uiMessages.slice(0, 2).map(m => ({ role: m.role, content: m.content.slice(0, 50) + '...' }))
-      });
-      
-      clearMessages();
-      setMessages(uiMessages);
-      restoreScrollPosition(conversation.id);
-    });
-  };
+    restoreScrollPosition(conversation.id);
+  }, [setCurrentConversationId, clearMessages, setMessages, selectConversation, restoreScrollPosition]);
 
   const handleDeleteClick = (conversation: Conversation, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -307,7 +296,7 @@ function MainChatInterface() {
         />
         <ErrorToast error={error} onClearError={clearError} />
       </div>
-      <ConfirmationModal
+      <DeleteConfirmation
         isOpen={deleteModalOpen}
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}

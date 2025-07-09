@@ -1,6 +1,6 @@
 // UI Components
 export { LoadingScreen } from './LoadingScreen';
-export { ConfirmationModal } from './ConfirmationModal';
+export { DeleteConfirmation } from './DeleteConfirmation';
 export { TypingDots } from './TypingDots';
 export { ErrorToast } from './ErrorToast';
 export { KeyboardShortcutsModal } from './KeyboardShortcutsModal';

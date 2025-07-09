@@ -7,7 +7,7 @@ export interface ModalProps {
   title?: string;
 }
 
-export interface ConfirmationModalProps {
+export interface DeleteConfirmationProps {
   isOpen: boolean;
   onConfirm: () => void;
   onCancel: () => void;

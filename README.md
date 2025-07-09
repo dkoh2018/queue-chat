@@ -66,6 +66,7 @@ npm run dev
 | **Backend** | Next.js API Routes, Supabase PostgreSQL |
 | **AI/ML** | OpenAI GPT-4, Custom prompt optimization |
 | **Auth** | Supabase Auth (Google OAuth, GitHub) |
+| **Integrations** | Google Calendar API, Mermaid.js diagrams |
 | **Database** | PostgreSQL with Row Level Security |
 | **Deployment** | Vercel, Supabase Cloud |
 
@@ -110,5 +111,5 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ---
 
 <div align="center">
-  <strong>Built with ❤️ using Next.js</strong>
+  <strong>Built with ❤️ using Next.js, OpenAI & Google Calendar</strong>
 </div>
