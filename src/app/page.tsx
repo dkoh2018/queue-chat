@@ -38,8 +38,8 @@ function MainChatInterface() {
     handleConversationDeleted,
   } = useConversations();
 
-  const handleChatMessageSent = useCallback((conversationId: string) => {
-    handleMessageSent(conversationId);
+  const handleChatMessageSent = useCallback((conversationId: string, userMessage?: string) => {
+    handleMessageSent(conversationId, userMessage);
   }, [handleMessageSent]);
 
   const {
@@ -74,21 +74,12 @@ function MainChatInterface() {
     fetchConversations();
   }, [fetchConversations]);
 
-  // Restore conversation on page load - this runs once when conversations are loaded
   useEffect(() => {
     if (currentConversationId && conversations.length > 0 && !conversationsLoading && !refreshing) {
       const conversation = conversations.find(c => c.id === currentConversationId);
       if (conversation && messages.length === 0) {
-        console.log('🔍 Page load restoration:', {
-          conversationId: currentConversationId,
-          foundConversation: !!conversation,
-          messageCount: conversation?.messages?.length || 0,
-          currentUIMessages: messages.length
-        });
-
-        // Initial restoration on page load when no messages exist
         const uiMessages = conversation.messages.map(msg => ({
-          role: msg.role.toLowerCase() as 'user' | 'assistant', // Convert 'USER'/'ASSISTANT' to 'user'/'assistant'
+          role: msg.role.toLowerCase() as 'user' | 'assistant',
           content: msg.content
         }));
         setMessages(uiMessages);
@@ -153,17 +144,13 @@ function MainChatInterface() {
   };
 
   const handleSelectConversation = useCallback((conversation: Conversation) => {
-    // Batch all UI updates together
     const uiMessages = conversation.messages.map(msg => ({
       role: msg.role.toLowerCase() as 'user' | 'assistant',
       content: msg.content
     }));
 
-    // Single batch update
     clearMessages();
     setMessages(uiMessages);
-
-    // Handle state, persistence and scroll restoration
     selectConversation(conversation);
     restoreScrollPosition(conversation.id);
   }, [clearMessages, setMessages, selectConversation, restoreScrollPosition]);

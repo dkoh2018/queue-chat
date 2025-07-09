@@ -16,8 +16,7 @@ interface UseConversationsReturn {
   deleteConversation: (conversationId: string) => Promise<void>;
   setCurrentConversationId: (id: string | null) => void;
   clearAllData: () => void;
-  handleMessageSent: (conversationId: string) => void;
-  handleConversationSelected: (conversationId: string) => void;
+  handleMessageSent: (conversationId: string, userMessage?: string) => void;
   handleConversationDeleted: (conversationId: string) => void;
 }
 
@@ -26,21 +25,21 @@ const CONVERSATIONS_KEY = '/api/conversations';
 export const useConversations = (): UseConversationsReturn => {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   
-  const { 
-    data: conversations = [], 
-    error, 
-    isLoading: loading, 
+  const {
+    data: conversations = [],
+    error,
+    isLoading: loading,
     isValidating: refreshing,
-    mutate: revalidate 
+    mutate: revalidate
   } = useSWR(CONVERSATIONS_KEY, conversationsService.getConversations, {
-    revalidateOnFocus: false, // Don't refresh on focus - causes selection lag
-    revalidateOnReconnect: true, // Keep reconnect refresh
-    revalidateOnMount: true, // Keep mount refresh
-    refreshInterval: 0, // No automatic polling
-    dedupingInterval: 1000, // Increase to reduce duplicate requests
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    revalidateOnMount: true,
+    refreshInterval: 0,
+    dedupingInterval: 200,
     errorRetryCount: 2,
     errorRetryInterval: 1000,
-    keepPreviousData: true, // Show old data while loading new data
+    keepPreviousData: true,
     onSuccess: (data) => {
       logger.conversation('Conversations fetched successfully', { count: data?.length || 0 });
     },
@@ -52,7 +51,6 @@ export const useConversations = (): UseConversationsReturn => {
   const [isOnline, setIsOnline] = useState(true);
 
   const selectConversation = useCallback((conversation: Conversation) => {
-    // Update both state and localStorage synchronously
     setCurrentConversationId(conversation.id);
     if (typeof window !== 'undefined') {
       localStorage.setItem('currentConversationId', conversation.id);
@@ -170,41 +168,54 @@ export const useConversations = (): UseConversationsReturn => {
     );
   }, []);
 
-  const handleMessageSent = useCallback((conversationId: string) => {
-    // For new conversations that aren't in the cache yet, immediately refresh
-    // For existing conversations, do optimistic update then refresh
+  const handleMessageSent = useCallback((conversationId: string, userMessage?: string) => {
     const existingConversation = conversations.find(c => c.id === conversationId);
-    
+
     if (existingConversation) {
       // Existing conversation - do optimistic update
       optimisticallyUpdateConversationOrder(conversationId);
       // Quick refresh after optimistic update
       setTimeout(() => {
         revalidate();
-      }, 1000); // Reduced from 5000ms to 1000ms
+      }, 500); // Reduced to 500ms for faster updates
     } else {
-      // New conversation - immediately refresh to show it in the sidebar
-      revalidate();
+      const title = userMessage
+        ? (userMessage.length > 50 ? userMessage.slice(0, 50) + '...' : userMessage)
+        : 'New conversation...';
+
+      const optimisticConversation: Conversation = {
+        id: conversationId,
+        title,
+        user_id: '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        messages: []
+      };
+
+      mutate(
+        CONVERSATIONS_KEY,
+        (currentData: Conversation[] | undefined) =>
+          [optimisticConversation, ...(currentData || [])],
+        false
+      );
+
+      setTimeout(() => {
+        revalidate();
+      }, 100);
     }
   }, [optimisticallyUpdateConversationOrder, revalidate, conversations]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleConversationSelected = useCallback((conversationId: string) => {
-    // Only refresh if the data might be stale (user was actively messaging)
-    // No automatic refresh - let user trigger if needed
-  }, []);
+
 
   const handleConversationDeleted = useCallback((conversationId: string) => {
-    // Immediate cache update - no server call needed
     mutate(
       CONVERSATIONS_KEY,
-      (currentData: Conversation[] | undefined) => 
+      (currentData: Conversation[] | undefined) =>
         currentData?.filter(conv => conv.id !== conversationId) || [],
       false
     );
   }, []);
 
-  // **SIMPLIFIED**: Manual refresh only when explicitly requested
   const refreshConversations = useCallback(async () => {
     await revalidate();
   }, [revalidate]);
@@ -216,14 +227,12 @@ export const useConversations = (): UseConversationsReturn => {
     refreshing,
     error: error?.message || null,
     isOnline,
-    fetchConversations: refreshConversations, // Rename for clarity
+    fetchConversations: refreshConversations,
     selectConversation,
     deleteConversation,
     setCurrentConversationId,
     clearAllData,
-    // **NEW EVENT HANDLERS**
     handleMessageSent,
-    handleConversationSelected,
     handleConversationDeleted,
   };
 };

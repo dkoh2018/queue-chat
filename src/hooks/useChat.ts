@@ -25,7 +25,7 @@ interface UseChatReturn {
 }
 
 export const useChat = (
-  onMessageSent?: (conversationId: string) => void,
+  onMessageSent?: (conversationId: string, userMessage?: string) => void,
   currentConversationId?: string | null,
   setCurrentConversationId?: (id: string | null) => void
 ): UseChatReturn => {
@@ -34,22 +34,17 @@ export const useChat = (
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Use external conversation ID state if provided, otherwise use internal state
   const [internalConversationId, setInternalConversationId] = useState<string | null>(null);
   const conversationId = currentConversationId ?? internalConversationId;
   const setConversationId = setCurrentConversationId ?? setInternalConversationId;
   const [activeIntegrations, setActiveIntegrations] = useState<IntegrationType[]>([]);
-  
-  // Use refs to avoid stale closures
+
   const messagesRef = useRef<UIMessage[]>([]);
   const messageQueueRef = useRef<string[]>([]);
   const processingRef = useRef<boolean>(false);
-  const messageSentRef = useRef<((conversationId: string) => void) | undefined>(onMessageSent);
-  
-  // Keep token refresh hook for backward compatibility
-  useTokenRefresh();
+  const messageSentRef = useRef<((conversationId: string, userMessage?: string) => void) | undefined>(onMessageSent);
 
-  // Update refs when state changes
+  useTokenRefresh();
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
@@ -67,12 +62,10 @@ export const useChat = (
   }, [onMessageSent]);
 
   const processQueue = useCallback(async () => {
-    // Enhanced guard - prevent multiple simultaneous processing
     if (processingRef.current || messageQueueRef.current.length === 0) {
       return;
     }
 
-    // Set processing flag IMMEDIATELY to prevent race conditions
     processingRef.current = true;
     setIsProcessingQueue(true);
 
@@ -88,32 +81,27 @@ export const useChat = (
 
     try {
       if (messageSentRef.current && currentConversationId) {
-        messageSentRef.current(currentConversationId);
+        messageSentRef.current(currentConversationId, text);
       }
-      
-      // Add user message immediately for instant feedback
+
       const userMessage: UIMessage = { role: 'user', content: text };
 
-      // Update both state and ref synchronously to prevent race conditions
       setMessages(prev => {
         const newMessages = [...prev, userMessage];
-        messagesRef.current = newMessages; // Keep ref in sync
+        messagesRef.current = newMessages;
         return newMessages;
       });
 
-      // Start loading indicator
       setIsLoading(true);
 
-      // Prepare conversation history using the updated messages
       const currentMessages = [...messagesRef.current];
       const conversationHistory = currentMessages.slice(-UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT);
       
 
-      // Process integrations if needed
       const integrationResults: IntegrationProcessResult[] = [];
       if (activeIntegrations.length > 0) {
         const activeIntegrationInstances = getIntegrationsByIds(activeIntegrations);
-        
+
         for (const integration of activeIntegrationInstances) {
           try {
             const result = await integration.processMessage(text, {
@@ -131,13 +119,11 @@ export const useChat = (
         }
       }
 
-      // Prepare messages for API
       const optimizedMessages: UIMessage[] = [
         ...conversationHistory,
         { role: 'user', content: text },
       ];
 
-      // Get provider token if needed for integrations
       let providerToken: string | undefined;
       if (activeIntegrations.includes('calendar')) {
         try {
@@ -150,8 +136,6 @@ export const useChat = (
           console.warn('Failed to get session token for calendar integration:', error);
         }
       }
-
-      // Make API call
       const chatResponse = await chatService.sendMessage({
         messages: optimizedMessages,
         conversationId: conversationId,
@@ -170,7 +154,6 @@ export const useChat = (
           setConversationId(chatResponse.conversationId);
         }
 
-        // Add assistant message and keep ref in sync
         const assistantMessage: UIMessage = {
           role: 'assistant',
           content: chatResponse.content,
@@ -178,16 +161,13 @@ export const useChat = (
 
         setMessages(prev => {
           const newMessages = [...prev, assistantMessage];
-          messagesRef.current = newMessages; // Keep ref in sync
+          messagesRef.current = newMessages;
           return newMessages;
         });
 
-        // Update conversations again after assistant response
         if (messageSentRef.current && chatResponse.conversationId) {
-          messageSentRef.current(chatResponse.conversationId);
+          messageSentRef.current(chatResponse.conversationId, text);
         }
-
-        // Remove processed message from queue
         setMessageQueue(prev => prev.slice(1));
       } else {
         throw new Error('Invalid response from API');
@@ -204,11 +184,10 @@ export const useChat = (
     } finally {
       setIsLoading(false);
       setIsProcessingQueue(false);
-      processingRef.current = false; // Reset ref to allow next processing
+      processingRef.current = false;
     }
   }, [currentConversationId, activeIntegrations, conversationId, setConversationId]);
 
-  // Process queue when new messages arrive
   useEffect(() => {
     if (messageQueue.length > 0 && !isProcessingQueue) {
       processQueue();
@@ -224,12 +203,10 @@ export const useChat = (
       return;
     }
 
-    // Prevent duplicate messages (check both state and ref for accuracy)
     if (messageQueue.includes(trimmedText) || messageQueueRef.current.includes(trimmedText)) {
       return;
     }
 
-    // Prevent queue overflow (check both state and ref for accuracy)
     if (messageQueue.length >= 5 || messageQueueRef.current.length >= 5) {
       return;
     }
@@ -251,10 +228,6 @@ export const useChat = (
   const removeMessageFromQueue = useCallback((message: string) => {
     setMessageQueue(prev => prev.filter(msg => msg !== message));
   }, []);
-
-
-
-
 
   const toggleIntegration = useCallback((integration: IntegrationType) => {
     setActiveIntegrations(prev => {

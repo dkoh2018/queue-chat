@@ -29,12 +29,9 @@ export async function POST(request: NextRequest) {
 
     let conversation: Conversation | null = null;
 
-    // Authenticated user - handle database operations
     logger.info('Processing chat for authenticated user', 'CHAT', { userId: user.id });
 
-    // Get or create conversation
     if (conversationId) {
-      // Find the conversation and verify ownership (adapting your existing logic)
       const { data: foundConversation, error } = await supabaseAdmin
         .from('conversations')
         .select('*')
@@ -50,10 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!conversation) {
-      // Create new conversation with title from original user input (adapting your existing logic)
       const title = originalInput?.slice(0, 50) + '...' || 'New conversation';
-
-      // Generate a unique ID for the conversation (like Prisma's cuid())
       const conversationId = crypto.randomUUID();
 
       const { data: newConversation, error: createError } = await supabaseAdmin
@@ -85,7 +79,6 @@ export async function POST(request: NextRequest) {
       return APIErrorHandler.handle(new Error('Failed to create or retrieve conversation'));
     }
 
-      // Save ORIGINAL user message to database (not optimized) - adapting your existing logic
       if (originalInput) {
         const { error: userMessageError } = await supabaseAdmin
           .from('messages')
@@ -226,19 +219,10 @@ export async function POST(request: NextRequest) {
               logger.error('Failed to save assistant message (special handling)', 'CHAT', { error: assistantMessageError.message });
             }
 
-            // Update conversation timestamp - adapting your existing logic
             await supabaseAdmin
               .from('conversations')
               .update({ updated_at: new Date().toISOString() })
               .eq('id', conversation.id);
-
-            // **DEBUG**: Log conversation timestamp update
-            logger.api('Conversation updatedAt timestamp updated', {
-              conversationId: conversation.id.slice(0, 8),
-              userId: user.id,
-              timestamp: new Date().toISOString(),
-              newUpdatedAt: new Date().toISOString()
-            });
 
             logger.info('Calendar integration returned final response directly', 'CALENDAR', {
               userId: user.id,
