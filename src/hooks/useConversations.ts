@@ -52,8 +52,7 @@ export const useConversations = (): UseConversationsReturn => {
   const [isOnline, setIsOnline] = useState(true);
 
   const selectConversation = useCallback((conversation: Conversation) => {
-    // Update both state and localStorage synchronously
-    setCurrentConversationId(conversation.id);
+    // Only handle localStorage - state is updated by the caller
     if (typeof window !== 'undefined') {
       localStorage.setItem('currentConversationId', conversation.id);
     }
