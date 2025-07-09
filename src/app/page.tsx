@@ -35,7 +35,6 @@ function MainChatInterface() {
     setCurrentConversationId,
     clearAllData: clearConversationData,
     handleMessageSent,
-    handleConversationSelected,
     handleConversationDeleted,
   } = useConversations();
 
