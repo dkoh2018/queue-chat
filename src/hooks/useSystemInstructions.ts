@@ -66,7 +66,6 @@ export const useCustomPrompt = (): UseCustomPromptReturn => {
       });
 
       if (response.ok) {
-        console.log('✅ Successfully saved system instructions to database');
       } else {
         console.error('❌ Failed to save system instructions, status:', response.status);
       }

@@ -55,15 +55,6 @@ export const ChatView = memo(forwardRef<HTMLDivElement, ChatViewProps>(({ messag
     : [];
 
   const conversationExchanges = createConversationExchanges(safeMessages);
-
-  // Debug logging in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('ChatView render:', {
-      messageCount: safeMessages.length,
-      exchangeCount: conversationExchanges.length,
-      isLoading
-    });
-  }
   
   return (
     <div ref={ref} className={`${styles.container} chatScroll`}>

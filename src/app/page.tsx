@@ -8,9 +8,27 @@ import Sidebar from '@/components/features/sidebar/Sidebar';
 import { DeleteConfirmation, ErrorToast, CustomPromptModal } from '@/components/ui';
 import { FloatingSidebarToggle, DesktopChatLayout, MobileChatLayout } from '@/components/layout';
 
+// Hook to track screen size
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  return isMobile;
+}
+
 function MainChatInterface() {
   useMobileKeyboardHandling();
   const { user, AuthGuardComponent } = useAuthGuard();
+  const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = usePersistedState('sidebarOpen', true);
   const [inputText, setInputText] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -200,89 +218,130 @@ function MainChatInterface() {
     return <AuthGuardComponent />;
   }
 
-  return (
-    <div className="flex text-white relative main-container">
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        currentConversationId={currentConversationId}
-        conversations={conversations}
-        loading={conversationsLoading}
-        refreshing={refreshing}
-        isOnline={isOnline}
-        error={conversationsError}
-        onNewChat={handleNewChat}
-        onSelectConversation={handleSelectConversation}
-        onDeleteClick={handleDeleteClick}
-        onClearAppData={handleClearAllAppData}
-        onCustomPrompt={handleCustomPrompt}
-      />
-      <div className="flex-1 flex flex-col relative min-w-0 sidebar-mobile-safe">
+  if (isMobile) {
+    return (
+      <div className="flex text-white relative main-container">
         <FloatingSidebarToggle 
           isVisible={!sidebarOpen}
           onToggle={() => setSidebarOpen(true)}
         />
-        <DesktopChatLayout
-          user={user}
-          isNewChat={isNewChat}
-          messages={messages}
-          isLoading={isLoading}
-          chatScrollRef={chatScrollRef}
-          inputText={inputText}
-          setInputText={setInputText}
-          isOptimizing={isOptimizing}
-          queueVisible={queueVisible}
-          setQueueVisible={setQueueVisible}
-          messageQueue={messageQueue}
-          isProcessingQueue={isProcessingQueue}
-          onRemoveMessage={removeMessageFromQueue}
+        <Sidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
-          isIntegrationPopupOpen={isIntegrationPopupOpen}
-          setIsIntegrationPopupOpen={setIsIntegrationPopupOpen}
-          activeIntegrations={activeIntegrations}
-          onIntegrationSelect={toggleIntegration}
-          onSend={handleSend}
-          onOptimize={handleOptimize}
+          currentConversationId={currentConversationId}
+          conversations={conversations}
+          loading={conversationsLoading}
+          refreshing={refreshing}
+          isOnline={isOnline}
+          error={conversationsError}
+          onNewChat={handleNewChat}
+          onSelectConversation={handleSelectConversation}
+          onDeleteClick={handleDeleteClick}
+          onClearAppData={handleClearAllAppData}
+          onCustomPrompt={handleCustomPrompt}
         />
-        <MobileChatLayout
-          user={user}
-          messages={messages}
-          isLoading={isLoading}
-          chatScrollRef={mobileScrollRef}
-          inputText={inputText}
-          setInputText={setInputText}
-          isOptimizing={isOptimizing}
-          queueVisible={queueVisible}
-          setQueueVisible={setQueueVisible}
-          messageQueue={messageQueue}
-          isProcessingQueue={isProcessingQueue}
-          onRemoveMessage={removeMessageFromQueue}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          isIntegrationPopupOpen={isIntegrationPopupOpen}
-          setIsIntegrationPopupOpen={setIsIntegrationPopupOpen}
-          activeIntegrations={activeIntegrations}
-          onIntegrationSelect={toggleIntegration}
-          onSend={handleSend}
-          onOptimize={handleOptimize}
+        <div className="flex-1 flex flex-col relative min-w-0 sidebar-mobile-safe">
+          <MobileChatLayout
+            user={user}
+            messages={messages}
+            isLoading={isLoading}
+            chatScrollRef={mobileScrollRef}
+            inputText={inputText}
+            setInputText={setInputText}
+            isOptimizing={isOptimizing}
+            queueVisible={queueVisible}
+            setQueueVisible={setQueueVisible}
+            messageQueue={messageQueue}
+            isProcessingQueue={isProcessingQueue}
+            onRemoveMessage={removeMessageFromQueue}
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            isIntegrationPopupOpen={isIntegrationPopupOpen}
+            setIsIntegrationPopupOpen={setIsIntegrationPopupOpen}
+            activeIntegrations={activeIntegrations}
+            onIntegrationSelect={toggleIntegration}
+            onSend={handleSend}
+            onOptimize={handleOptimize}
+          />
+          <ErrorToast error={error} onClearError={clearError} />
+        </div>
+        <DeleteConfirmation
+          isOpen={deleteModalOpen}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          conversationTitle={conversationToDelete?.title || ''}
         />
-        <ErrorToast error={error} onClearError={clearError} />
+        <CustomPromptModal
+          isOpen={customPromptModalOpen}
+          onSave={handleSaveCustomPrompt}
+          onCancel={handleCancelCustomPrompt}
+          currentInstructions={systemInstructions}
+        />
       </div>
-      <DeleteConfirmation
-        isOpen={deleteModalOpen}
-        onConfirm={handleConfirmDelete}
-        onCancel={handleCancelDelete}
-        conversationTitle={conversationToDelete?.title || ''}
-      />
-      <CustomPromptModal
-        isOpen={customPromptModalOpen}
-        onSave={handleSaveCustomPrompt}
-        onCancel={handleCancelCustomPrompt}
-        currentInstructions={systemInstructions}
-      />
-    </div>
-  );
+    );
+  } else {
+    return (
+      <div className="flex text-white relative main-container">
+        <Sidebar
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          currentConversationId={currentConversationId}
+          conversations={conversations}
+          loading={conversationsLoading}
+          refreshing={refreshing}
+          isOnline={isOnline}
+          error={conversationsError}
+          onNewChat={handleNewChat}
+          onSelectConversation={handleSelectConversation}
+          onDeleteClick={handleDeleteClick}
+          onClearAppData={handleClearAllAppData}
+          onCustomPrompt={handleCustomPrompt}
+        />
+        <div className="flex-1 flex flex-col relative min-w-0 sidebar-mobile-safe">
+          <FloatingSidebarToggle 
+            isVisible={!sidebarOpen}
+            onToggle={() => setSidebarOpen(true)}
+          />
+          <DesktopChatLayout
+            user={user}
+            isNewChat={isNewChat}
+            messages={messages}
+            isLoading={isLoading}
+            chatScrollRef={chatScrollRef}
+            inputText={inputText}
+            setInputText={setInputText}
+            isOptimizing={isOptimizing}
+            queueVisible={queueVisible}
+            setQueueVisible={setQueueVisible}
+            messageQueue={messageQueue}
+            isProcessingQueue={isProcessingQueue}
+            onRemoveMessage={removeMessageFromQueue}
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            isIntegrationPopupOpen={isIntegrationPopupOpen}
+            setIsIntegrationPopupOpen={setIsIntegrationPopupOpen}
+            activeIntegrations={activeIntegrations}
+            onIntegrationSelect={toggleIntegration}
+            onSend={handleSend}
+            onOptimize={handleOptimize}
+          />
+          <ErrorToast error={error} onClearError={clearError} />
+        </div>
+        <DeleteConfirmation
+          isOpen={deleteModalOpen}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          conversationTitle={conversationToDelete?.title || ''}
+        />
+        <CustomPromptModal
+          isOpen={customPromptModalOpen}
+          onSave={handleSaveCustomPrompt}
+          onCancel={handleCancelCustomPrompt}
+          currentInstructions={systemInstructions}
+        />
+      </div>
+    );
+  }
 }
 
 export default function Jarvis() {

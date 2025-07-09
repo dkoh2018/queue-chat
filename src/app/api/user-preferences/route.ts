@@ -4,16 +4,9 @@ import { getAuthenticatedUser } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('🔍 API Debug - Headers received:', {
-      authorization: request.headers.get('authorization')?.substring(0, 30) + '...',
-      hasAuth: !!request.headers.get('authorization')
-    });
-    
     const user = await getAuthenticatedUser(request);
-    console.log('🔍 API Debug - User from auth:', { hasUser: !!user, userId: user?.id });
 
     if (!user) {
-      console.log('❌ No user found, returning 401');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -39,16 +32,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔍 POST API Debug - Headers received:', {
-      authorization: request.headers.get('authorization')?.substring(0, 30) + '...',
-      hasAuth: !!request.headers.get('authorization')
-    });
-    
     const user = await getAuthenticatedUser(request);
-    console.log('🔍 POST API Debug - User from auth:', { hasUser: !!user, userId: user?.id });
 
     if (!user) {
-      console.log('❌ POST: No user found, returning 401');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
