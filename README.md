@@ -18,7 +18,8 @@
 🔄 **Asynchronous Message Queue** - Batch multiple queries for enhanced context
 🧠 **Two-Stage AI Processing** - Input optimization → Enhanced responses
 📊 **AI-Powered Diagrams** - Automatic Mermaid.js generation
-🔐 **Multi-User Security** - Row-level security with OAuth authentication
+� **Google Calendar Integration** - Smart calendar queries and event management
+�🔐 **Multi-User Security** - Row-level security with OAuth authentication
 📱 **Responsive Design** - Optimized for desktop and mobile
 ⚡ **Real-time Updates** - Live queue status and conversation sync
 
@@ -106,12 +107,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ---
 
 <div align="center">
-  <strong>Built with ❤️ using Next.js and OpenAI</strong>
+  <strong>Built with ❤️ using Next.js</strong>
 </div>
