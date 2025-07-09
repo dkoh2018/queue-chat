@@ -29,13 +29,11 @@ export const LoginPage = () => {
             </div>
           )}
 
-          {/* Google Auth Button - EXACT same functionality as before */}
           <GoogleAuthButton
             loading={loading}
             onClick={handleGoogleSignIn}
           />
 
-          {/* GitHub Auth Button - New option */}
           <GitHubAuthButton
             loading={loading}
             onClick={handleGitHubSignIn}
