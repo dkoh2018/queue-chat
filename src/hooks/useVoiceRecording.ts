@@ -45,6 +45,8 @@ export const useVoiceRecording = (): UseVoiceRecordingReturn => {
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const stopRecordingRef = useRef<(() => void) | null>(null);
+  const handleRecordingCompleteRef = useRef<((audioBlob: Blob) => Promise<void>) | null>(null);
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     try {
@@ -97,7 +99,7 @@ export const useVoiceRecording = (): UseVoiceRecordingReturn => {
 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        handleRecordingComplete(audioBlob);
+        handleRecordingCompleteRef.current?.(audioBlob);
       };
 
       mediaRecorder.start();
@@ -113,7 +115,7 @@ export const useVoiceRecording = (): UseVoiceRecordingReturn => {
           const newTimeRemaining = prev.timeRemaining - 1;
           
           if (newTimeRemaining <= 0) {
-            stopRecording();
+            stopRecordingRef.current?.();
             return { ...prev, timeRemaining: 0 };
           }
           
@@ -190,6 +192,10 @@ export const useVoiceRecording = (): UseVoiceRecordingReturn => {
   const clearError = useCallback((): void => {
     setState(prev => ({ ...prev, error: null }));
   }, []);
+
+  // Assign functions to refs to avoid circular dependencies
+  stopRecordingRef.current = stopRecording;
+  handleRecordingCompleteRef.current = handleRecordingComplete;
 
   useEffect(() => {
     return () => {

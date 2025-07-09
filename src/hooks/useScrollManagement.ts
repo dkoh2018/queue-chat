@@ -15,15 +15,9 @@ export const useScrollManagement = ({
 
   // Simplified scroll function that works with animations
   const scrollToLatestExchange = useCallback(() => {
-    if (!chatScrollRef.current) {
-      console.log('ScrollManagement: chatScrollRef.current is null');
-      return;
-    }
-
-    console.log('ScrollManagement: Attempting to scroll, container:', chatScrollRef.current);
+    if (!chatScrollRef.current) return;
 
     const conversationExchanges = chatScrollRef.current.querySelectorAll('[data-conversation-exchange="true"]');
-    console.log('ScrollManagement: Found exchanges:', conversationExchanges.length);
 
     if (conversationExchanges.length > 0) {
       const latestExchange = conversationExchanges[conversationExchanges.length - 1];
@@ -37,11 +31,8 @@ export const useScrollManagement = ({
           const scrollHeight = scrollContainer.scrollHeight;
           const containerHeight = scrollContainer.clientHeight;
 
-          console.log('ScrollManagement: Scrolling - scrollHeight:', scrollHeight, 'containerHeight:', containerHeight);
-
           // Try multiple scroll approaches for better compatibility
           const targetScrollTop = scrollHeight - containerHeight;
-          console.log('ScrollManagement: Target scroll position:', targetScrollTop);
 
           // Method 1: scrollTo with smooth behavior
           scrollContainer.scrollTo({
@@ -52,7 +43,6 @@ export const useScrollManagement = ({
           // Method 2: Fallback with direct scrollTop assignment after a delay
           setTimeout(() => {
             if (scrollContainer.scrollTop < targetScrollTop - 10) {
-              console.log('ScrollManagement: Fallback scroll - current:', scrollContainer.scrollTop, 'target:', targetScrollTop);
               scrollContainer.scrollTop = targetScrollTop;
             }
           }, 100);
@@ -89,9 +79,10 @@ export const useScrollManagement = ({
 
   // Cleanup timeout on unmount
   useEffect(() => {
+    const timeoutRef = scrollTimeoutRef.current;
     return () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
+      if (timeoutRef) {
+        clearTimeout(timeoutRef);
       }
     };
   }, []);

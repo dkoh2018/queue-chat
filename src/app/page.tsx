@@ -65,7 +65,7 @@ function MainChatInterface() {
     chatScrollRef,
   });
 
-  const { restoreScrollPosition: restoreMobileScrollPosition } = useScrollManagement({
+  useScrollManagement({
     messages,
     currentConversationId,
     chatScrollRef: mobileScrollRef,
