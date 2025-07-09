@@ -17,7 +17,6 @@ interface UseChatReturn {
   clearMessages: () => void;
   setMessages: (messages: UIMessage[]) => void;
   removeMessageFromQueue: (message: string) => void;
-  clearQueue: () => void;
   clearAllData: () => void;
   activeIntegrations: IntegrationType[];
   setActiveIntegrations: (integrations: IntegrationType[]) => void;
@@ -253,9 +252,7 @@ export const useChat = (
     setMessageQueue(prev => prev.filter(msg => msg !== message));
   }, []);
 
-  const clearQueue = useCallback(() => {
-    setMessageQueue([]);
-  }, []);
+
 
 
 
@@ -293,7 +290,6 @@ export const useChat = (
     clearMessages,
     setMessages,
     removeMessageFromQueue,
-    clearQueue,
     clearAllData,
     activeIntegrations,
     setActiveIntegrations,
