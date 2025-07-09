@@ -34,7 +34,7 @@
 
 @media (max-width: 768px) {
   .container {
-    width: 0;
+    width: 256px !important; /* Override inline style */
     position: fixed;
     top: 0;
     left: 0;
@@ -44,9 +44,12 @@
     border-right: none;
   }
 
-  .container[style*="width: 256"] {
-    width: 256px;
+  .container.sidebarOpen {
     transform: translateX(0);
+  }
+
+  .container.sidebarClosed {
+    transform: translateX(-100%);
   }
 
   .footer {

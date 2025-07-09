@@ -100,7 +100,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
   return (
     <div
       ref={ref}
-      className={`glass-panel ${styles.container} ${!sidebarOpen ? '' : styles.containerTransition}`}
+      className={`glass-panel ${styles.container} ${!sidebarOpen ? '' : styles.containerTransition} ${sidebarOpen ? styles.sidebarOpen : styles.sidebarClosed}`}
       style={{
         width: sidebarOpen ? 256 : 0
       }}
