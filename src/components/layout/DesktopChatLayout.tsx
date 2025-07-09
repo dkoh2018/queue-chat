@@ -60,6 +60,7 @@ export function DesktopChatLayout({
             {...inputSectionProps}
             hideDisclaimer={isNewChat}
             showQueueWithDelay={false}
+            showQueueButton={!isNewChat}
           />
         </div>
       </div>

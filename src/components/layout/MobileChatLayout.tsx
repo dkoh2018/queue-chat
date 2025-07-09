@@ -66,6 +66,7 @@ export function MobileChatLayout({
           queueVisible={queueVisible}
           hideDisclaimer={false}
           showQueueWithDelay={true}
+          showQueueButton={hasMessages}
         />
       </div>
     </div>

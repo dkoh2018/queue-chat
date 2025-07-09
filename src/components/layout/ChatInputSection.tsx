@@ -33,6 +33,7 @@ interface ChatInputSectionProps {
   // Layout options
   hideDisclaimer?: boolean;
   showQueueWithDelay?: boolean;
+  showQueueButton?: boolean;
 }
 
 export function ChatInputSection({
@@ -54,6 +55,7 @@ export function ChatInputSection({
   onOptimize,
   hideDisclaimer = false,
   showQueueWithDelay = false,
+  showQueueButton = true,
 }: ChatInputSectionProps) {
   const queueClasses = showQueueWithDelay
     ? `transition-all duration-300 -mb-4 ${queueVisible ? 'opacity-100 pointer-events-auto delay-700' : 'opacity-0 pointer-events-none'}`
@@ -62,26 +64,32 @@ export function ChatInputSection({
   return (
     <div className="w-full max-w-[calc(100%-1rem)] sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px] mx-auto">
       {/* Queue elements */}
-      <div className={queueClasses}>
-        <QueueToggle
-          isOpen={queueVisible}
-          onToggle={() => setQueueVisible(!queueVisible)}
-          queueCount={messageQueue.length}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-          onCloseIntegrationPopup={() => {
-            if (isIntegrationPopupOpen) {
-              setIsIntegrationPopupOpen(false);
-            }
-          }}
-        />
+      <div className="relative">
+        {/* Queue button - show only when there are messages (existing conversation) */}
+        {showQueueButton && (
+          <QueueToggle
+            isOpen={queueVisible}
+            onToggle={() => setQueueVisible(!queueVisible)}
+            queueCount={messageQueue.length}
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            onCloseIntegrationPopup={() => {
+              if (isIntegrationPopupOpen) {
+                setIsIntegrationPopupOpen(false);
+              }
+            }}
+          />
+        )}
 
-        <MessageQueueView
-          messageQueue={messageQueue}
-          onRemoveMessage={onRemoveMessage}
-          isProcessing={isProcessingQueue}
-          isVisible={queueVisible}
-        />
+        {/* Queue content - animated container */}
+        <div className={queueClasses}>
+          <MessageQueueView
+            messageQueue={messageQueue}
+            onRemoveMessage={onRemoveMessage}
+            isProcessing={isProcessingQueue}
+            isVisible={queueVisible}
+          />
+        </div>
       </div>
 
       <MessageInput
