@@ -18,7 +18,6 @@ interface UseChatReturn {
   setMessages: (messages: UIMessage[]) => void;
   removeMessageFromQueue: (message: string) => void;
   clearQueue: () => void;
-  reorderQueue: (startIndex: number, endIndex: number) => void;
   clearAllData: () => void;
   activeIntegrations: IntegrationType[];
   setActiveIntegrations: (integrations: IntegrationType[]) => void;
@@ -41,10 +40,10 @@ export const useChat = (
   const conversationId = currentConversationId ?? internalConversationId;
   const setConversationId = setCurrentConversationId ?? setInternalConversationId;
   const [activeIntegrations, setActiveIntegrations] = useState<IntegrationType[]>([]);
-  const [isManualDeletion, setIsManualDeletion] = useState(false);
   
   // Use refs to avoid stale closures
   const messagesRef = useRef<UIMessage[]>([]);
+  const messageQueueRef = useRef<string[]>([]);
   const processingRef = useRef<boolean>(false);
   const messageSentRef = useRef<((conversationId: string) => void) | undefined>(onMessageSent);
   
@@ -57,6 +56,10 @@ export const useChat = (
   }, [messages]);
 
   useEffect(() => {
+    messageQueueRef.current = messageQueue;
+  }, [messageQueue]);
+
+  useEffect(() => {
     processingRef.current = isProcessingQueue;
   }, [isProcessingQueue]);
 
@@ -66,17 +69,22 @@ export const useChat = (
 
   const processQueue = useCallback(async () => {
     // Enhanced guard - prevent multiple simultaneous processing
-    if (processingRef.current || messageQueue.length === 0) {
+    if (processingRef.current || messageQueueRef.current.length === 0) {
       return;
     }
 
-    const text = messageQueue[0];
+    // Set processing flag IMMEDIATELY to prevent race conditions
+    processingRef.current = true;
+    setIsProcessingQueue(true);
+
+    const text = messageQueueRef.current[0];
     if (!text?.trim()) {
       setMessageQueue(prev => prev.slice(1));
+      processingRef.current = false;
+      setIsProcessingQueue(false);
       return;
     }
 
-    setIsProcessingQueue(true);
     setError(null);
 
     try {
@@ -197,15 +205,16 @@ export const useChat = (
     } finally {
       setIsLoading(false);
       setIsProcessingQueue(false);
+      processingRef.current = false; // Reset ref to allow next processing
     }
-  }, [messageQueue, currentConversationId, activeIntegrations, conversationId, setConversationId]);
+  }, [currentConversationId, activeIntegrations, conversationId, setConversationId]);
 
-  // Process queue when new messages arrive (but not during manual deletions)
+  // Process queue when new messages arrive
   useEffect(() => {
-    if (messageQueue.length > 0 && !isProcessingQueue && !isManualDeletion) {
+    if (messageQueue.length > 0 && !isProcessingQueue) {
       processQueue();
     }
-  }, [messageQueue, isProcessingQueue, processQueue, isManualDeletion]);
+  }, [messageQueue, isProcessingQueue, processQueue]);
 
   const sendMessage = useCallback(async (
     text: string,
@@ -216,11 +225,13 @@ export const useChat = (
       return;
     }
 
-    if (messageQueue.includes(trimmedText)) {
+    // Prevent duplicate messages (check both state and ref for accuracy)
+    if (messageQueue.includes(trimmedText) || messageQueueRef.current.includes(trimmedText)) {
       return;
     }
 
-    if (messageQueue.length >= 7) {
+    // Prevent queue overflow (check both state and ref for accuracy)
+    if (messageQueue.length >= 5 || messageQueueRef.current.length >= 5) {
       return;
     }
 
@@ -239,27 +250,14 @@ export const useChat = (
   }, [setConversationId]);
 
   const removeMessageFromQueue = useCallback((message: string) => {
-    setIsManualDeletion(true);
     setMessageQueue(prev => prev.filter(msg => msg !== message));
-    
-    // Reset the manual deletion flag after a brief delay to allow queue processing to resume
-    setTimeout(() => {
-      setIsManualDeletion(false);
-    }, 100);
   }, []);
 
   const clearQueue = useCallback(() => {
     setMessageQueue([]);
   }, []);
 
-  const reorderQueue = useCallback((startIndex: number, endIndex: number) => {
-    setMessageQueue(prev => {
-      const result = Array.from(prev);
-      const [removed] = result.splice(startIndex, 1);
-      result.splice(endIndex, 0, removed);
-      return result;
-    });
-  }, []);
+
 
   const toggleIntegration = useCallback((integration: IntegrationType) => {
     setActiveIntegrations(prev => {
@@ -296,7 +294,6 @@ export const useChat = (
     setMessages,
     removeMessageFromQueue,
     clearQueue,
-    reorderQueue,
     clearAllData,
     activeIntegrations,
     setActiveIntegrations,
