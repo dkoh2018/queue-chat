@@ -3,8 +3,7 @@ export * from './useConversations';
 export * from './useChat';
 export * from './useVoiceRecording';
 export * from './useAudioVisualization';
-export * from './useAuth';
-export * from './useAuthGuard';
+export * from './auth'; // Updated to use auth directory
 export * from './useTokenRefresh';
 export * from './useMobileKeyboard';
 export * from './usePersistedState';

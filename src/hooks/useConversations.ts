@@ -33,13 +33,14 @@ export const useConversations = (): UseConversationsReturn => {
     isValidating: refreshing,
     mutate: revalidate 
   } = useSWR(CONVERSATIONS_KEY, conversationsService.getConversations, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    revalidateOnMount: true,
-    refreshInterval: 0,
-    dedupingInterval: 3000,
-    errorRetryCount: 1,
-    errorRetryInterval: 2000,
+    revalidateOnFocus: true, // Refresh when user returns to tab
+    revalidateOnReconnect: true, // Refresh when internet reconnects
+    revalidateOnMount: true, // Always fetch fresh data on mount
+    refreshInterval: 0, // No automatic polling
+    dedupingInterval: 500, // Reduce duplicate requests (from 1000ms)
+    errorRetryCount: 2, 
+    errorRetryInterval: 1000,
+    keepPreviousData: true, // Show old data while loading new data
     onSuccess: (data) => {
       logger.conversation('Conversations fetched successfully', { count: data?.length || 0 });
     },
@@ -171,11 +172,22 @@ export const useConversations = (): UseConversationsReturn => {
   }, []);
 
   const handleMessageSent = useCallback((conversationId: string) => {
-    optimisticallyUpdateConversationOrder(conversationId);
-    setTimeout(() => {
+    // For new conversations that aren't in the cache yet, immediately refresh
+    // For existing conversations, do optimistic update then refresh
+    const existingConversation = conversations.find(c => c.id === conversationId);
+    
+    if (existingConversation) {
+      // Existing conversation - do optimistic update
+      optimisticallyUpdateConversationOrder(conversationId);
+      // Quick refresh after optimistic update
+      setTimeout(() => {
+        revalidate();
+      }, 1000); // Reduced from 5000ms to 1000ms
+    } else {
+      // New conversation - immediately refresh to show it in the sidebar
       revalidate();
-    }, 5000);
-  }, [optimisticallyUpdateConversationOrder, revalidate]);
+    }
+  }, [optimisticallyUpdateConversationOrder, revalidate, conversations]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleConversationSelected = useCallback((conversationId: string) => {

@@ -1,8 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth';
 import { logger } from '@/utils/logger';
 
-export async function POST(request: Request) {
-  const { userInput, conversationHistory = [] } = await request.json();
+export async function POST(request: NextRequest) {
+  try {
+    // Require authentication for multi-user setup
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const { userInput, conversationHistory = [] } = await request.json();
   const apiKey = process.env.OPENAI_API_KEY;
   
   if (!apiKey) {
@@ -86,10 +94,13 @@ export async function POST(request: Request) {
     });
   } catch (err: unknown) {
     console.error('Input optimization error:', err);
+    logger.error('Input optimization failed', 'OPTIMIZE', { userId: user?.id, error: err });
+
     // Fallback to original input if optimization fails
-    return NextResponse.json({ 
-      originalInput: userInput,
-      optimizedInput: userInput,
+    const { userInput: fallbackInput } = await request.json().catch(() => ({ userInput: '' }));
+    return NextResponse.json({
+      originalInput: fallbackInput,
+      optimizedInput: fallbackInput,
       error: 'Optimization failed, using original input'
     });
   }

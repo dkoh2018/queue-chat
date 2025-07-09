@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { supabaseAdmin } from '@/lib/supabase-server';
 import { logger } from '@/utils';
 
 export async function POST(request: Request) {
@@ -11,55 +11,43 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User ID and email are required' }, { status: 400 });
     }
 
-    logger.info('Creating/updating user', 'AUTH', { id, email, hasName: !!name });
+    logger.info('Creating/updating user in Supabase', 'AUTH', { id, email, hasName: !!name });
 
-    // Test database connection first
-    try {
-      await prisma.$connect();
-    } catch (dbError) {
-      logger.error('Database connection failed', 'AUTH', dbError);
-      return NextResponse.json({
-        error: 'Database connection failed'
-      }, { status: 503 });
-    }
-
-    // Create or update user in database
-    const user = await prisma.user.upsert({
-      where: { id },
-      update: {
-        email,
-        name: name || null,
-        avatarUrl: avatar_url || null,
-      },
-      create: {
+    // Create or update user in the users table (adapting to your existing logic)
+    const { data: user, error: upsertError } = await supabaseAdmin
+      .from('users')
+      .upsert({
         id,
         email,
         name: name || null,
-        avatarUrl: avatar_url || null,
-      },
-    });
+        avatar_url: avatar_url || null,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id'
+      })
+      .select()
+      .single();
+
+    if (upsertError) {
+      logger.error('Failed to create/update user', 'AUTH', upsertError);
+      return NextResponse.json({
+        error: 'Failed to create/update user',
+        details: upsertError.message
+      }, { status: 500 });
+    }
 
     logger.info('User created/updated successfully', 'AUTH', { userId: user.id });
 
     return NextResponse.json({ success: true, user });
   } catch (error) {
-    logger.error('Failed to create/update user', 'AUTH', {
+    logger.error('Failed to process user auth', 'AUTH', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
       name: error instanceof Error ? error.name : 'UnknownError'
     });
-    
-    // Check if it's a database-specific error
-    const isDatabaseError = error instanceof Error && (
-      error.message.includes('connect') ||
-      error.message.includes('database') ||
-      error.message.includes('prisma') ||
-      error.name === 'PrismaClientInitializationError' ||
-      error.name === 'PrismaClientKnownRequestError'
-    );
-    
+
     return NextResponse.json({
-      error: 'Failed to create/update user'
-    }, { status: isDatabaseError ? 503 : 500 });
+      error: 'Failed to process user auth'
+    }, { status: 500 });
   }
 }

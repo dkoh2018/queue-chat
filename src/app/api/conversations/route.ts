@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { getAuthenticatedUser, createUnauthorizedResponse } from '@/lib/auth-utils';
+import { getAuthenticatedUser, createUnauthorizedResponse } from '@/lib/auth';
 import { logger } from '@/utils';
 
 export async function GET(request: NextRequest) {
@@ -27,12 +27,20 @@ export async function GET(request: NextRequest) {
         throw new Error(`Supabase error: ${error.message}`);
       }
 
-      // Sort messages within each conversation by created_at ascending
+      // Transform database format to frontend format and sort messages
       const conversationsWithSortedMessages = conversations?.map(conv => ({
-        ...conv,
+        id: conv.id,
+        title: conv.title,
+        createdAt: conv.created_at,
+        updatedAt: conv.updated_at,
         messages: conv.messages?.sort((a: { created_at: string }, b: { created_at: string }) =>
           new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        ) || []
+        ).map((msg: { id: string; role: string; content: string; created_at: string }) => ({
+          id: msg.id,
+          role: msg.role as 'USER' | 'ASSISTANT', // Ensure proper typing - keep database format
+          content: msg.content,
+          createdAt: msg.created_at
+        })) || []
       })) || [];
 
       // **DEBUG**: Log conversation ordering from database
@@ -42,7 +50,7 @@ export async function GET(request: NextRequest) {
         conversations: conversationsWithSortedMessages.slice(0, 5).map(c => ({
           id: c.id.slice(0, 8),
           title: c.title?.slice(0, 30) || 'Untitled',
-          updatedAt: c.updated_at,
+          updatedAt: c.updatedAt,
           messageCount: c.messages?.length || 0
         }))
       });

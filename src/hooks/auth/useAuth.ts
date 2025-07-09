@@ -1,15 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
+import type { UseAuthReturn, OAuthProvider } from '@/types/auth';
+import { getProviderConfig } from '@/lib/auth/providers';
 import { logger } from '@/utils';
 
-interface UseAuthReturn {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-  signInWithGoogle: () => Promise<void>;
-  signOut: (clearAppData?: () => void) => Promise<void>;
-}
+// Interface moved to types/auth.ts
 
 export const useAuth = (): UseAuthReturn => {
   const [user, setUser] = useState<User | null>(null);
@@ -108,31 +104,36 @@ export const useAuth = (): UseAuthReturn => {
     }
   };
 
-  const signInWithGoogle = useCallback(async () => {
+  // Generic sign-in function for any OAuth provider
+  const signInWithProvider = useCallback(async (provider: OAuthProvider) => {
     try {
       setError(null);
+      const config = getProviderConfig(provider);
+
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-          scopes: 'openid email profile https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events'
-        }
+        provider,
+        options: config
       });
 
       if (error) {
         setError(error.message);
-        logger.error('Google sign-in failed', 'AUTH', error);
+        logger.error(`${provider} sign-in failed`, 'AUTH', error);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';
+      const errorMessage = err instanceof Error ? err.message : `Failed to sign in with ${provider}`;
       setError(errorMessage);
-      logger.error('Google sign-in error', 'AUTH', err);
+      logger.error(`${provider} sign-in error`, 'AUTH', err);
     }
   }, []);
+
+  // Specific provider methods for backwards compatibility
+  const signInWithGoogle = useCallback(async () => {
+    await signInWithProvider('google');
+  }, [signInWithProvider]);
+
+  const signInWithGitHub = useCallback(async () => {
+    await signInWithProvider('github');
+  }, [signInWithProvider]);
 
   const signOut = useCallback(async (clearAppData?: () => void) => {
     try {
@@ -195,6 +196,8 @@ export const useAuth = (): UseAuthReturn => {
     loading,
     error,
     signInWithGoogle,
+    signInWithGitHub,
+    signInWithProvider,
     signOut,
   };
 };

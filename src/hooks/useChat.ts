@@ -26,13 +26,20 @@ interface UseChatReturn {
   clearError: () => void;
 }
 
-export const useChat = (onMessageSent?: (conversationId: string) => void): UseChatReturn => {
+export const useChat = (
+  onMessageSent?: (conversationId: string) => void,
+  currentConversationId?: string | null,
+  setCurrentConversationId?: (id: string | null) => void
+): UseChatReturn => {
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [messageQueue, setMessageQueue] = useState<string[]>([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  // Use external conversation ID state if provided, otherwise use internal state
+  const [internalConversationId, setInternalConversationId] = useState<string | null>(null);
+  const conversationId = currentConversationId ?? internalConversationId;
+  const setConversationId = setCurrentConversationId ?? setInternalConversationId;
   const [activeIntegrations, setActiveIntegrations] = useState<IntegrationType[]>([]);
   const [isManualDeletion, setIsManualDeletion] = useState(false);
   
@@ -117,21 +124,24 @@ export const useChat = (onMessageSent?: (conversationId: string) => void): UseCh
         { role: 'user', content: text },
       ];
 
-      // Get provider token if needed
+      // Get provider token if needed for integrations
       let providerToken: string | undefined;
       if (activeIntegrations.includes('calendar')) {
         try {
           const { data: { session } } = await supabase.auth.getSession();
           providerToken = session?.provider_token || undefined;
+          if (!providerToken) {
+            console.warn('Calendar integration requires Google OAuth token');
+          }
         } catch (error) {
-          console.warn('Failed to get session token:', error);
+          console.warn('Failed to get session token for calendar integration:', error);
         }
       }
 
       // Make API call
       const chatResponse = await chatService.sendMessage({
         messages: optimizedMessages,
-        conversationId: currentConversationId,
+        conversationId: conversationId,
         originalInput: text,
         activeIntegrations,
         isDiagramRequest: activeIntegrations.includes('mermaid'),
@@ -142,9 +152,9 @@ export const useChat = (onMessageSent?: (conversationId: string) => void): UseCh
 
       // Handle successful response
       if (chatResponse && chatResponse.content) {
-        // Update conversation ID if needed
-        if (chatResponse.conversationId && !currentConversationId) {
-          setCurrentConversationId(chatResponse.conversationId);
+        // Update conversation ID if needed (for new conversations)
+        if (chatResponse.conversationId && !conversationId) {
+          setConversationId(chatResponse.conversationId);
         }
 
         // Add assistant message
@@ -189,34 +199,34 @@ export const useChat = (onMessageSent?: (conversationId: string) => void): UseCh
 
   const sendMessage = useCallback(async (
     text: string,
-    conversationId?: string | null
+    targetConversationId?: string | null
   ): Promise<void> => {
     const trimmedText = text.trim();
     if (!trimmedText) {
       return;
     }
-    
+
     if (messageQueue.includes(trimmedText)) {
       return;
     }
-    
+
     if (messageQueue.length >= 7) {
       return;
     }
-    
-    if (conversationId && !currentConversationId) {
-      setCurrentConversationId(conversationId);
+
+    if (targetConversationId && !conversationId) {
+      setConversationId(targetConversationId);
     }
     
     setMessageQueue(prev => [...prev, trimmedText]);
-  }, [messageQueue, currentConversationId]);
+  }, [messageQueue, conversationId]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
     setMessageQueue([]);
     setError(null);
-    setCurrentConversationId(null);
-  }, []);
+    setConversationId(null);
+  }, [setConversationId]);
 
   const removeMessageFromQueue = useCallback((message: string) => {
     setIsManualDeletion(true);

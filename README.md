@@ -63,10 +63,10 @@ npm install
 
 # Configure environment variables
 cp .env.example .env
-# Edit .env with your DATABASE_URL and OPENAI_API_KEY
+# Edit .env with your Supabase credentials and OPENAI_API_KEY
 
-# Initialize database
-npx prisma migrate dev
+# Initialize database (run the SQL script in your Supabase dashboard)
+# See scripts/init_database.sql
 
 # Start development server
 npm run dev
@@ -77,6 +77,6 @@ Access the application at [http://localhost:3000](http://localhost:3000)
 ## Tech Stack
 
 - **Frontend**: Next.js 13+ (App Router), React, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes, Prisma ORM, PostgreSQL
+- **Backend**: Next.js API Routes, Supabase, PostgreSQL
 - **AI Integration**: OpenAI API with custom prompt optimization pipeline
 - **State Management**: React hooks with optimistic updates

@@ -33,7 +33,10 @@ export async function GET(request: NextRequest) {
     
     if (!error && data.session) {
       const { provider_token, provider_refresh_token, user } = data.session
-      
+
+      // Get the provider from the session (e.g., 'google', 'github')
+      const provider = data.session.user?.app_metadata?.provider || 'unknown'
+
       // Store provider tokens if they exist
       if (provider_token && user) {
         try {
@@ -58,22 +61,34 @@ export async function GET(request: NextRequest) {
           // Table might already exist - this is expected in some cases
         }
 
+        // Get provider-specific scopes
+        const getProviderScopes = (provider: string) => {
+          switch (provider) {
+            case 'google':
+              return 'openid email profile https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events'
+            case 'github':
+              return 'user:email'
+            default:
+              return 'email'
+          }
+        }
+
         // Store the tokens
         const { error: tokenError } = await supabase
           .from('user_oauth_tokens')
           .upsert({
             user_id: user.id,
-            provider: 'google',
+            provider: provider,
             provider_token,
             provider_refresh_token,
-            scopes: 'openid email profile https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events',
+            scopes: getProviderScopes(provider),
             updated_at: new Date().toISOString()
           })
 
         if (tokenError) {
-          // Failed to store OAuth tokens - this may affect calendar functionality
+          console.error(`Failed to store ${provider} OAuth tokens:`, tokenError)
         } else {
-          // Successfully stored OAuth tokens for user
+          console.log(`Successfully stored ${provider} OAuth tokens for user ${user.id}`)
         }
       }
     }

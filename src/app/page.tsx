@@ -57,7 +57,7 @@ function MainChatInterface() {
     toggleIntegration,
     error,
     clearError,
-  } = useChat(handleChatMessageSent);
+  } = useChat(handleChatMessageSent, currentConversationId, setCurrentConversationId);
 
   const { restoreScrollPosition } = useScrollManagement({
     messages,
@@ -75,20 +75,55 @@ function MainChatInterface() {
     fetchConversations();
   }, [fetchConversations]);
 
+  // Restore conversation on page load - this runs once when conversations are loaded
   useEffect(() => {
-    if (currentConversationId && conversations.length > 0) {
+    if (currentConversationId && conversations.length > 0 && !conversationsLoading && !refreshing) {
       const conversation = conversations.find(c => c.id === currentConversationId);
-      if (conversation) {
-        if (!isLoading && !isProcessingQueue && messages.length === 0) {
+      if (conversation && messages.length === 0) {
+        console.log('🔍 Page load restoration:', {
+          conversationId: currentConversationId,
+          foundConversation: !!conversation,
+          messageCount: conversation?.messages?.length || 0,
+          currentUIMessages: messages.length
+        });
+
+        // Initial restoration on page load when no messages exist
+        const uiMessages = conversation.messages.map(msg => ({
+          role: msg.role.toLowerCase() as 'user' | 'assistant', // Convert 'USER'/'ASSISTANT' to 'user'/'assistant'
+          content: msg.content
+        }));
+        setMessages(uiMessages);
+      }
+    }
+  }, [currentConversationId, conversations, conversationsLoading, refreshing, setMessages, messages.length]);
+
+  useEffect(() => {
+    if (currentConversationId && conversations.length > 0 && !isLoading && !isProcessingQueue) {
+      const conversation = conversations.find(c => c.id === currentConversationId);
+      if (conversation && conversation.messages.length > 0) {
+        // More efficient comparison - check length first, then content if needed
+        if (messages.length !== conversation.messages.length) {
           const uiMessages = conversation.messages.map(msg => ({
             role: msg.role.toLowerCase() as 'user' | 'assistant',
             content: msg.content
           }));
           setMessages(uiMessages);
+        } else if (messages.length > 0) {
+          // Only do content comparison if lengths match but we suspect mismatch
+          const currentMessageContent = messages.map(msg => msg.content).join('|');
+          const conversationMessageContent = conversation.messages.map(msg => msg.content).join('|');
+
+          if (currentMessageContent !== conversationMessageContent) {
+            const uiMessages = conversation.messages.map(msg => ({
+              role: msg.role.toLowerCase() as 'user' | 'assistant',
+              content: msg.content
+            }));
+            setMessages(uiMessages);
+          }
         }
       }
     }
-  }, [currentConversationId, conversations, setMessages, isLoading, isProcessingQueue, messages.length]);
+  }, [currentConversationId, conversations, setMessages, isLoading, isProcessingQueue, messages]);
 
   const handleNewChat = useCallback(() => {
     clearMessages();
@@ -145,15 +180,29 @@ function MainChatInterface() {
   };
 
   const handleSelectConversation = async (conversation: Conversation) => {
+    console.log('🔍 Selecting conversation:', {
+      id: conversation.id,
+      title: conversation.title,
+      messageCount: conversation.messages?.length || 0,
+      messages: conversation.messages?.slice(0, 2).map(m => ({ role: m.role, content: m.content.slice(0, 50) + '...' }))
+    });
+
     handleConversationSelected(conversation.id);
     selectConversation(conversation);
     
     // Use requestAnimationFrame for better performance
     requestAnimationFrame(() => {
       const uiMessages = conversation.messages.map(msg => ({
-        role: msg.role.toLowerCase() as 'user' | 'assistant',
+        role: msg.role.toLowerCase() as 'user' | 'assistant', // Convert 'USER'/'ASSISTANT' to 'user'/'assistant'
         content: msg.content
       }));
+      
+      console.log('🔍 Setting UI messages:', {
+        conversationId: conversation.id,
+        uiMessageCount: uiMessages.length,
+        uiMessages: uiMessages.slice(0, 2).map(m => ({ role: m.role, content: m.content.slice(0, 50) + '...' }))
+      });
+      
       clearMessages();
       setMessages(uiMessages);
       restoreScrollPosition(conversation.id);

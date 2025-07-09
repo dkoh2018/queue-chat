@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/auth';
 import OpenAI from 'openai';
 import { logger } from '@/utils/logger';
 
@@ -37,10 +38,16 @@ function checkRateLimit(clientId: string): boolean {
   return true;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
+    // Require authentication for multi-user setup
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     // Check API key
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -48,8 +55,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Service configuration error' }, { status: 500 });
     }
 
-    // Simple rate limiting (using IP as client ID)
-    const clientId = request.headers.get('x-forwarded-for') || 'localhost';
+    // Simple rate limiting (using user ID instead of IP for multi-user)
+    const clientId = user.id;
     if (!checkRateLimit(clientId)) {
       return NextResponse.json({ 
         error: 'Rate limit exceeded. Please wait before making another request.' 

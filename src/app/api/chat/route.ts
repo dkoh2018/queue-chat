@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { getAuthenticatedUser } from '@/lib/auth-utils';
+import { supabaseAdmin } from '@/lib/supabase-server';
+import { getAuthenticatedUser } from '@/lib/auth';
+import { APIErrorHandler } from '@/lib/error-handler';
+import type { ChatRequest, ChatResponse } from '@/types/chat.types';
+import type { Conversation } from '@/types/database';
 
 import { BASE_SYSTEM_PROMPT } from '@/lib/prompts/base';
 import { logger, UI_CONSTANTS } from '@/utils';
@@ -18,48 +21,62 @@ export async function POST(request: NextRequest) {
     // Require authentication for chat
     const user = await getAuthenticatedUser(request);
     if (!user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      return APIErrorHandler.unauthorized();
     }
 
-    const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest, isCalendarRequest, activeIntegrations, providerToken } = await request.json();
+    const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest, isCalendarRequest, activeIntegrations, providerToken }: ChatRequest = await request.json();
     const apiKey = process.env.OPENAI_API_KEY;
-    
+
     if (!apiKey) {
-      return NextResponse.json({ error: 'Missing OPENAI_API_KEY' }, { status: 500 });
+      return APIErrorHandler.handle(new Error('OpenAI API key not configured'));
     }
 
-    let conversation = null;
+    let conversation: Conversation | null = null;
 
     // Authenticated user - handle database operations
     logger.info('Processing chat for authenticated user', 'CHAT', { userId: user.id });
 
     // Get or create conversation
     if (conversationId) {
-      // Find the conversation and verify ownership
-      conversation = await prisma.conversation.findFirst({
-        where: {
-          id: conversationId,
-          userId: user.id
-        }
-      });
+      // Find the conversation and verify ownership (adapting your existing logic)
+      const { data: foundConversation, error } = await supabaseAdmin
+        .from('conversations')
+        .select('*')
+        .eq('id', conversationId)
+        .eq('user_id', user.id)
+        .single();
 
-      if (!conversation) {
-        return NextResponse.json({
-          error: 'Conversation not found'
-        }, { status: 404 });
+      if (error || !foundConversation) {
+        return APIErrorHandler.notFound('Conversation not found');
       }
+
+      conversation = foundConversation;
     }
 
     if (!conversation) {
-      // Create new conversation with title from original user input
+      // Create new conversation with title from original user input (adapting your existing logic)
       const title = originalInput?.slice(0, 50) + '...' || 'New conversation';
-      
-      conversation = await prisma.conversation.create({
-        data: {
+
+      // Generate a unique ID for the conversation (like Prisma's cuid())
+      const conversationId = crypto.randomUUID();
+
+      const { data: newConversation, error: createError } = await supabaseAdmin
+        .from('conversations')
+        .insert({
+          id: conversationId,
           title,
-          userId: user.id
-        }
-      });
+          user_id: user.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (createError || !newConversation) {
+        return APIErrorHandler.handle(createError, 'conversation creation');
+      }
+
+      conversation = newConversation;
 
       logger.info('Created new conversation for authenticated user', 'CHAT', {
         userId: user.id,
@@ -67,26 +84,41 @@ export async function POST(request: NextRequest) {
       });
     }
 
-      // Save ORIGINAL user message to database (not optimized)
+    // At this point, conversation is guaranteed to exist
+    if (!conversation) {
+      return APIErrorHandler.handle(new Error('Failed to create or retrieve conversation'));
+    }
+
+      // Save ORIGINAL user message to database (not optimized) - adapting your existing logic
       if (originalInput) {
-        await prisma.message.create({
-          data: {
+        const { error: userMessageError } = await supabaseAdmin
+          .from('messages')
+          .insert({
+            id: crypto.randomUUID(),
             role: 'USER',
             content: originalInput,
-            conversationId: conversation.id
-          }
-        });
+            conversation_id: conversation.id
+          });
+
+        if (userMessageError) {
+          logger.error('Failed to save user message', 'CHAT', { error: userMessageError.message });
+        }
       } else {
         // Fallback to previous behavior if no originalInput provided
         const lastUserMessage = messages[messages.length - 1];
         if (lastUserMessage.role === 'user') {
-          await prisma.message.create({
-            data: {
+          const { error: userMessageError } = await supabaseAdmin
+            .from('messages')
+            .insert({
+              id: crypto.randomUUID(),
               role: 'USER',
               content: lastUserMessage.content,
-              conversationId: conversation.id
-            }
-          });
+              conversation_id: conversation.id
+            });
+
+          if (userMessageError) {
+            logger.error('Failed to save user message (fallback)', 'CHAT', { error: userMessageError.message });
+          }
         }
       }
 
@@ -100,7 +132,7 @@ export async function POST(request: NextRequest) {
       limitedMessages;
 
     // SAFEGUARD: Remove any existing system prompts to prevent duplicates
-    messagesForAPI = messagesForAPI.filter((msg: APIMessage) => msg.role !== 'system');
+    messagesForAPI = messagesForAPI.filter((msg) => msg.role !== 'system');
     
     // ALWAYS apply base system prompt first - GUARANTEED SINGLE APPLICATION
     messagesForAPI = [
@@ -181,20 +213,25 @@ export async function POST(request: NextRequest) {
             // This is the final Stage 3 response - return it directly!
             const finalContent = result.modifiedInput;
             
-            // Save assistant message to database
-            await prisma.message.create({
-              data: {
+            // Save assistant message to database - adapting your existing logic
+            const { error: assistantMessageError } = await supabaseAdmin
+              .from('messages')
+              .insert({
+                id: crypto.randomUUID(),
                 role: 'ASSISTANT',
                 content: finalContent,
-                conversationId: conversation.id
-              }
-            });
+                conversation_id: conversation.id
+              });
 
-            // Update conversation timestamp
-            await prisma.conversation.update({
-              where: { id: conversation.id },
-              data: { updatedAt: new Date() },
-            });
+            if (assistantMessageError) {
+              logger.error('Failed to save assistant message (special handling)', 'CHAT', { error: assistantMessageError.message });
+            }
+
+            // Update conversation timestamp - adapting your existing logic
+            await supabaseAdmin
+              .from('conversations')
+              .update({ updated_at: new Date().toISOString() })
+              .eq('id', conversation.id);
 
             // **DEBUG**: Log conversation timestamp update
             logger.api('Conversation updatedAt timestamp updated', {
@@ -253,7 +290,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get OpenAI response
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -262,28 +299,33 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ model: 'gpt-4o-mini', messages: messagesForAPI }),
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      return NextResponse.json({ error }, { status: response.status });
+    if (!openaiResponse.ok) {
+      const error = await openaiResponse.text();
+      return NextResponse.json({ error }, { status: openaiResponse.status });
     }
 
-    const data = await response.json();
+    const data = await openaiResponse.json();
     const content = data.choices?.[0]?.message?.content ?? '';
 
-    // Save assistant message to database
-    await prisma.message.create({
-      data: {
+    // Save assistant message to database - adapting your existing logic
+    const { error: assistantMessageError } = await supabaseAdmin
+      .from('messages')
+      .insert({
+        id: crypto.randomUUID(),
         role: 'ASSISTANT',
         content,
-        conversationId: conversation.id
-      }
-    });
+        conversation_id: conversation.id
+      });
 
-    // Manually update the conversation's updatedAt timestamp
-    await prisma.conversation.update({
-      where: { id: conversation.id },
-      data: { updatedAt: new Date() },
-    });
+    if (assistantMessageError) {
+      logger.error('Failed to save assistant message', 'CHAT', { error: assistantMessageError.message });
+    }
+
+    // Manually update the conversation's updatedAt timestamp - adapting your existing logic
+    await supabaseAdmin
+      .from('conversations')
+      .update({ updated_at: new Date().toISOString() })
+      .eq('id', conversation.id);
 
     // **DEBUG**: Log conversation timestamp update
     logger.api('Conversation updatedAt timestamp updated', {
@@ -303,21 +345,21 @@ export async function POST(request: NextRequest) {
       isCalendarRequest: !!isCalendarRequest,
       usedNewIntegrationSystem: !!(isDiagramRequest && getIntegration('mermaid' as IntegrationType)),
       messagesInContext: messagesForAPI.length,
-      systemPrompts: messagesForAPI.filter((m: APIMessage) => m.role === 'system').length,
-      userMessages: messagesForAPI.filter((m: APIMessage) => m.role === 'user').length,
-      assistantMessages: messagesForAPI.filter((m: APIMessage) => m.role === 'assistant').length,
+      systemPrompts: messagesForAPI.filter((m) => m.role === 'system').length,
+      userMessages: messagesForAPI.filter((m) => m.role === 'user').length,
+      assistantMessages: messagesForAPI.filter((m) => m.role === 'assistant').length,
       historyLimitApplied: messages.length > UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT,
       basePromptConfirmed: messagesForAPI[0]?.role === 'system' && messagesForAPI[0]?.content.includes('helpful, knowledgeable, and friendly')
     });
 
-    return NextResponse.json({
+    const chatResponse: ChatResponse = {
       content,
       conversationId: conversation.id
-    });
+    };
+
+    return NextResponse.json(chatResponse);
   } catch (err: unknown) {
-    const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-    logger.error('Chat API error', 'CHAT', err);
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return APIErrorHandler.handle(err, 'chat');
   }
 }
 
