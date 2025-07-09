@@ -24,17 +24,20 @@ const QueueItem: React.FC<QueueItemProps> = ({ message, index, onRemoveMessage, 
     >
       <span className="font-mono text-xs sm:text-sm mr-2 flex-shrink-0">{`[${index + 1}]`}</span>
       <span className="flex-1 truncate pr-2 text-sm">{message}</span>
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onRemoveMessage(message);
-        }}
-        className="text-gray-400 hover:text-white glass-button p-1 rounded ml-2"
-        title="Remove message"
-      >
-        <XIcon className="w-4 h-4" />
-      </button>
+      {/* Only show delete button if NOT the first item being processed */}
+      {!(isProcessing && index === 0) && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onRemoveMessage(message);
+          }}
+          className="text-gray-400 hover:text-white glass-button p-1 rounded ml-2"
+          title="Remove message"
+        >
+          <XIcon className="w-4 h-4" />
+        </button>
+      )}
     </li>
   );
 };

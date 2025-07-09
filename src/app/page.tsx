@@ -97,33 +97,7 @@ function MainChatInterface() {
     }
   }, [currentConversationId, conversations, conversationsLoading, refreshing, setMessages, messages.length]);
 
-  useEffect(() => {
-    if (currentConversationId && conversations.length > 0 && !isLoading && !isProcessingQueue) {
-      const conversation = conversations.find(c => c.id === currentConversationId);
-      if (conversation && conversation.messages.length > 0) {
-        // More efficient comparison - check length first, then content if needed
-        if (messages.length !== conversation.messages.length) {
-          const uiMessages = conversation.messages.map(msg => ({
-            role: msg.role.toLowerCase() as 'user' | 'assistant',
-            content: msg.content
-          }));
-          setMessages(uiMessages);
-        } else if (messages.length > 0) {
-          // Only do content comparison if lengths match but we suspect mismatch
-          const currentMessageContent = messages.map(msg => msg.content).join('|');
-          const conversationMessageContent = conversation.messages.map(msg => msg.content).join('|');
 
-          if (currentMessageContent !== conversationMessageContent) {
-            const uiMessages = conversation.messages.map(msg => ({
-              role: msg.role.toLowerCase() as 'user' | 'assistant',
-              content: msg.content
-            }));
-            setMessages(uiMessages);
-          }
-        }
-      }
-    }
-  }, [currentConversationId, conversations, setMessages, isLoading, isProcessingQueue, messages]);
 
   const handleNewChat = useCallback(() => {
     clearMessages();
