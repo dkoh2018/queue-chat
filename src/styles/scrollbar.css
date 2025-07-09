@@ -185,6 +185,14 @@
   }
 }
 
+/* Desktop scroll behavior */
+@media (min-width: 768px) {
+  .chatScroll {
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+}
+
 /* Accessibility improvements */
 @media (prefers-reduced-motion: reduce) {
   .chatScroll,

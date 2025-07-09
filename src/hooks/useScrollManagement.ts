@@ -15,13 +15,19 @@ export const useScrollManagement = ({
 
   // Simplified scroll function that works with animations
   const scrollToLatestExchange = useCallback(() => {
-    if (!chatScrollRef.current) return;
-    
+    if (!chatScrollRef.current) {
+      console.log('ScrollManagement: chatScrollRef.current is null');
+      return;
+    }
+
+    console.log('ScrollManagement: Attempting to scroll, container:', chatScrollRef.current);
+
     const conversationExchanges = chatScrollRef.current.querySelectorAll('[data-conversation-exchange="true"]');
-    
+    console.log('ScrollManagement: Found exchanges:', conversationExchanges.length);
+
     if (conversationExchanges.length > 0) {
       const latestExchange = conversationExchanges[conversationExchanges.length - 1];
-      
+
       // Use scrollIntoView with a delay to let animations settle
       setTimeout(() => {
         if (latestExchange && chatScrollRef.current) {
@@ -30,12 +36,26 @@ export const useScrollManagement = ({
           const scrollContainer = chatScrollRef.current;
           const scrollHeight = scrollContainer.scrollHeight;
           const containerHeight = scrollContainer.clientHeight;
-          
-          // Scroll to the absolute bottom with smooth animation
+
+          console.log('ScrollManagement: Scrolling - scrollHeight:', scrollHeight, 'containerHeight:', containerHeight);
+
+          // Try multiple scroll approaches for better compatibility
+          const targetScrollTop = scrollHeight - containerHeight;
+          console.log('ScrollManagement: Target scroll position:', targetScrollTop);
+
+          // Method 1: scrollTo with smooth behavior
           scrollContainer.scrollTo({
-            top: scrollHeight - containerHeight,
+            top: targetScrollTop,
             behavior: 'smooth'
           });
+
+          // Method 2: Fallback with direct scrollTop assignment after a delay
+          setTimeout(() => {
+            if (scrollContainer.scrollTop < targetScrollTop - 10) {
+              console.log('ScrollManagement: Fallback scroll - current:', scrollContainer.scrollTop, 'target:', targetScrollTop);
+              scrollContainer.scrollTop = targetScrollTop;
+            }
+          }, 100);
         }
       }, 200); // Wait for animations to settle
     }

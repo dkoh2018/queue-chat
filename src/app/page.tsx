@@ -20,6 +20,7 @@ function MainChatInterface() {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isIntegrationPopupOpen, setIsIntegrationPopupOpen] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
 
   const {
     conversations,
@@ -62,6 +63,12 @@ function MainChatInterface() {
     messages,
     currentConversationId,
     chatScrollRef,
+  });
+
+  const { restoreScrollPosition: restoreMobileScrollPosition } = useScrollManagement({
+    messages,
+    currentConversationId,
+    chatScrollRef: mobileScrollRef,
   });
 
   useEffect(() => {
@@ -231,7 +238,7 @@ function MainChatInterface() {
           user={user}
           messages={messages}
           isLoading={isLoading}
-          chatScrollRef={chatScrollRef}
+          chatScrollRef={mobileScrollRef}
           inputText={inputText}
           setInputText={setInputText}
           isOptimizing={isOptimizing}
