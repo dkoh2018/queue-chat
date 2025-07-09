@@ -1,4 +1,4 @@
-import { useEffect, RefObject } from 'react';
+import { useEffect, RefObject, useCallback, useRef } from 'react';
 
 interface UseScrollManagementParams {
   messages: Array<{ role: string; content: string }>;
@@ -11,48 +11,46 @@ export const useScrollManagement = ({
   currentConversationId,
   chatScrollRef,
 }: UseScrollManagementParams) => {
-  // Auto-scroll with ChatGPT/Grok "push up" behavior - newest exchange appears at top
-  useEffect(() => {
-    const scrollToLatestExchange = () => {
-      if (chatScrollRef.current) {
-        // Find all conversation exchanges using the data attribute
-        const conversationExchanges = chatScrollRef.current.querySelectorAll('[data-conversation-exchange="true"]');
-        
-        console.log('🔍 Scroll Debug:', {
-          exchangeCount: conversationExchanges.length,
-          messagesLength: messages.length,
-          scrollContainer: !!chatScrollRef.current
-        });
-        
-        if (conversationExchanges.length > 0) {
-          const latestExchange = conversationExchanges[conversationExchanges.length - 1];
-          console.log('📍 Scrolling to latest exchange:', latestExchange);
-          
-          // Push conversation up so newest exchange appears at top of viewport
-          latestExchange.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          
-          // Add small offset for better visual positioning
-          setTimeout(() => {
-            if (chatScrollRef.current) {
-              chatScrollRef.current.scrollTop = Math.max(0, chatScrollRef.current.scrollTop - 20);
-            }
-          }, 300);
-        } else {
-          console.log('⚠️ No exchanges found, scrolling to bottom');
-          // Fallback: scroll to bottom
-          chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-        }
-      }
-    };
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Simplified scroll function that works with animations
+  const scrollToLatestExchange = useCallback(() => {
+    if (!chatScrollRef.current) return;
     
-    if (messages && messages.length > 0) {
-      console.log('🚀 Triggering scroll for messages:', messages.length);
-      // Use a longer delay to ensure DOM is fully updated
+    const conversationExchanges = chatScrollRef.current.querySelectorAll('[data-conversation-exchange="true"]');
+    
+    if (conversationExchanges.length > 0) {
+      const latestExchange = conversationExchanges[conversationExchanges.length - 1];
+      
+      // Use scrollIntoView with a delay to let animations settle
       setTimeout(() => {
-        requestAnimationFrame(scrollToLatestExchange);
-      }, 100);
+        if (latestExchange && chatScrollRef.current) {
+          // For ChatGPT/Grok-like experience: scroll to the very bottom
+          // This ensures the latest message is fully visible at the bottom
+          const scrollContainer = chatScrollRef.current;
+          const scrollHeight = scrollContainer.scrollHeight;
+          const containerHeight = scrollContainer.clientHeight;
+          
+          // Scroll to the absolute bottom with smooth animation
+          scrollContainer.scrollTo({
+            top: scrollHeight - containerHeight,
+            behavior: 'smooth'
+          });
+        }
+      }, 200); // Wait for animations to settle
     }
-  }, [messages, chatScrollRef]);
+  }, [chatScrollRef]);
+
+  // Auto-scroll with ChatGPT/Grok "push up" behavior - newest exchange ALWAYS appears at top
+  useEffect(() => {
+    // Trigger scroll for every message change - no conditions needed
+    if (messages && messages.length > 0) {
+      // Use a longer delay to ensure DOM is fully updated and animations are settled
+      setTimeout(() => {
+        scrollToLatestExchange();
+      }, 300);
+    }
+  }, [messages, scrollToLatestExchange]);
 
   // Save scroll position when user scrolls in any conversation
   useEffect(() => {
@@ -64,20 +62,29 @@ export const useScrollManagement = ({
 
     const chatContainer = chatScrollRef.current;
     if (chatContainer) {
-      chatContainer.addEventListener('scroll', handleScroll);
+      chatContainer.addEventListener('scroll', handleScroll, { passive: true });
       return () => chatContainer.removeEventListener('scroll', handleScroll);
     }
   }, [currentConversationId, chatScrollRef]);
 
-  // Utility function to restore scroll position for a conversation
-  const restoreScrollPosition = (conversationId: string) => {
-    setTimeout(() => {
-      if (chatScrollRef.current && typeof window !== 'undefined') {
-        const savedPosition = localStorage.getItem(`scroll-${conversationId}`);
-        chatScrollRef.current.scrollTop = savedPosition ? Number(savedPosition) : 0;
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
-    }, 100);
-  };
+    };
+  }, []);
+
+  // Utility function to restore scroll position for a conversation
+  const restoreScrollPosition = useCallback((conversationId: string) => {
+    if (!chatScrollRef.current || typeof window === 'undefined') return;
+    
+    const savedPosition = localStorage.getItem(`scroll-${conversationId}`);
+    if (savedPosition) {
+      chatScrollRef.current.scrollTop = Number(savedPosition);
+    }
+  }, [chatScrollRef]);
 
   return {
     restoreScrollPosition,

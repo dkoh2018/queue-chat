@@ -140,7 +140,9 @@ function MainChatInterface() {
   const handleSelectConversation = async (conversation: Conversation) => {
     handleConversationSelected(conversation.id);
     selectConversation(conversation);
-    setTimeout(() => {
+    
+    // Use requestAnimationFrame for better performance
+    requestAnimationFrame(() => {
       const uiMessages = conversation.messages.map(msg => ({
         role: msg.role.toLowerCase() as 'user' | 'assistant',
         content: msg.content
@@ -148,7 +150,7 @@ function MainChatInterface() {
       clearMessages();
       setMessages(uiMessages);
       restoreScrollPosition(conversation.id);
-    }, 0);
+    });
   };
 
   const handleDeleteClick = (conversation: Conversation, e: React.MouseEvent) => {

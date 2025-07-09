@@ -40,7 +40,7 @@ export function DesktopChatLayout({
   ...inputSectionProps
 }: DesktopChatLayoutProps) {
   return (
-    <div className="hidden md:block flex-1">
+    <div className="hidden md:block flex-1 h-full">
       <div className={`h-full flex flex-col px-4 sm:px-6 lg:px-8 chat-layout-animated ${isNewChat ? 'chat-layout-centered' : 'chat-layout-normal'}`}>
         {/* Title - always present, animates position */}
         <div className="title-animated">
@@ -49,7 +49,7 @@ export function DesktopChatLayout({
 
         {/* Chat messages - only show when not new chat */}
         {!isNewChat && (
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 overflow-hidden">
             <ChatView messages={messages} isLoading={isLoading} ref={chatScrollRef} />
           </div>
         )}
