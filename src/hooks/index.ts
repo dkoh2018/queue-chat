@@ -9,3 +9,4 @@ export * from './useMobileKeyboard';
 export * from './usePersistedState';
 export * from './useKeyboardShortcuts';
 export * from './useScrollManagement';
+export * from './useSystemInstructions';

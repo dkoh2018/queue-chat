@@ -9,9 +9,10 @@ import { KeyboardShortcutsModal } from '@/components/ui';
 interface ProfileMenuProps {
   className?: string;
   onClearAppData?: () => void;
+  onCustomPrompt?: () => void;
 }
 
-export default function ProfileMenu({ className = '', onClearAppData }: ProfileMenuProps) {
+export default function ProfileMenu({ className = '', onClearAppData, onCustomPrompt }: ProfileMenuProps) {
   const { user, loading, signOut } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = useState(false);
@@ -63,6 +64,13 @@ export default function ProfileMenu({ className = '', onClearAppData }: ProfileM
   const handleCloseKeyboardShortcuts = () => {
     setIsKeyboardShortcutsOpen(false);
     // Also close the dropdown when keyboard shortcuts modal is closed
+    setIsDropdownOpen(false);
+  };
+
+  const handleCustomPrompt = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onCustomPrompt?.();
     setIsDropdownOpen(false);
   };
 
@@ -158,6 +166,15 @@ export default function ProfileMenu({ className = '', onClearAppData }: ProfileM
             </div>
           </div>
           <div className="py-2">
+            <button
+              onClick={handleCustomPrompt}
+              className="w-full px-4 py-3 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200 flex items-center group"
+            >
+              <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              <span className="ml-3">Custom Prompt</span>
+            </button>
             <button
               onClick={handleKeyboardShortcuts}
               className="w-full px-4 py-3 text-left text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200 flex items-center group"

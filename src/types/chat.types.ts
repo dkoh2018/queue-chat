@@ -20,6 +20,7 @@ export interface ChatRequest {
   integrationMode?: 'calendar' | 'mermaid' | null;
   activeIntegrations?: string[];
   providerToken?: string;
+  customSystemInstructions?: string;
 }
 
 export interface ChatResponse {

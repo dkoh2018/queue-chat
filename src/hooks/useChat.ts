@@ -27,7 +27,8 @@ interface UseChatReturn {
 export const useChat = (
   onMessageSent?: (conversationId: string, userMessage?: string) => void,
   currentConversationId?: string | null,
-  setCurrentConversationId?: (id: string | null) => void
+  setCurrentConversationId?: (id: string | null) => void,
+  customSystemInstructions?: string
 ): UseChatReturn => {
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [messageQueue, setMessageQueue] = useState<string[]>([]);
@@ -136,6 +137,12 @@ export const useChat = (
           console.warn('Failed to get session token for calendar integration:', error);
         }
       }
+      console.log('🚀 Sending message to chat API with custom instructions:', {
+        hasCustomInstructions: !!customSystemInstructions,
+        instructionsLength: customSystemInstructions?.length || 0,
+        instructionsPreview: customSystemInstructions?.slice(0, 50) + '...'
+      });
+
       const chatResponse = await chatService.sendMessage({
         messages: optimizedMessages,
         conversationId: conversationId,
@@ -145,6 +152,7 @@ export const useChat = (
         isCalendarRequest: activeIntegrations.includes('calendar'),
         integrationMode: activeIntegrations.length > 0 ? activeIntegrations[0] : null,
         providerToken,
+        customSystemInstructions,
       });
 
       // Handle successful response

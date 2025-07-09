@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       return APIErrorHandler.unauthorized();
     }
 
-    const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest, isCalendarRequest, activeIntegrations, providerToken }: ChatRequest = await request.json();
+    const { messages, conversationId, originalInput, optimizedInput, isDiagramRequest, isCalendarRequest, activeIntegrations, providerToken, customSystemInstructions }: ChatRequest = await request.json();
     const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
@@ -137,6 +137,20 @@ export async function POST(request: NextRequest) {
       hasBasePrompt: messagesForAPI[0]?.role === 'system' && messagesForAPI[0]?.content === BASE_SYSTEM_PROMPT,
       conversationHistoryLength: limitedMessages.length
     });
+
+    // Add custom system instructions if provided
+    if (customSystemInstructions && customSystemInstructions.trim()) {
+      messagesForAPI = [
+        messagesForAPI[0], // Keep base system prompt
+        { role: 'system', content: customSystemInstructions.trim() },
+        ...messagesForAPI.slice(1) // Keep user messages
+      ];
+
+      logger.info('Custom system instructions applied', 'CHAT', {
+        userId: user.id,
+        instructionsLength: customSystemInstructions.trim().length
+      });
+    }
 
     // NEW INTEGRATION SYSTEM: Add integration-specific prompts on top of base prompt
     if (activeIntegrations && Array.isArray(activeIntegrations) && activeIntegrations.length > 0) {

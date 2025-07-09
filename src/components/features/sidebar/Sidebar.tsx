@@ -17,6 +17,7 @@ interface SidebarProps {
   onSelectConversation: (conversation: Conversation) => void;
   onDeleteClick: (conversation: Conversation, e: React.MouseEvent) => void;
   onClearAppData?: () => void;
+  onCustomPrompt: () => void;
 }
 
 interface ConversationItemProps {
@@ -73,6 +74,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
   onSelectConversation,
   onDeleteClick,
   onClearAppData,
+  onCustomPrompt,
 }, ref) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -180,7 +182,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({  sidebarOpen,
         <div className={`${styles.footer} border-t border-white/20 px-3 sm:px-4 py-3 flex items-center justify-between`}>
           <div className="flex items-center gap-2">
           </div>
-                      <ProfileMenu onClearAppData={onClearAppData} />
+          <ProfileMenu onClearAppData={onClearAppData} onCustomPrompt={onCustomPrompt} />
         </div>
     </div>
   );

@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useConversations, useChat, useMobileKeyboardHandling, usePersistedState, useKeyboardShortcuts, useScrollManagement, useAuthGuard } from '@/hooks';
+import { useConversations, useChat, useMobileKeyboardHandling, usePersistedState, useKeyboardShortcuts, useScrollManagement, useAuthGuard, useCustomPrompt } from '@/hooks';
 import { Conversation } from '@/types';
 import { optimizationService } from '@/services';
 import Sidebar from '@/components/features/sidebar/Sidebar';
-import { DeleteConfirmation } from '@/components/ui/DeleteConfirmation';
-import { ErrorToast } from '@/components/ui/ErrorToast';
+import { DeleteConfirmation, ErrorToast, CustomPromptModal } from '@/components/ui';
 import { FloatingSidebarToggle, DesktopChatLayout, MobileChatLayout } from '@/components/layout';
 
 function MainChatInterface() {
@@ -19,6 +18,7 @@ function MainChatInterface() {
   const [queueVisible, setQueueVisible] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isIntegrationPopupOpen, setIsIntegrationPopupOpen] = useState(false);
+  const [customPromptModalOpen, setCustomPromptModalOpen] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const mobileScrollRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +42,8 @@ function MainChatInterface() {
     handleMessageSent(conversationId, userMessage);
   }, [handleMessageSent]);
 
+  const { systemInstructions, setSystemInstructions } = useCustomPrompt();
+
   const {
     messages,
     messageQueue,
@@ -56,7 +58,7 @@ function MainChatInterface() {
     toggleIntegration,
     error,
     clearError,
-  } = useChat(handleChatMessageSent, currentConversationId, setCurrentConversationId);
+  } = useChat(handleChatMessageSent, currentConversationId, setCurrentConversationId, systemInstructions);
 
   const { restoreScrollPosition } = useScrollManagement({
     messages,
@@ -107,6 +109,19 @@ function MainChatInterface() {
     setDeleteModalOpen(false);
     setConversationToDelete(null);
   };
+
+  const handleCustomPrompt = useCallback(() => {
+    setCustomPromptModalOpen(true);
+  }, []);
+
+  const handleSaveCustomPrompt = useCallback((instructions: string) => {
+    setSystemInstructions(instructions);
+    setCustomPromptModalOpen(false);
+  }, [setSystemInstructions]);
+
+  const handleCancelCustomPrompt = useCallback(() => {
+    setCustomPromptModalOpen(false);
+  }, []);
 
   useKeyboardShortcuts({
     handleNewChat,
@@ -200,6 +215,7 @@ function MainChatInterface() {
         onSelectConversation={handleSelectConversation}
         onDeleteClick={handleDeleteClick}
         onClearAppData={handleClearAllAppData}
+        onCustomPrompt={handleCustomPrompt}
       />
       <div className="flex-1 flex flex-col relative min-w-0 sidebar-mobile-safe">
         <FloatingSidebarToggle 
@@ -258,6 +274,12 @@ function MainChatInterface() {
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
         conversationTitle={conversationToDelete?.title || ''}
+      />
+      <CustomPromptModal
+        isOpen={customPromptModalOpen}
+        onSave={handleSaveCustomPrompt}
+        onCancel={handleCancelCustomPrompt}
+        currentInstructions={systemInstructions}
       />
     </div>
   );
