@@ -9,26 +9,32 @@
   overflow-x: hidden;
 }
 
-.userMessageContainer {
+.conversationExchange {
+  margin-bottom: 24px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.userInputContainer {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   width: 100%;
 }
 
-.assistantMessageContainer {
+.assistantResponseContainer {
   display: flex;
   justify-content: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   width: 100%;
 }
 
-.userMessage {
+.userInputBubble {
   background-color: rgba(37, 38, 40, 1);
   color: white;
   border-radius: 20px;
   border-bottom-right-radius: 6px;
-  padding: 8px 12px;
+  padding: 8px 0px;
   border: 1px solid rgba(55, 65, 81, 0.5);
   max-width: min(85%, 500px);
   min-width: 0;
@@ -38,16 +44,17 @@
   word-break: break-word;
 }
 
-.assistantMessage {
+.assistantResponseContent {
   color: rgba(243, 244, 246, 1);
   width: 100%;
   max-width: 100%;
   min-width: 0;
   overflow-wrap: break-word;
   overflow-x: hidden;
+  padding: 0;
 }
 
-.userMessageText {
+.userInputText {
   font-size: 14px;
   line-height: 1.6;
   font-weight: 500;
@@ -55,29 +62,30 @@
   word-break: break-words;
   overflow-wrap: break-word;
   hyphens: auto;
+  padding: 0px;
 }
 
-.assistantMessageProse {
+.assistantResponseProse {
   max-width: none;
   overflow-wrap: break-word;
   overflow-x: hidden;
 }
 
-.loadingContainer {
+.loadingExchangeContainer {
   display: flex;
   justify-content: flex-start;
   margin-bottom: 16px;
   width: 100%;
 }
 
-.loadingContent {
+.loadingExchangeContent {
   color: rgba(243, 244, 246, 1);
   width: 100%;
   max-width: 100%;
   min-width: 0;
 }
 
-.loadingProse {
+.loadingExchangeProse {
   max-width: none;
 }
 
@@ -87,13 +95,26 @@
     height: 100%;
   }
 
-  .userMessage {
-    max-width: min(90%, 280px);
-    padding: 10px 14px;
+  .conversationExchange {
+    margin-bottom: 16px;
   }
 
-  .userMessageText {
+  .userInputBubble {
+    max-width: min(90%, 280px);
+    padding: 10px 0px;
+  }
+
+  .userInputText {
     font-size: 15px;
+    padding: 0 14px;
+  }
+
+  .userInputContainer {
+    margin-bottom: 8px;
+  }
+
+  .assistantResponseContainer {
+    margin-bottom: 8px;
   }
 
   body.keyboard-visible .container {
@@ -110,18 +131,19 @@
 }
 
 @media (min-width: 1024px) {
-  .userMessageContainer,
-  .assistantMessageContainer,
-  .loadingContainer {
+  .userInputContainer,
+  .assistantResponseContainer,
+  .loadingExchangeContainer {
     margin-bottom: 24px;
   }
   
-  .userMessage {
-    padding: 12px 20px;
+  .userInputBubble {
+    padding: 12px 0px;
   }
   
-  .userMessageText {
+  .userInputText {
     font-size: 15px;
+    padding: 0 20px;
   }
 }
 
@@ -132,12 +154,12 @@
 }
 
 @media (prefers-contrast: high) {
-  .userMessage {
+  .userInputBubble {
     border-width: 2px;
     border-color: rgba(255, 255, 255, 0.8);
   }
   
-  .assistantMessage {
+  .assistantResponseContent {
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
     padding: 12px 24px;

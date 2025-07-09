@@ -158,7 +158,6 @@ html, body {
         transform: translateY(0);
         position: relative;
         padding: 1rem;
-        backdrop-filter: blur(10px);
         margin-top: auto;
     }
 

@@ -9,44 +9,79 @@ interface ChatViewProps {
   isLoading?: boolean;
 }
 
+interface ConversationExchange {
+  userInput: UIMessage | null;
+  assistantResponse: UIMessage | null;
+}
+
+function createConversationExchanges(messages: UIMessage[]): ConversationExchange[] {
+  const exchanges: ConversationExchange[] = [];
+  let currentExchange: ConversationExchange = { userInput: null, assistantResponse: null };
+  
+  for (const message of messages) {
+    if (message.role === 'user') {
+      if (currentExchange.userInput || currentExchange.assistantResponse) {
+        exchanges.push(currentExchange);
+        currentExchange = { userInput: message, assistantResponse: null };
+      } else {
+        currentExchange.userInput = message;
+      }
+    } else if (message.role === 'assistant') {
+      currentExchange.assistantResponse = message;
+    }
+  }
+  
+  if (currentExchange.userInput || currentExchange.assistantResponse) {
+    exchanges.push(currentExchange);
+  }
+  
+  return exchanges;
+}
+
 export const ChatView = memo(forwardRef<HTMLDivElement, ChatViewProps>(({ messages, isLoading = false }, ref) => {
   const safeMessages = Array.isArray(messages) ? messages : [];
+  const conversationExchanges = createConversationExchanges(safeMessages);
   
   return (
     <div ref={ref} className={`${styles.container} chatScroll`}>
       <div 
         className="w-full mx-auto px-4 pt-12 pb-8 max-w-[calc(100%-2rem)] sm:max-w-[600px] lg:max-w-[700px] xl:max-w-[750px]"
       >
-        {safeMessages.map((msg, index) => {
-          if (!msg || typeof msg !== 'object' || !msg.role || !msg.content) {
-            return null;
-          }
-          
-          return (
-            <div
-              key={`${msg.role}-${index}-${msg.content.slice(0, 20)}`}
-              className={msg.role === 'user' ? styles.userMessageContainer : styles.assistantMessageContainer}
-            >
-              <div className={msg.role === 'user' ? styles.userMessage : styles.assistantMessage}>
-                {msg.role === 'assistant' ? (
-                  <div className={`${styles.assistantMessageProse} prose prose-invert prose-sm lg:prose-lg max-w-none`}>
-                    <MarkdownMessage content={msg.content} />
+        {conversationExchanges.map((exchange, index) => (
+          <div
+            key={`exchange-${index}`}
+            className={styles.conversationExchange}
+            data-conversation-exchange="true"
+          >
+            {exchange.userInput && (
+              <div className={styles.userInputContainer}>
+                <div className={styles.userInputBubble}>
+                  <div className={styles.userInputText}>
+                    {exchange.userInput.content}
                   </div>
-                ) : (
-                  <div className={styles.userMessageText}>
-                    {msg.content}
-                  </div>
-                )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            )}
+            
+            {exchange.assistantResponse && (
+              <div className={styles.assistantResponseContainer}>
+                <div className={styles.assistantResponseContent}>
+                  <div className={`${styles.assistantResponseProse} prose prose-invert prose-sm lg:prose-lg max-w-none`}>
+                    <MarkdownMessage content={exchange.assistantResponse.content} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
         
         {isLoading && (
-          <div className={styles.loadingContainer}>
-            <div className={styles.loadingContent}>
-              <div className={`${styles.loadingProse} prose prose-invert prose-sm lg:prose-lg max-w-none`}>
-                <TypingDots className="ml-4" />
+          <div className={styles.conversationExchange} data-conversation-exchange="true">
+            <div className={styles.loadingExchangeContainer}>
+              <div className={styles.loadingExchangeContent}>
+                <div className={`${styles.loadingExchangeProse} prose prose-invert prose-sm lg:prose-lg max-w-none`}>
+                  <TypingDots className="ml-4" />
+                </div>
               </div>
             </div>
           </div>

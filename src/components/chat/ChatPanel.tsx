@@ -97,7 +97,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       <div
         className={
           isMobile
-            ? 'flex-shrink-0 backdrop-blur-sm z-10'
+            ? 'flex-shrink-0 z-10'
             : 'input-animated'
         }
         style={
