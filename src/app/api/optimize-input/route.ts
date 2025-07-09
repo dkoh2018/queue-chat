@@ -104,4 +104,9 @@ export async function POST(request: NextRequest) {
       error: 'Optimization failed, using original input'
     });
   }
+  } catch (error) {
+    // Handle main try block errors
+    logger.error('Optimize input API error', 'OPTIMIZE', { error });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
