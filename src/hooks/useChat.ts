@@ -86,13 +86,19 @@ export const useChat = (
       
       // Add user message immediately for instant feedback
       const userMessage: UIMessage = { role: 'user', content: text };
-      setMessages(prev => [...prev, userMessage]);
-      
+
+      // Update both state and ref synchronously to prevent race conditions
+      setMessages(prev => {
+        const newMessages = [...prev, userMessage];
+        messagesRef.current = newMessages; // Keep ref in sync
+        return newMessages;
+      });
+
       // Start loading indicator
       setIsLoading(true);
-      
-      // Prepare conversation history using current state
-      const currentMessages = [...messagesRef.current, userMessage];
+
+      // Prepare conversation history using the updated messages
+      const currentMessages = [...messagesRef.current];
       const conversationHistory = currentMessages.slice(-UI_CONSTANTS.CONVERSATION_HISTORY_LIMIT);
       
 
@@ -157,13 +163,17 @@ export const useChat = (
           setConversationId(chatResponse.conversationId);
         }
 
-        // Add assistant message
+        // Add assistant message and keep ref in sync
         const assistantMessage: UIMessage = {
           role: 'assistant',
           content: chatResponse.content,
         };
-        
-        setMessages(prev => [...prev, assistantMessage]);
+
+        setMessages(prev => {
+          const newMessages = [...prev, assistantMessage];
+          messagesRef.current = newMessages; // Keep ref in sync
+          return newMessages;
+        });
 
         // Update conversations again after assistant response
         if (messageSentRef.current && chatResponse.conversationId) {
@@ -188,7 +198,7 @@ export const useChat = (
       setIsLoading(false);
       setIsProcessingQueue(false);
     }
-  }, [messageQueue, currentConversationId, activeIntegrations]);
+  }, [messageQueue, currentConversationId, activeIntegrations, conversationId, setConversationId]);
 
   // Process queue when new messages arrive (but not during manual deletions)
   useEffect(() => {
@@ -219,7 +229,7 @@ export const useChat = (
     }
     
     setMessageQueue(prev => [...prev, trimmedText]);
-  }, [messageQueue, conversationId]);
+  }, [messageQueue, conversationId, setConversationId]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
@@ -271,9 +281,9 @@ export const useChat = (
     setIsLoading(false);
     setIsProcessingQueue(false);
     setError(null);
-    setCurrentConversationId(null);
+    setCurrentConversationId?.(null);
     setActiveIntegrations([]);
-  }, []);
+  }, [setCurrentConversationId]);
 
   return {
     messages,
