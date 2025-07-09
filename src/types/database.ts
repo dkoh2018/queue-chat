@@ -34,6 +34,7 @@ export interface Message {
   role: string; // 'USER' | 'ASSISTANT'
   content: string;
   conversation_id: string;
+  user_id: string; // UUID - for efficient RLS
   created_at: string; // ISO timestamp
 }
 
@@ -71,4 +72,5 @@ export interface CreateMessageData {
   role: string;
   content: string;
   conversation_id: string;
+  user_id: string;
 }

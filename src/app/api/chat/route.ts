@@ -10,11 +10,7 @@ import { logger, UI_CONSTANTS } from '@/utils';
 import { getIntegration } from '@/integrations';
 import { IntegrationType } from '@/types';
 
-// Define message type for API
-interface APIMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-}
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -80,7 +76,7 @@ export async function POST(request: NextRequest) {
 
       logger.info('Created new conversation for authenticated user', 'CHAT', {
         userId: user.id,
-        conversationId: conversation.id
+        conversationId: newConversation.id
       });
     }
 
@@ -97,7 +93,8 @@ export async function POST(request: NextRequest) {
             id: crypto.randomUUID(),
             role: 'USER',
             content: originalInput,
-            conversation_id: conversation.id
+            conversation_id: conversation.id,
+            user_id: user.id
           });
 
         if (userMessageError) {
@@ -113,7 +110,8 @@ export async function POST(request: NextRequest) {
               id: crypto.randomUUID(),
               role: 'USER',
               content: lastUserMessage.content,
-              conversation_id: conversation.id
+              conversation_id: conversation.id,
+              user_id: user.id
             });
 
           if (userMessageError) {
@@ -220,7 +218,8 @@ export async function POST(request: NextRequest) {
                 id: crypto.randomUUID(),
                 role: 'ASSISTANT',
                 content: finalContent,
-                conversation_id: conversation.id
+                conversation_id: conversation.id,
+                user_id: user.id
               });
 
             if (assistantMessageError) {
@@ -314,7 +313,8 @@ export async function POST(request: NextRequest) {
         id: crypto.randomUUID(),
         role: 'ASSISTANT',
         content,
-        conversation_id: conversation.id
+        conversation_id: conversation.id,
+        user_id: user.id
       });
 
     if (assistantMessageError) {

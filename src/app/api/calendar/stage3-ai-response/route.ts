@@ -41,7 +41,7 @@ INSTRUCTIONS:
 
 **FORMATTING REQUIREMENTS:**
 - Use proper markdown table syntax with | separators
-- Columns: Date | Time | Event | Location | Description
+- Columns: Date | Time | Event | Location
 - Use "N/A" for empty/null fields
 - Keep descriptions concise (max 50 characters)
 - Sort events chronologically
