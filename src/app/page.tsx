@@ -180,9 +180,6 @@ function MainChatInterface() {
   };
 
   const handleSelectConversation = useCallback((conversation: Conversation) => {
-    // Immediate state update for instant UI feedback
-    setCurrentConversationId(conversation.id);
-
     // Batch all UI updates together
     const uiMessages = conversation.messages.map(msg => ({
       role: msg.role.toLowerCase() as 'user' | 'assistant',
@@ -193,10 +190,10 @@ function MainChatInterface() {
     clearMessages();
     setMessages(uiMessages);
 
-    // Handle persistence and scroll restoration
+    // Handle state, persistence and scroll restoration
     selectConversation(conversation);
     restoreScrollPosition(conversation.id);
-  }, [setCurrentConversationId, clearMessages, setMessages, selectConversation, restoreScrollPosition]);
+  }, [clearMessages, setMessages, selectConversation, restoreScrollPosition]);
 
   const handleDeleteClick = (conversation: Conversation, e: React.MouseEvent) => {
     e.stopPropagation();
