@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (createError || !newConversation) {
-        return APIErrorHandler.handle(createError, 'conversation creation');
+        return APIErrorHandler.handle(createError);
       }
 
       conversation = newConversation;
@@ -359,7 +359,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(chatResponse);
   } catch (err: unknown) {
-    return APIErrorHandler.handle(err, 'chat');
+    return APIErrorHandler.handle(err);
   }
 }
 

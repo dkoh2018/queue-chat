@@ -7,7 +7,7 @@ export interface APIError {
 }
 
 export class APIErrorHandler {
-  static handle(error: unknown, _context?: string): NextResponse {
+  static handle(error: unknown): NextResponse {
     // Supabase errors
     if (error && typeof error === 'object' && 'code' in error) {
       const supabaseError = error as { code: string; message: string };
