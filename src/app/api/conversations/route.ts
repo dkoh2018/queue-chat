@@ -12,14 +12,11 @@ export async function GET(request: NextRequest) {
       // Authenticated user - fetch conversations for this user only
       logger.info('Fetching conversations for authenticated user', 'DATABASE', { userId: user.id });
       
+      // OPTIMIZATION: Fetch conversations first, then get limited messages separately
+      // This prevents loading thousands of messages when user just wants conversation list
       const { data: conversations, error } = await supabaseAdmin
         .from('conversations')
-        .select(`
-          *,
-          messages (
-            *
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
@@ -27,8 +24,28 @@ export async function GET(request: NextRequest) {
         throw new Error(`Supabase error: ${error.message}`);
       }
 
+      // Fetch only the last 3 messages per conversation for preview
+      const conversationsWithMessages = await Promise.all(
+        (conversations || []).map(async (conv) => {
+          const { data: messages } = await supabaseAdmin
+            .from('messages')
+            .select('id, role, content, created_at')
+            .eq('conversation_id', conv.id)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(3);
+
+          return {
+            ...conv,
+            messages: (messages || []).reverse() // Reverse to get chronological order for display
+          };
+        })
+      );
+
       // Transform database format to frontend format and sort messages
-      const conversationsWithSortedMessages = conversations?.map(conv => ({
+      // NOTE: Only showing last 3 messages per conversation for performance
+      // Full conversation history is loaded when user clicks on a specific conversation
+      const conversationsWithSortedMessages = conversationsWithMessages?.map(conv => ({
         id: conv.id,
         title: conv.title,
         createdAt: conv.created_at,
