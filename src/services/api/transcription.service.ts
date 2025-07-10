@@ -1,3 +1,5 @@
+import { supabase } from '@/lib/supabase';
+
 export interface TranscriptionRequest {
   audioBlob: Blob;
   conversationHistory?: Array<{ role: string; content: string }>; // For future context-aware transcription
@@ -22,6 +24,31 @@ class TranscriptionService {
   private readonly endpoint = '/api/transcribe';
 
   /**
+   * Get auth headers for API requests
+   */
+  private getAuthHeaders = async (): Promise<HeadersInit> => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    // Debug logging
+    console.log('TranscriptionService - Getting auth headers:', { 
+      hasSession: !!session, 
+      hasAccessToken: !!session?.access_token,
+      error: error?.message 
+    });
+    
+    const headers: HeadersInit = {};
+
+    // Add authorization header if user is authenticated
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    } else {
+      console.warn('TranscriptionService - No access token found');
+    }
+
+    return headers;
+  }
+
+  /**
    * Transcribe audio blob to text using OpenAI Whisper
    */
   async transcribe(request: TranscriptionRequest): Promise<TranscriptionResponse> {
@@ -39,6 +66,9 @@ class TranscriptionService {
     }
 
     try {
+      // Get authentication headers
+      const authHeaders = await this.getAuthHeaders();
+      
       // Prepare form data
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
@@ -48,9 +78,10 @@ class TranscriptionService {
         formData.append('history', JSON.stringify(conversationHistory.slice(-5))); // Last 5 messages
       }
 
-      // Make API call
+      // Make API call with authentication headers
       const response = await fetch(this.endpoint, {
         method: 'POST',
+        headers: authHeaders,
         body: formData,
       });
 
@@ -61,6 +92,12 @@ class TranscriptionService {
         }));
         
         // Handle specific error cases
+        if (response.status === 401) {
+          // Force sign out to clear invalid session
+          await supabase.auth.signOut();
+          throw new Error('Session expired - please sign in again');
+        }
+        
         if (response.status === 429) {
           throw new Error('Too many requests. Please wait a moment before trying again.');
         }
