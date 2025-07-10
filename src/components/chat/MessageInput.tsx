@@ -7,6 +7,7 @@ import { VoiceRecordingButton } from '@/components/features/VoiceRecordingButton
 import { IntegrationButton } from '@/components/features/IntegrationButton';
 import { useVoiceRecording } from '@/hooks';
 import { IntegrationType } from '@/types';
+import { UI_CONSTANTS } from '@/utils/constants';
 import styles from './MessageInput.module.css';
 
 interface MessageInputProps {
@@ -110,7 +111,12 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
   }, [resizeTextarea, onFocus]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInputText(e.target.value);
+    const newValue = e.target.value;
+    const maxLength = UI_CONSTANTS.MAX_MESSAGE_LENGTH + 25;
+    
+    const truncatedValue = newValue.length > maxLength ? newValue.slice(0, maxLength) : newValue;
+    
+    setInputText(truncatedValue);
     resizeTextarea();
   }, [setInputText, resizeTextarea]);
 
@@ -120,6 +126,31 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
       textarea.blur();
     }
   }, []);
+
+  const getCharacterWarning = () => {
+    const length = inputText.length;
+    const maxLength = UI_CONSTANTS.MAX_MESSAGE_LENGTH;
+    const hardLimit = maxLength + 25;
+    
+    if (length >= hardLimit) {
+      return {
+        show: true,
+        type: 'error',
+        message: `Maximum character limit reached (${length}/${hardLimit}). Text will be automatically truncated.`,
+        color: 'text-red-400'
+      };
+    } else if (length > maxLength) { 
+      return {
+        show: true,
+        type: 'error',
+        message: `Message too long (${length}/${maxLength} characters). Please shorten your message.`,
+        color: 'text-red-400'
+      };
+    }
+    return { show: false };
+  };
+
+  const characterWarning = getCharacterWarning();
 
   return (
     <>
@@ -192,17 +223,25 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
               
               <button
                 onClick={onSend}
-                disabled={!inputText.trim() || isOptimizing}
+                disabled={!inputText.trim() || isOptimizing || characterWarning.type === 'error'}
                 className={`${styles.sendButton} ${
-                  inputText.trim() && !isOptimizing
+                  inputText.trim() && !isOptimizing && characterWarning.type !== 'error'
                     ? styles.sendButtonActive
                     : styles.sendButtonInactive
                 }`}
-                title={inputText.trim() ? 'Send message' : 'Type a message to send'}
+                title={
+                  characterWarning.type === 'error' 
+                    ? 'Message too long - please shorten it'
+                    : inputText.trim() 
+                    ? 'Send message' 
+                    : 'Type a message to send'
+                }
               >
                 <UpArrowIcon
                   className={
-                    inputText.trim() && !isOptimizing ? styles.sendIconActive : styles.sendIconInactive
+                    inputText.trim() && !isOptimizing && characterWarning.type !== 'error' 
+                      ? styles.sendIconActive 
+                      : styles.sendIconInactive
                   }
                 />
               </button>
@@ -215,6 +254,14 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
         <div className={styles.errorContainer}>
           <p className={styles.errorText}>
             {voiceState.error}
+          </p>
+        </div>
+      )}
+
+      {characterWarning.show && (
+        <div className={`${styles.errorContainer} ${characterWarning.type === 'warning' ? styles.warningContainer : ''}`}>
+          <p className={`${styles.errorText} ${characterWarning.color}`}>
+            {characterWarning.message}
           </p>
         </div>
       )}
