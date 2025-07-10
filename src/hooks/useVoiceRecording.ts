@@ -44,9 +44,25 @@ export const useVoiceRecording = (): UseVoiceRecordingReturn => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const stopRecordingRef = useRef<(() => void) | null>(null);
   const handleRecordingCompleteRef = useRef<((audioBlob: Blob) => Promise<void>) | null>(null);
+
+  const setErrorWithAutoDismiss = useCallback((errorMessage: string): void => {
+    setState(prev => ({ ...prev, error: errorMessage }));
+    
+    // Clear any existing timeout
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+    }
+    
+    // Set new timeout to auto-dismiss after 3 seconds
+    errorTimeoutRef.current = setTimeout(() => {
+      setState(prev => ({ ...prev, error: null }));
+      errorTimeoutRef.current = null;
+    }, 3000);
+  }, []);
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     try {
@@ -59,14 +75,11 @@ export const useVoiceRecording = (): UseVoiceRecordingReturn => {
       setState(prev => ({ ...prev, hasPermission: true }));
       return true;
     } catch {
-      setState(prev => ({
-        ...prev, 
-        hasPermission: false,
-        error: 'Microphone permission is required for voice input. Please allow access and try again.'
-      }));
+      setState(prev => ({ ...prev, hasPermission: false }));
+      setErrorWithAutoDismiss('Microphone permission is required for voice input. Please allow access and try again.');
       return false;
     }
-  }, []);
+  }, [setErrorWithAutoDismiss]);
 
   const startRecording = useCallback(async (): Promise<void> => {
     try {
@@ -124,13 +137,10 @@ export const useVoiceRecording = (): UseVoiceRecordingReturn => {
       }, 1000);
 
     } catch {
-      setState(prev => ({
-        ...prev,
-        isRecording: false,
-        error: 'Failed to start recording'
-      }));
+      setState(prev => ({ ...prev, isRecording: false }));
+      setErrorWithAutoDismiss('Failed to start recording');
     }
-  }, [state.hasPermission, requestPermission]);
+  }, [state.hasPermission, requestPermission, setErrorWithAutoDismiss]);
 
   const stopRecording = useCallback((): void => {
     try {
@@ -150,13 +160,10 @@ export const useVoiceRecording = (): UseVoiceRecordingReturn => {
 
       setState(prev => ({ ...prev, isRecording: false }));
     } catch {
-      setState(prev => ({
-        ...prev, 
-        isRecording: false,
-        error: 'Failed to stop recording'
-      }));
+      setState(prev => ({ ...prev, isRecording: false }));
+      setErrorWithAutoDismiss('Failed to stop recording');
     }
-  }, []);
+  }, [setErrorWithAutoDismiss]);
 
   const handleRecordingComplete = useCallback(async (audioBlob: Blob): Promise<void> => {
     try {
@@ -181,16 +188,17 @@ export const useVoiceRecording = (): UseVoiceRecordingReturn => {
       }, 100);
 
     } catch {
-      setState(prev => ({
-        ...prev,
-        isTranscribing: false,
-        error: 'Failed to process recording'
-      }));
+      setState(prev => ({ ...prev, isTranscribing: false }));
+      setErrorWithAutoDismiss('Failed to process recording');
     }
-  }, []);
+  }, [setErrorWithAutoDismiss]);
 
   const clearError = useCallback((): void => {
     setState(prev => ({ ...prev, error: null }));
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = null;
+    }
   }, []);
 
   // Assign functions to refs to avoid circular dependencies
@@ -200,6 +208,11 @@ export const useVoiceRecording = (): UseVoiceRecordingReturn => {
   useEffect(() => {
     return () => {
       stopRecording();
+      // Clean up error timeout on unmount
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = null;
+      }
     };
   }, [stopRecording]);
 

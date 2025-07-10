@@ -280,7 +280,7 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
       {!hideDisclaimer && (
         <div className={styles.disclaimer}>
           <p className={styles.disclaimerText}>
-            Jarvis can make mistakes.
+            Jarvis may make mistakes. Please double-check info.
           </p>
         </div>
       )}
