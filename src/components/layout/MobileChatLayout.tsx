@@ -66,7 +66,7 @@ export function MobileChatLayout({
         <ChatInputSection
           {...inputSectionProps}
           queueVisible={queueVisible}
-          hideDisclaimer={false}
+          hideDisclaimer={!hasMessages}
           showQueueWithDelay={true}
           showQueueButton={hasMessages}
         />
