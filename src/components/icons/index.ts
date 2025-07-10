@@ -8,3 +8,4 @@ export { MenuIcon } from './MenuIcon';
 export { IntegrationIcon } from './IntegrationIcon';
 export { CheckIcon } from './CheckIcon';
 export { KeyboardIcon } from './KeyboardIcon';
+export { GlobeIcon } from './GlobeIcon';

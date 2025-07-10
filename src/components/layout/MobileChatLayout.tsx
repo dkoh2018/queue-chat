@@ -28,6 +28,8 @@ interface MobileChatLayoutProps {
   onIntegrationSelect: (integration: IntegrationType) => void;
   onSend: () => void;
   onOptimize: () => void;
+  isWebSearchActive: boolean;
+  onWebSearchToggle: () => void;
 }
 
 export function MobileChatLayout({

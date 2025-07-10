@@ -2,7 +2,7 @@
   position: relative;
   z-index: 32;
   isolation: isolate;
-  margin-left: -12px;
+  margin-left: -10px;
 }
 
 .button {

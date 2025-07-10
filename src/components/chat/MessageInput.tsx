@@ -5,6 +5,7 @@ import OptimizeButton from '@/components/features/OptimizeButton';
 import { TypingDots } from '@/components/ui/TypingDots';
 import { VoiceRecordingButton } from '@/components/features/VoiceRecordingButton';
 import { IntegrationButton } from '@/components/features/IntegrationButton';
+import { WebSearchButton } from '@/components/features/WebSearchButton';
 import { useVoiceRecording } from '@/hooks';
 import { IntegrationType } from '@/types';
 import { UI_CONSTANTS } from '@/utils/constants';
@@ -24,9 +25,11 @@ interface MessageInputProps {
   onCloseSidebar?: () => void;
   onCloseQueue?: () => void;
   hideDisclaimer?: boolean;
+  isWebSearchActive?: boolean;
+  onWebSearchToggle?: () => void;
 }
 
-export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false, onIntegrationSelect, activeIntegrations, onFocus, isIntegrationPopupOpen = false, onIntegrationPopupStateChange, onCloseSidebar, onCloseQueue, hideDisclaimer = false }: MessageInputProps) => {
+export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOptimizing = false, onIntegrationSelect, activeIntegrations, onFocus, isIntegrationPopupOpen = false, onIntegrationPopupStateChange, onCloseSidebar, onCloseQueue, hideDisclaimer = false, isWebSearchActive = false, onWebSearchToggle }: MessageInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastTranscriptionRef = useRef<string | undefined>(undefined);
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -203,6 +206,14 @@ export const MessageInput = ({ inputText, setInputText, onSend, onOptimize, isOp
                 mediaStream={mediaStream}
                 onStartRecording={startRecording}
                 onStopRecording={stopRecording}
+                onBlur={blurTextInput}
+              />
+              <WebSearchButton
+                onClick={() => {
+                  onWebSearchToggle?.();
+                  blurTextInput();
+                }}
+                isActive={isWebSearchActive}
                 onBlur={blurTextInput}
               />
               <IntegrationButton

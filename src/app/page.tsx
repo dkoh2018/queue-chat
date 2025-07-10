@@ -37,6 +37,7 @@ function MainChatInterface() {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isIntegrationPopupOpen, setIsIntegrationPopupOpen] = useState(false);
   const [customPromptModalOpen, setCustomPromptModalOpen] = useState(false);
+  const [isWebSearchActive, setIsWebSearchActive] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const mobileScrollRef = useRef<HTMLDivElement>(null);
 
@@ -139,6 +140,10 @@ function MainChatInterface() {
 
   const handleCancelCustomPrompt = useCallback(() => {
     setCustomPromptModalOpen(false);
+  }, []);
+
+  const handleWebSearchToggle = useCallback(() => {
+    setIsWebSearchActive(prev => !prev);
   }, []);
 
   useKeyboardShortcuts({
@@ -262,6 +267,8 @@ function MainChatInterface() {
             onIntegrationSelect={toggleIntegration}
             onSend={handleSend}
             onOptimize={handleOptimize}
+            isWebSearchActive={isWebSearchActive}
+            onWebSearchToggle={handleWebSearchToggle}
           />
           <ErrorToast error={error} onClearError={clearError} />
         </div>
@@ -324,6 +331,8 @@ function MainChatInterface() {
             onIntegrationSelect={toggleIntegration}
             onSend={handleSend}
             onOptimize={handleOptimize}
+            isWebSearchActive={isWebSearchActive}
+            onWebSearchToggle={handleWebSearchToggle}
           />
           <ErrorToast error={error} onClearError={clearError} />
         </div>

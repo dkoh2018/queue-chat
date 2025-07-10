@@ -272,6 +272,10 @@
   outline-offset: 2px;
 }
 
+.webSearchButton:focus {
+  outline: none;
+}
+
 .attachButton,
 .sendButton {
   -webkit-user-select: none;

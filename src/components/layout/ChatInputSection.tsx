@@ -30,6 +30,10 @@ interface ChatInputSectionProps {
   onSend: () => void;
   onOptimize: () => void;
   
+  // Web search states
+  isWebSearchActive?: boolean;
+  onWebSearchToggle?: () => void;
+  
   // Layout options
   hideDisclaimer?: boolean;
   showQueueWithDelay?: boolean;
@@ -53,6 +57,8 @@ export function ChatInputSection({
   onIntegrationSelect,
   onSend,
   onOptimize,
+  isWebSearchActive,
+  onWebSearchToggle,
   hideDisclaimer = false,
   showQueueWithDelay = false,
   showQueueButton = true,
@@ -117,6 +123,8 @@ export function ChatInputSection({
             setSidebarOpen(false);
           }
         }}
+        isWebSearchActive={isWebSearchActive}
+        onWebSearchToggle={onWebSearchToggle}
         hideDisclaimer={hideDisclaimer}
       />
     </div>
