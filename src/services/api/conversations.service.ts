@@ -58,6 +58,33 @@ class ConversationsService {
   }
 
   /**
+   * Get full conversation history with all messages
+   */
+  getConversationHistory = async (conversationId: string): Promise<Conversation> => {
+    const headers = await this.getAuthHeaders();
+    const response = await fetch(`${API_ENDPOINTS.CONVERSATIONS}/${conversationId}`, {
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to fetch conversation history' }));
+      
+      // If unauthorized, it might be a session issue
+      if (response.status === 401) {
+        console.error('ConversationsService - Unauthorized error, session might be invalid');
+        // Force sign out to clear invalid session
+        await supabase.auth.signOut();
+        window.location.href = '/login';
+        throw new Error('Session expired - please sign in again');
+      }
+      
+      throw new Error(errorData.error || `API Error: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  /**
    * Delete a conversation
    */
   deleteConversation = async (conversationId: string): Promise<void> => {

@@ -54,34 +54,12 @@ const MarkdownMessage = ({ content, className = '' }: MarkdownMessageProps) => {
             }
           },
           p: ({ children }) => {
-            const hasBlockElements = React.Children.toArray(children).some((child) => {
-              if (React.isValidElement(child)) {
-                if (child.type === 'div' || child.type === 'pre' || child.type === 'blockquote' || child.type === 'table') {
-                  return true;
-                }
-                if (typeof child.type === 'function') {
-                  const componentName = (child.type as { displayName?: string; name?: string }).displayName || (child.type as { name?: string }).name;
-                  if (componentName === 'CodeBlock') {
-                    return true;
-                  }
-                }
-                if (child.type === CodeBlock) {
-                  return true;
-                }
-                const props = child.props as { className?: string; inline?: boolean };
-                if (props.className?.includes('language-') && !props.inline) {
-                  return true;
-                }
-              }
-              return false;
-            });
-
-            const Tag = hasBlockElements ? 'div' : 'p';
-            
+            // Always use div for paragraphs to prevent HTML nesting issues
+            // This prevents <div> elements from being nested inside <p> tags
             return (
-              <Tag className="mb-5 last:mb-0 leading-[1.7] text-gray-100 text-[15px] font-normal">
+              <div className="mb-5 last:mb-0 leading-[1.7] text-gray-100 text-[15px] font-normal">
                 {children}
-              </Tag>
+              </div>
             );
           },
           h1: ({ children }) => (

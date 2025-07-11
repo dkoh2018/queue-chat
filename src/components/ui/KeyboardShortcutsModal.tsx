@@ -52,6 +52,11 @@ export const KeyboardShortcutsModal = ({ isOpen, onClose }: KeyboardShortcutsMod
       category: 'Navigation'
     },
     {
+      keys: ['⌘', 'E'],
+      description: 'Optimize your message for better results',
+      category: 'Input'
+    },
+    {
       keys: ['Esc'],
       description: 'Close modals or unfocus input',
       category: 'General'

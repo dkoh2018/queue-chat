@@ -51,16 +51,65 @@ export const useScrollManagement = ({
     }
   }, [chatScrollRef]);
 
-  // Auto-scroll with ChatGPT/Grok "push up" behavior - newest exchange ALWAYS appears at top
+  // ChatGPT-like smart auto-scroll: Only scroll to bottom for new messages
+  const previousMessageCountRef = useRef(0);
+  const conversationIdRef = useRef<string | null>(null);
+  const isLoadingConversationRef = useRef(false);
+  const userScrolledAwayRef = useRef(false);
+
+  // Track if user has scrolled away from bottom
   useEffect(() => {
-    // Trigger scroll for every message change - no conditions needed
-    if (messages && messages.length > 0) {
-      // Use a longer delay to ensure DOM is fully updated and animations are settled
+    const handleScroll = () => {
+      if (!chatScrollRef.current) return;
+      
+      const container = chatScrollRef.current;
+      const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
+      userScrolledAwayRef.current = !isAtBottom;
+    };
+
+    const chatContainer = chatScrollRef.current;
+    if (chatContainer) {
+      chatContainer.addEventListener('scroll', handleScroll, { passive: true });
+      return () => chatContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [chatScrollRef]);
+
+  useEffect(() => {
+    // Check if we're switching to a different conversation
+    if (currentConversationId !== conversationIdRef.current) {
+      conversationIdRef.current = currentConversationId;
+      isLoadingConversationRef.current = true;
+      userScrolledAwayRef.current = false; // Reset scroll state for new conversation
+      
+      // Reset after conversation loading completes
+      setTimeout(() => {
+        isLoadingConversationRef.current = false;
+        previousMessageCountRef.current = messages.length;
+      }, 700); // Slightly longer to ensure full loading
+      
+      return;
+    }
+
+    // ChatGPT-like behavior: Only auto-scroll if:
+    // 1. We have messages
+    // 2. We're not loading a conversation
+    // 3. The message count increased (new message added)
+    // 4. User hasn't scrolled away from bottom
+    if (messages && 
+        messages.length > 0 && 
+        !isLoadingConversationRef.current && 
+        messages.length > previousMessageCountRef.current &&
+        !userScrolledAwayRef.current) {
+      
+      // Auto-scroll to bottom for new messages
       setTimeout(() => {
         scrollToLatestExchange();
       }, 300);
     }
-  }, [messages, scrollToLatestExchange]);
+    
+    // Update the previous message count
+    previousMessageCountRef.current = messages.length;
+  }, [messages, currentConversationId, scrollToLatestExchange, chatScrollRef]);
 
   // Save scroll position when user scrolls in any conversation
   useEffect(() => {
@@ -93,7 +142,12 @@ export const useScrollManagement = ({
     
     const savedPosition = localStorage.getItem(`scroll-${conversationId}`);
     if (savedPosition) {
-      chatScrollRef.current.scrollTop = Number(savedPosition);
+      // Add a small delay to ensure DOM is ready
+      setTimeout(() => {
+        if (chatScrollRef.current) {
+          chatScrollRef.current.scrollTop = Number(savedPosition);
+        }
+      }, 100);
     }
   }, [chatScrollRef]);
 

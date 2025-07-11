@@ -81,8 +81,9 @@ export const useChat = (
     setError(null);
 
     try {
-      if (messageSentRef.current && currentConversationId) {
-        messageSentRef.current(currentConversationId, text);
+      // Call onMessageSent for immediate optimistic updates (works for both existing and new conversations)
+      if (messageSentRef.current && conversationId) {
+        messageSentRef.current(conversationId, text);
       }
 
       const userMessage: UIMessage = { role: 'user', content: text };

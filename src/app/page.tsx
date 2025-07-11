@@ -79,13 +79,14 @@ function MainChatInterface() {
     clearError,
   } = useChat(handleChatMessageSent, currentConversationId, setCurrentConversationId, systemInstructions);
 
+  // Unified scroll management for both desktop and mobile
   const { restoreScrollPosition } = useScrollManagement({
     messages,
     currentConversationId,
-    chatScrollRef,
+    chatScrollRef: chatScrollRef,
   });
 
-  useScrollManagement({
+  const { restoreScrollPosition: restoreScrollPositionMobile } = useScrollManagement({
     messages,
     currentConversationId,
     chatScrollRef: mobileScrollRef,
@@ -181,17 +182,39 @@ function MainChatInterface() {
     }
   };
 
-  const handleSelectConversation = useCallback((conversation: Conversation) => {
-    const uiMessages = conversation.messages.map(msg => ({
-      role: msg.role.toLowerCase() as 'user' | 'assistant',
-      content: msg.content
-    }));
+  const handleSelectConversation = useCallback(async (conversation: Conversation) => {
+    try {
+      clearMessages();
+      selectConversation(conversation);
+      
+      // Fetch full conversation history (not just the 3 preview messages)
+      const { conversationsService } = await import('@/services');
+      const fullConversation = await conversationsService.getConversationHistory(conversation.id);
+      
+      const uiMessages = fullConversation.messages.map(msg => ({
+        role: msg.role.toLowerCase() as 'user' | 'assistant',
+        content: msg.content
+      }));
 
-    clearMessages();
-    setMessages(uiMessages);
-    selectConversation(conversation);
-    restoreScrollPosition(conversation.id);
-  }, [clearMessages, setMessages, selectConversation, restoreScrollPosition]);
+      setMessages(uiMessages);
+      
+      // Unified scroll restoration for both desktop and mobile
+      setTimeout(() => {
+        restoreScrollPosition(conversation.id);
+        if (isMobile) {
+          restoreScrollPositionMobile(conversation.id);
+        }
+      }, 600); // Wait longer than the auto-scroll delay
+    } catch (error) {
+      console.error('Failed to load conversation history:', error);
+      // Fallback to preview messages if full history fails
+      const uiMessages = conversation.messages.map(msg => ({
+        role: msg.role.toLowerCase() as 'user' | 'assistant',
+        content: msg.content
+      }));
+      setMessages(uiMessages);
+    }
+  }, [clearMessages, setMessages, selectConversation, restoreScrollPosition, restoreScrollPositionMobile, isMobile]);
 
   const handleDeleteClick = (conversation: Conversation, e: React.MouseEvent) => {
     e.stopPropagation();

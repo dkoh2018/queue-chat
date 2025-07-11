@@ -172,12 +172,10 @@ export const useConversations = (): UseConversationsReturn => {
     const existingConversation = conversations.find(c => c.id === conversationId);
 
     if (existingConversation) {
-      // Existing conversation - do optimistic update
+      // Existing conversation - immediate optimistic update like ChatGPT
       optimisticallyUpdateConversationOrder(conversationId);
-      // Quick refresh after optimistic update
-      setTimeout(() => {
-        revalidate();
-      }, 500); // Reduced to 500ms for faster updates
+      // Immediate refresh for consistent behavior
+      revalidate();
     } else {
       const title = userMessage
         ? (userMessage.length > 50 ? userMessage.slice(0, 50) + '...' : userMessage)
@@ -191,6 +189,7 @@ export const useConversations = (): UseConversationsReturn => {
         messages: []
       };
 
+      // Immediate optimistic update for new conversations
       mutate(
         CONVERSATIONS_KEY,
         (currentData: Conversation[] | undefined) =>
@@ -198,9 +197,8 @@ export const useConversations = (): UseConversationsReturn => {
         false
       );
 
-      setTimeout(() => {
-        revalidate();
-      }, 100);
+      // Immediate refresh to get real data
+      revalidate();
     }
   }, [optimisticallyUpdateConversationOrder, revalidate, conversations]);
 
