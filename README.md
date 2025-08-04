@@ -15,22 +15,21 @@
 
 ## ✨ Features
 
-🔄 **Asynchronous Message Queue** - Batch multiple queries for enhanced context
-🧠 **Two-Stage AI Processing** - Input optimization → Enhanced responses
-🎙️ **Voice-to-Text Input** - Record audio directly and have it transcribed.
-🌐 **Integrated Web Search** - Let the AI search the web for up-to-date information.
-📊 **AI-Powered Diagrams** - Automatic Mermaid.js generation from text.
-📅 **Google Calendar Integration** - Smart calendar queries and event management.
-⌨️ **Keyboard Shortcuts** - Navigate and use the app efficiently.
-📝 **Custom System Instructions** - Define custom behaviors for the AI.
-💻 **Syntax Highlighting** - View code blocks with proper highlighting.
-🔍 **Interactive Tables** - Enlarge and inspect tables in responses.
-🔐 **Multi-User Security** - Row-level security with OAuth authentication
-📱 **Responsive Design** - Optimized for desktop and mobile
-⚡ **Real-time Updates** - Live queue status and conversation sync
+- 🔄 **Asynchronous Message Queue** - Batch multiple queries for enhanced context
+- 🧠 **Two-Stage AI Processing** - Input optimization → Enhanced responses
+- 🎙️ **Voice-to-Text Input** - Record audio directly and have it transcribed.
+- 🌐 **Integrated Web Search** - Let the AI search the web for up-to-date information.
+- 📊 **AI-Powered Diagrams** - Automatic Mermaid.js generation from text.
+- 📅 **Google Calendar Integration** - Smart calendar queries and event management.
+- ⌨️ **Keyboard Shortcuts** - Navigate and use the app efficiently.
+- 📝 **Custom System Instructions** - Define custom behaviors for the AI.
+- 💻 **Syntax Highlighting** - View code blocks with proper highlighting.
+- 🔍 **Interactive Tables** - Enlarge and inspect tables in responses.
+- 🔐 **Multi-User Security** - Row-level security with OAuth authentication
+- 📱 **Responsive Design** - Optimized for desktop and mobile
+- ⚡ **Real-time Updates** - Live queue status and conversation sync
 
 ## 🏗️ Architecture
-
 ```mermaid
 graph LR
     A[User Input] --> B[Queue System]
