@@ -293,7 +293,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({ model: 'gpt-4o-mini', messages: messagesForAPI }),
+      body: JSON.stringify({ model: 'gpt-5-mini', messages: messagesForAPI }),
     });
 
     if (!openaiResponse.ok) {
